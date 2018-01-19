@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Hyperbolic Raymarching</title>
+  <!-- Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <!-- Style
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <style>
+      body {
+          background-color: #000;
+          color: #fff;
+          margin: 0px;
+          padding: 0;
+          overflow: hidden;
+      }
+  </style>
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+
+<body>
+  <img id="vr-icon" src="media/vr-icon.png" height="50px"
+    style="
+      position: fixed;
+      bottom: 30px;
+      right: 50px;
+      display: none;
+  "/>
+</body>
+
+<!-- Scripts
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+
+<script type="x-shader/x-vertex" id="vertexShader">
+  void main()
+  {
+    vec4 p = vec4(position.xyz, 1.0);
+    gl_Position = p;
+  }
+</script>
+
+<script type="x-shader/x-fragment" id="fragmentShader">
+  void main()
+  {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)
+  }
+</script>
+
+<script src="js/lib/three.min.js"></script>
+<script src="js/HyperSpace.js" id="mainCode"></script>
+</html>

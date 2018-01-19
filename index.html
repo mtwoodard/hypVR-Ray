@@ -25,33 +25,33 @@
 </head>
 
 <body>
-  <img id="vr-icon" src="media/vr-icon.png" height="50px"
-    style="
-      position: fixed;
-      bottom: 30px;
-      right: 50px;
-      display: none;
-  "/>
+
 </body>
 
-<!-- Scripts
+
+<!-- Shaders
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
 <script type="x-shader/x-vertex" id="vertexShader">
   void main()
   {
-    vec4 p = vec4(position.xyz, 1.0);
-    gl_Position = p;
+      vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * modelViewPosition;
   }
 </script>
 
 <script type="x-shader/x-fragment" id="fragmentShader">
   void main()
   {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0)
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
   }
 </script>
 
+<!-- Scripts
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <script src="js/lib/three.min.js"></script>
+<!-- script src="js/vr/PhoneVR.js"></script -->
+<script src="js/vr/VRControls.js"></script>
+<script src="js/vr/VREffect.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

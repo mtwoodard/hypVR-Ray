@@ -6,6 +6,8 @@ var cube;
 
 var effect;
 var controls;
+var currentBoost = new THREE.Matrix4().set(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)
+var bigMatArray;
 
 //-------------------------------------------------------
 // Sets up the scene with objects

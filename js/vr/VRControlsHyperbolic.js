@@ -94,7 +94,7 @@ THREE.VRControls = function ( camera, done ) {
 			offset = new THREE.Vector3();
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
 			offset.y = vrState.hmd.lastPosition[1] - vrState.hmd.position[1];
-			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2]; 
+			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
 		} else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
 		    offset = getFwdVector().multiplyScalar(0.2 * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(0.2 * interval * this.manualMoveRate[1])).add(
@@ -118,14 +118,14 @@ THREE.VRControls = function ( camera, done ) {
 		}
 
 		//if outside central cell, move back
-		if (fixOutside){
+		/*if (fixOutside){
 			movedTowardsCentralCubeThisFrameIndex = fixOutsideCentralCell( currentBoost, tilingGens );
-		}
+		}*/
 
 		//run to avoid error accumulation
 
 		// currentBoost.elements = fastGramSchmidt( currentBoost.elements );
-		currentBoost.elements = gramSchmidt( currentBoost.elements ); //seems more stable near infinity
+		//currentBoost.elements = gramSchmidt( currentBoost.elements ); //seems more stable near infinity
 
 
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
@@ -221,7 +221,7 @@ THREE.VRControls = function ( camera, done ) {
 	};
 };
 
-var fixOutside = true; //moves you back inside the central cell if you leave it
+//var fixOutside = true; //moves you back inside the central cell if you leave it
 /*
 Listen for double click event to enter full-screen VR mode
 */
@@ -251,11 +251,11 @@ function onkey(event) {
     effect.setFullScreen(true); //fullscreen
   } else if (event.keyCode == 86 || event.keyCode == 13 || event.keyCode == 32 ) { // v or 'enter' or 'space' for VR mode
     effect.toggleVRMode();
-  } else if (event.keyCode == 84) { // t
+  } /*else if (event.keyCode == 84) { // t
   	fixOutside = !fixOutside;
   }	else if (event.keyCode == 82) { // r
   	fixOutsideCentralCell( currentBoost, tilingGens );
-  }	 
+  }	 */
 }
 
 window.addEventListener("keydown", onkey, true);

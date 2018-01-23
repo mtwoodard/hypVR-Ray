@@ -28,6 +28,12 @@ var init = function(){
   var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
   //generate material from shaders in index.html --------------
   var material = new THREE.ShaderMaterial({
+    uniforms:{
+      boost: {
+        type: "m4",
+        value: new THREE.Matrix4().set(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)
+      }
+    },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: document.getElementById('fragmentShader').textContent
   });

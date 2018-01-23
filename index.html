@@ -39,9 +39,24 @@
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
 <script type="x-shader/x-vertex" id="vertexShader">
+  //uniform mat4 translation;
+  uniform mat4 boost;
+
+  vec4 projectToHyperboloid(vec4 v) {
+    float scaleFactor = sqrt(v.w * v.w - v.x * v.x - v.y * v.y - v.z * v.z);
+
+    vec4 result;
+    result.x = v.x / scaleFactor;
+    result.y = v.y / scaleFactor;
+    result.z = v.z / scaleFactor;
+    result.w = v.w / scaleFactor;
+    return result;
+  }
+
   void main()
   {
-      vec4 p = vec4(position.xyz, 1.0);
+      vec4 p = projectToHyperboloid(vec4(position.zyx, 1.0));
+      p = boost  * p;
       gl_Position = projectionMatrix * modelViewMatrix * p;
   }
 </script>
@@ -59,7 +74,6 @@
 <script src="js/HypMath.js"></script>
 <script src="js/vr/PhoneVR.js"></script>
 <script src="js/vr/VRControlsHyperbolic.js"></script>
-<!-- script src="js/vr/VRControls.js"></script-->
 <script src="js/vr/VREffect.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

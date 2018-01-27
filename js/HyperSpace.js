@@ -1,56 +1,50 @@
-var camera;
 var scene;
 var renderer;
+var camera;
 var mesh;
-var cube;
-
-var effect;
-var controls;
-var currentBoost = new THREE.Matrix4().set(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)
-var bigMatArray;
+var geom;
+var material;
 
 //-------------------------------------------------------
 // Sets up the scene with objects
 //-------------------------------------------------------
 var init = function(){
-  //Three scene stuff -----------------------------------------
+  //Setup our THREE scene--------------------------------
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(80, window.innerWidth/window.innerHeight, 0.1, 100);
-  camera.position.x = 0;
-  camera.position.z = 0;
-  renderer = new THREE.WebGLRenderer({antialias: true});
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-  //VR Stuff --------------------------------------------------
-  controls = new THREE.VRControls(camera);
-  effect = new THREE.VREffect(renderer);
-  effect.setSize(window.innerWidth, window.innerHeight);
-  //make a cube we can see ------------------------------------
-  var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-  //generate material from shaders in index.html --------------
-  var material = new THREE.ShaderMaterial({
+  camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
+  //Setup our material----------------------------------
+  material = new THREE.ShaderMaterial({
     uniforms:{
-      boost: {
-        type: "m4",
-        value: new THREE.Matrix4().set(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)
-      }
+      screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
-    fragmentShader: document.getElementById('fragmentShader').textContent
+    fragmentShader: document.getElementById('fragmentShader').textContent,
+    transparent:true
   });
-  cube = new THREE.Mesh(geometry, material);
-  cube.position.z = -0.3;
-  scene.add(cube);
+  //Setup a "quad" to render on-------------------------
+  geom = new THREE.BufferGeometry();
+  var vertices = new Float32Array([
+    -1.0, -1.0, 0.0,
+     1.0, -1.0, 0.0,
+     1.0,  1.0, 0.0,
+
+    -1.0, -1.0, 0.0,
+     1.0,  1.0, 0.0,
+    -1.0,  1.0, 0.0
+  ]);
+  geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
+  mesh = new THREE.Mesh(geom, material);
+  scene.add(mesh);
 }
 
 //-------------------------------------------------------
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  controls.update();
-  cube.rotation.x += 0.1;
-  cube.rotation.y += 0.1;
-
-  effect.render(scene, camera);
+  renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 
@@ -64,24 +58,11 @@ animate();
 //-------------------------------------------------------
 // Event listeners
 //-------------------------------------------------------
-
-// Double click for full screen ------------------------------
-document.body.addEventListener('dblclick', function(){
-  effect.setFullScreen(true);
-});
-// On keydown for z, zero the device's positional sensor -----
-var onKey = function(event){
-  event.preventDefault();
-  if(event.keyCode == 90){
-    controls.zeroSensor();
+var onResize = function(){
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  if(material != null){
+    material.uniforms.screenResolution.value.x = window.innerWidth;
+    material.uniforms.screenResolution.value.y = window.innerHeight;
   }
 }
-window.addEventListener("keydown", onKey, true);
-// adjust projection matrix when resizing window -------------
-var onWindowResize = function(){
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  effect.setSize(window.innerWidth, window.innerHeight);
-}
-window.addEventListener('resize', onWindowResize, false);
+window.addEventListener('resize', onResize, false);

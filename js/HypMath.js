@@ -53,45 +53,6 @@ function digitsDepth( digits ) {
 	return digits.length - numZeros;
 }
 
-function makeTsfmsList( tilingGens, tilingDepth ) {
-	var numTsfmsEachDepth = [];
-	var cumulativeNumTsfms = [];
-	for (var l = 0; l < tilingDepth + 1; l++) {  //initialise array to zeros
-		numTsfmsEachDepth[numTsfmsEachDepth.length] = 0;
-		cumulativeNumTsfms[cumulativeNumTsfms.length] = 0;
-	}
-	var numGens = tilingGens.length;
-	var tsfms = [];
-    var words = [];
-	for (var j = 0; j < Math.pow(numGens, tilingDepth); j++) {
-	    var digits = [];
-	    var jcopy = j;
-	    for (var k = 0; k < tilingDepth; k++) {
-	      digits[digits.length] = jcopy % numGens;
-	      jcopy = (jcopy/numGens)|0;
-	    }
-	    // console.log(digits);
-	    var newTsfm = new THREE.Matrix4();
-	    for (var l = 0; l < tilingDepth; l++) {
-	      newTsfm = newTsfm.multiply(tilingGens[digits[l]]);
-	    }
-
-	    if ( !isMatrixInArray(newTsfm, tsfms) ) {
-	      tsfms[tsfms.length] = newTsfm;
-          words[words.length] = digits;
-	      numTsfmsEachDepth[digitsDepth(digits)] += 1;
-	    }
-	}
-
-	for (var i = 0; i < tilingDepth; i++){
-		cumulativeNumTsfms[i] = numTsfmsEachDepth[i];
-		if (i>0){
-			cumulativeNumTsfms[i] += cumulativeNumTsfms[i-1];
-		}
-	}
-	return [tsfms, words, cumulativeNumTsfms];
-}
-
 function translateByVector(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
   var dx = v.x;
   var dy = v.y;
@@ -229,6 +190,11 @@ function lorentzDot( u, v ){
 
 function norm( v ){
 	return Math.sqrt(Math.abs(lorentzDot(v,v)));
+}
+
+function v_from_vprime(u, vprime){
+  var out = vprime - lorentzDot(u,vprime)*u;
+  return (1.0/norm(out)*out);
 }
 
 function gramSchmidt( m ){

@@ -31,6 +31,7 @@ var init = function(){
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraOrigin:{type:"v3", value:virtCamera.position},
+
       fov:{type:"f", value:virtCamera.fov}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
@@ -59,7 +60,7 @@ var init = function(){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  virtCamera.position.z = 10.0 + 5.0*Math.sin((Date.now()-time)/1000);
+  //virtCamera.position.z = 10.0 + 5.0*Math.sin((Date.now()-time)/1000);
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }

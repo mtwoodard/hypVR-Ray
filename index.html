@@ -89,8 +89,12 @@
     return (0.5 * (eX - 1.0/eX));
   }
 
+  //float lorentzDot(vec4 u, vec4 v){
+  	//return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  //}
+
   float lorentzDot(vec4 u, vec4 v){
-  	return u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w;
+  	return u.x*v.x + u.y*v.y + u.z*v.z + u.w*v.w;
   }
 
   float hypNorm(vec4 v){
@@ -98,30 +102,15 @@
   }
 
   vec4 vFromVPrime(vec4 u, vec4 vPrime){
-    vec4 v = vPrime - lorentzDot(u,vPrime)*u;
+    vec4 v = vPrime - lorentzDot(u, vPrime)*u;
     return (1.0/hypNorm(v)*v);
   }
   //-------------------------------------------------------
 
-  //Helps with full screen shaders
-  //From https://github.com/hughsk/glsl-square-frame
-  vec2 squareFrame(vec2 screenSize) {
-    vec2 position = 2.0 * (gl_FragCoord.xy / screenSize.xy) - 1.0;
-    position.x *= screenSize.x / screenSize.y;
-    return position;
-  }
-
-  vec2 squareFrame(vec2 screenSize, vec2 coord) {
-    vec2 position = 2.0 * (coord.xy / screenSize.xy) - 1.0;
-    position.x *= screenSize.x / screenSize.y;
-    return position;
-  }
-
-  //Based on http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
     vec2 xy = fragCoord - resolution / 2.0;
     float z = resolution.y/tan(radians(fov)/2.0);
-    vec4 p = projectToHyperboloid(vec4(vec3(xy,-z),1.0));
+    vec4 p = projectToHyperboloid(vec4(normalize(vec3(xy,-z)),1.0));
     return normalize(p);
   }
 
@@ -135,40 +124,10 @@
     return max(-d1, d2);
   }
 
-  //Raymarch primitives http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
-
-  /*float sphereSDF(vec3 samplePoint){
-    return length(samplePoint) - 1.0;
-  }
-
-  float boxSDF(vec3 samplePoint, vec3 size){
-    vec3 distance = abs(samplePoint) - size;
-    return min(max(distance.x, max(distance.y,distance.z)), 0.0) + length(max(distance,0.0));
-  }
-
-  //custom primitives
-
-  float hollowCubeSDF(vec3 samplePoint, float outerSize, float innerSize){
-    vec3 oS = vec3(outerSize, outerSize, outerSize);
-    vec3 iS = vec3(innerSize, innerSize, innerSize);
-    float oB = boxSDF(samplePoint, oS);
-    float iBX = boxSDF(samplePoint, vec3(oS.x*2.0, iS.y, iS.z));
-    float iBY = boxSDF(samplePoint, vec3(iS.x, oS.y*2.0, iS.z));
-    float iBZ = boxSDF(samplePoint, vec3(iS.x, iS.y, oS.z*2.0));
-    float iB = unionSDF(iBX, iBY);
-    iB = unionSDF(iB, iBZ);
-    return differenceSDF(iB, oB);
-  }
-
-  //This is essentially our raymarch scene-graph
-
-  float sceneSDF(vec3 samplePoint){
-    float final = hollowCubeSDF(samplePoint, 3.0, 2.75);
-    return final;
-  }*/
+  //Raymarch primitives
 
   float sphereHSDF(vec4 samplePoint){
-    return hypNorm(samplePoint) - 1.0;
+    return acos(lorentzDot(samplePoint,samplePoint)) - 1.0;
   }
 
   float sceneHSDF(vec4 samplePoint){
@@ -177,25 +136,11 @@
   }
   //-------------------------------------------------------
 
-  /*float shortestDistanceToSurface(vec3 rO, vec3 rD, float start, float end){
-    float depth = start;
-    for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-      float dist = sceneSDF(rO+depth*rD);
-      if(dist < EPSILON){
-        return depth;
-      }
-      depth += dist;
-      if(depth >= end){
-        return end;
-      }
-    }
-    return end;
-  }*/
-
   float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end){
     float depth = start; //depth is in radians
+    vec4 samplePoint = rO*cosh(depth)+rD*sinh(depth);
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-      vec4 samplePoint = rO*cosh(depth)+rD*sinh(depth);
+      samplePoint = rO*cosh(depth)+rD*sinh(depth);
       float dist = sceneHSDF(samplePoint);
       if(dist < EPSILON){
         return depth;
@@ -209,18 +154,18 @@
   }
 
   void main(){
-    vec2 screenPosition = squareFrame(screenResolution);
     vec4 rayOrigin = projectToHyperboloid(vec4(cameraOrigin.xyz,1.0));
-    vec4 rayDirVPrime = getRay(fov, screenPosition.xy, gl_FragCoord.xy);
+    vec4 rayDirVPrime = getRay(60.0, screenResolution, gl_FragCoord.xy);
     vec4 rayDirV = vFromVPrime(rayOrigin, rayDirVPrime);
 
     float dist = shortestDistanceToSurface(rayOrigin, rayDirV, MIN_DIST, MAX_DIST);
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
-      gl_FragColor = vec4(0.1,0.1,0.1,1.0);
+      gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
       return;
     }
-    gl_FragColor = vec4(0.35,0.1,0.35,1.0);
+    float depthColor = 1.0-dist/MAX_DIST;
+    gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
   }
 </script>
 

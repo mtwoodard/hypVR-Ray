@@ -24,8 +24,8 @@ var init = function(){
   camera.position.x = 2.0; //Just for fun shows the actual "Screen"
   camera.lookAt(0,0,0);*/
   virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
-  virtCamera.position.x = 10.0;
-  virtCamera.position.z = 10.0;
+  virtCamera.position.x = 0.0;
+  virtCamera.position.z = 5.0;
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{

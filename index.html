@@ -89,12 +89,16 @@
     return (0.5 * (eX - 1.0/eX));
   }
 
+  float lorentzDot(vec4 u, vec4 v){
+  	return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  }
+
   //float lorentzDot(vec4 u, vec4 v){
-  	//return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  	//return u.x*v.x + u.y*v.y + u.z*v.z + u.w*v.w;
   //}
 
-  float lorentzDot(vec4 u, vec4 v){
-  	return u.x*v.x + u.y*v.y + u.z*v.z + u.w*v.w;
+  float lorentzDot2(vec4 u, vec4 v){
+    return u.x*v.x - u.y*v.y - u.z*v.z - u.w*v.w;
   }
 
   float hypNorm(vec4 v){
@@ -102,9 +106,18 @@
   }
 
   vec4 vFromVPrime(vec4 u, vec4 vPrime){
-    vec4 v = vPrime - lorentzDot(u, vPrime)*u;
+    vec4 v = vPrime + lorentzDot(u, vPrime)*u;
     return (1.0/hypNorm(v)*v);
   }
+
+  /*float hypDistance(vec4 u, vec4 v){
+    float qUPV = lorentzDot(u+v, u+v);
+    float qU = lorentzDot(u,u);
+    float qV = lorentzDot(v,v);
+    float bUV = (qUPV - qU - qV)/2.0;
+    return acos(bUV);
+  }*/
+
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
@@ -127,7 +140,7 @@
   //Raymarch primitives
 
   float sphereHSDF(vec4 samplePoint){
-    return acos(lorentzDot(samplePoint,samplePoint)) - 1.0;
+    return lorentzDot(samplePoint, vec4(0,0,0,1))- 1.05;
   }
 
   float sceneHSDF(vec4 samplePoint){
@@ -155,17 +168,18 @@
 
   void main(){
     vec4 rayOrigin = projectToHyperboloid(vec4(cameraOrigin.xyz,1.0));
-    vec4 rayDirVPrime = getRay(60.0, screenResolution, gl_FragCoord.xy);
+    vec4 rayDirVPrime = getRay(90.0, screenResolution, gl_FragCoord.xy);
     vec4 rayDirV = vFromVPrime(rayOrigin, rayDirVPrime);
 
     float dist = shortestDistanceToSurface(rayOrigin, rayDirV, MIN_DIST, MAX_DIST);
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
-      gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
+      gl_FragColor = vec4(rayDirV.x,rayDirV.y,rayDirV.z,1.0);
       return;
     }
-    float depthColor = 1.0-dist/MAX_DIST;
-    gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    //float depthColor = 1.0-dist/MAX_DIST;
+    //gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    gl_FragColor = vec4(0.3,0.1,0.3,1.0);
   }
 </script>
 

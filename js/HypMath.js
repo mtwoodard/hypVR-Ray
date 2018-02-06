@@ -138,20 +138,20 @@ function parabolicBy2DVector(v) {  ///  something is wrong here we think...
   result.add(m2);
   //now conjugate to get based on camera orientation
   var cameraM = new THREE.Matrix4();
-  cameraM.makeRotationFromQuaternion(camera.quaternion);
+  cameraM.makeRotationFromQuaternion(virtCamera.quaternion);
   var cameraMinv = new THREE.Matrix4().getInverse(cameraM);
 
   return cameraM.multiply(result).multiply(cameraMinv);
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(0,0,-1).applyQuaternion(virtCamera.quaternion);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(1,0,0).applyQuaternion(virtCamera.quaternion);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(0,1,0).applyQuaternion(virtCamera.quaternion);
 }
 
 // fastGramSchmidt from Jeff Week's CurvedSpaces. Causes some wobble when far from the origin...

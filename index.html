@@ -53,7 +53,14 @@
 
   uniform vec2 screenResolution;
   uniform vec3 cameraOrigin;
+  uniform vec4 cameraQuat;
   uniform float fov;
+
+  //From https://www.opengl.org/discussion_boards/showthread.php/160134-Quaternion-functions-for-GLSL
+
+  vec3 qtransform( vec4 q, vec3 v ){
+    return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+  }
 
   //From http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
   vec3 getRay(float fov, vec2 resolution, vec2 fragCoord){
@@ -61,7 +68,6 @@
     float z = resolution.y/tan(radians(fov)/2.0);
     return normalize(vec3(xy,-z));
   }
-
 
   //Raymarch functions http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
@@ -99,6 +105,7 @@
   }
 
   //This is essentially our raymarch scene-graph
+  //From http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
 
   float sceneSDF(vec3 samplePoint){
     float final = hollowCubeSDF(samplePoint, 3.0, 2.75);
@@ -121,10 +128,22 @@
     return end;
   }
 
+  //COLORING FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  vec3 estimateNormal(vec3 p) {
+    return normalize(vec3(
+        sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
+        sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
+        sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+    ));
+  }
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   void main(){
     vec3 rayOrigin = cameraOrigin;
     vec3 rayDirection = getRay(fov, screenResolution, gl_FragCoord.xy);
-    float dist = shortestDistanceToSurface(rayOrigin, rayDirection, MIN_DIST, MAX_DIST);
+    vec3 worldDirection = qtransform(cameraQuat, rayDirection);
+    float dist = shortestDistanceToSurface(rayOrigin, worldDirection, MIN_DIST, MAX_DIST);
 
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
@@ -132,13 +151,17 @@
       return;
     }
 
-    float depthColor = 1.0-dist/MAX_DIST;
-    gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    vec3 p = rayOrigin + dist * worldDirection;
+    vec3 color = estimateNormal(p);
+    gl_FragColor = vec4(p.x,p.y,p.z,1.0);
   }
 </script>
 
 <!-- Scripts
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <script src="js/lib/three.min.js"></script>
+<script src="js/HypMath.js"></script>
+<script src="js/vr/PhoneVR.js"></script>
+<script src="js/vr/VRControlsHyperbolic.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

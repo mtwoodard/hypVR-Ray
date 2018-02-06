@@ -5,10 +5,10 @@
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();
-
+	var speed = 2.0;
 	this._camera = camera;
 	this._oldVRState;
-	this._defaultPosition = [0,0,0];
+	this._defaultPosition = [0,0,10];
 
 	this._init = function () {
 		var self = this;
@@ -86,28 +86,27 @@ THREE.VRControls = function ( camera, done ) {
 		this.updateTime = newTime;
 
 		var interval = (newTime - oldTime) * 0.001;
-
 		///do translation
 		var m;
-		var offset;
+		var offset = new THREE.Vector3();
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
-			offset = new THREE.Vector3();
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
 			offset.y = vrState.hmd.lastPosition[1] - vrState.hmd.position[1];
 			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
-		} else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
-		    offset = getFwdVector().multiplyScalar(0.2 * interval * this.manualMoveRate[0]).add(
-		      		   getRightVector().multiplyScalar(0.2 * interval * this.manualMoveRate[1])).add(
-		      		   getUpVector().multiplyScalar(0.2 * interval * this.manualMoveRate[2]));
+		}
+		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
+			  offset = getFwdVector().multiplyScalar(2*speed * interval * this.manualMoveRate[0]).add(
+		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
+		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
 
 		}
-		if (offset !== undefined) {
+		/*if (offset !== THREE) {
 			m = translateByVector(offset);
 		    m.multiply(currentBoost);
 		    currentBoost.copy(m);
-		}
+		}*/
 
-		//do parabolic motion
+		/*do parabolic motion
 		var m2, parabolicVector;
 		if (this.manualParabolicRate[0] != 0 || this.manualParabolicRate[1] != 0) {
 			parabolicVector = new THREE.Vector2(0.2 * interval * this.manualParabolicRate[0],
@@ -115,7 +114,7 @@ THREE.VRControls = function ( camera, done ) {
 		    m2 = parabolicBy2DVector(parabolicVector);
 		    m2.multiply(currentBoost);
 		    currentBoost.copy(m2);
-		}
+		}*/
 
 		//if outside central cell, move back
 		/*if (fixOutside){
@@ -128,16 +127,16 @@ THREE.VRControls = function ( camera, done ) {
 		//currentBoost.elements = gramSchmidt( currentBoost.elements ); //seems more stable near infinity
 
 
-		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
-	                               this.manualRotateRate[1] * 0.2 * interval,
-	                               this.manualRotateRate[2] * 0.2 * interval, 1.0);
+		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
+	                               this.manualRotateRate[1] * -0.2 * interval,
+	                               this.manualRotateRate[2] * -0.2 * interval, 1.0);
 		update.normalize();
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
 		if ( camera ) {
 			if ( !vrState ) {
 				camera.quaternion.copy(manualRotation);
-				// camera.position = camera.position.add(offset);
+				camera.position = camera.position.add(offset);
 				return;
 			}
 
@@ -228,11 +227,11 @@ Listen for double click event to enter full-screen VR mode
 document.body.addEventListener( 'click', function(event) {
 	if (event.target.id === "vr-icon") {
 		event.target.style.display = "none";
-		effect.phoneVR.setVRMode(!effect.phoneVR.isVRMode);
+		renderer.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
 	}
 
- 	if (effect.phoneVR.orientationIsAvailable()) {
-  		effect.setFullScreen( true );
+ 	if (renderer.phoneVR.orientationIsAvailable()) {
+  		renderer.setFullScreen( true );
 		if (typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function') {
 		  window.screen.orientation.lock('landscape-primary');
 		}
@@ -248,9 +247,9 @@ function onkey(event) {
   if (event.keyCode == 90) { // z
     controls.zeroSensor(); //zero rotation
   } else if (event.keyCode == 70 || event.keyCode == 13) { //f
-    effect.setFullScreen(true); //fullscreen
+    renderer.setFullScreen(true); //fullscreen
   } else if (event.keyCode == 86 || event.keyCode == 13 || event.keyCode == 32 ) { // v or 'enter' or 'space' for VR mode
-    effect.toggleVRMode();
+    renderer.toggleVRMode();
   } /*else if (event.keyCode == 84) { // t
   	fixOutside = !fixOutside;
   }	else if (event.keyCode == 82) { // r
@@ -263,7 +262,6 @@ window.addEventListener("keydown", onkey, true);
 //hold down keys to do rotations and stuff
 function key(event, sign) {
   var control = controls.manualControls[event.keyCode];
-
   if (control == undefined || sign === 1 && control.active || sign === -1 && !control.active) {
     return;
   }
@@ -288,13 +286,3 @@ function tap(event, sign) {
 
 document.addEventListener('touchstart', function(event) { tap(event, 1); }, false);
 document.addEventListener('touchend', function(event) { tap(event, -1); }, false);
-
-/*
-Handle window resizes
-*/
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  effect.setSize( window.innerWidth, window.innerHeight );
-}
-window.addEventListener( 'resize', onWindowResize, false );

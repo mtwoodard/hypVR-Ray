@@ -95,10 +95,10 @@ THREE.VRControls = function ( camera, done ) {
 			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
 		}
 		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
-			  offset = getFwdVector().multiplyScalar(2*speed * interval * this.manualMoveRate[0]).add(
+			  offset = getFwdVector().multiplyScalar(speed * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
-
+				console.log(getFwdVector());
 		}
 		/*if (offset !== THREE) {
 			m = translateByVector(offset);
@@ -127,9 +127,9 @@ THREE.VRControls = function ( camera, done ) {
 		//currentBoost.elements = gramSchmidt( currentBoost.elements ); //seems more stable near infinity
 
 
-		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
-	                               this.manualRotateRate[1] * -0.2 * interval,
-	                               this.manualRotateRate[2] * -0.2 * interval, 1.0);
+		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
+	                               this.manualRotateRate[1] * 0.2 * interval,
+	                               this.manualRotateRate[2] * 0.2 * interval, 1.0);
 		update.normalize();
 		manualRotation.multiplyQuaternions(manualRotation, update);
 

@@ -98,7 +98,6 @@ THREE.VRControls = function ( camera, done ) {
 			  offset = getFwdVector().multiplyScalar(speed * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
-				console.log(getFwdVector());
 		}
 		/*if (offset !== THREE) {
 			m = translateByVector(offset);

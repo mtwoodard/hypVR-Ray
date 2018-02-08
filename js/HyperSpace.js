@@ -5,6 +5,7 @@ var virtCamera;
 var mesh;
 var geom;
 var material;
+var controls;
 
 var time;
 
@@ -25,12 +26,13 @@ var init = function(){
   camera.lookAt(0,0,0);*/
   virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
   virtCamera.position.z = 0.1;
+  controls = new THREE.VRControls(virtCamera);
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraOrigin:{type:"v3", value:virtCamera.position},
-
+      cameraQuat:{type:"v4", value:virtCamera.quaternion},
       fov:{type:"f", value:virtCamera.fov}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
@@ -59,7 +61,7 @@ var init = function(){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  //virtCamera.position.z = 0.5 + 0.5*Math.sin((Date.now()-time)/1000);
+  controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }

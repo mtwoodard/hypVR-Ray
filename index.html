@@ -53,6 +53,7 @@
 
   uniform vec2 screenResolution;
   uniform vec3 cameraOrigin;
+  uniform vec4 cameraQuat;
   uniform float fov;
 
   vec4 projectToHyperboloid(vec4 v) {
@@ -66,17 +67,26 @@
     return result;
   }
 
-  //Quaternion Math functions
-  //-------------------------------------------------------
-    float innerProduct(vec4 q1, vec4 q2){
-      return q1.x*q2.x+q1.y*q2.y+q1.z*q2.z+q1.z*q2.z+q1.w*q2.w;
-    }
-    float quatDistance(vec4 q1, vec4 q2){
-      float iP = innerProduct(q1,q2);
-      return acos(2.0*iP*iP - 1.0);
-    }
-  //-------------------------------------------------------
+  vec3 qtransform( vec4 q, vec3 v ){
+    return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
+  }
 
+  float mapRadiansTo0toPI(float r){ //?
+    float rF = r;
+    for(int i = 0; i< MAX_MARCHING_STEPS; i++){
+      if(rF<0.0){
+        rF+=3.14;
+      }
+      else if(r>3.14){
+        rF-=3.14;
+      }
+      else{
+        return rF;
+      }
+    }
+  }
+
+  //-------------------------------------------------------
   //Hyperbolic Math functions
   //-------------------------------------------------------
   float cosh(float rads){
@@ -89,31 +99,27 @@
     return (0.5 * (eX - 1.0/eX));
   }
 
+  float lorentzDotInvert(vec4 u, vec4 v){
+  	return u.x*v.x - u.y*v.y - u.z*v.z - u.w*v.w;
+  }
+
   float lorentzDot(vec4 u, vec4 v){
   	return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
   }
 
-  //float lorentzDot(vec4 u, vec4 v){
-  	//return u.x*v.x + u.y*v.y + u.z*v.z + u.w*v.w;
-  //}
-
-  float lorentzDot2(vec4 u, vec4 v){
-    return u.x*v.x - u.y*v.y - u.z*v.z - u.w*v.w;
-  }
-
   float hypNorm(vec4 v){
-  	return sqrt(abs(lorentzDot(v,v)));
+  	return sqrt(abs(lorentzDotInvert(v,v)));
   }
 
   vec4 vFromVPrime(vec4 u, vec4 vPrime){
-    vec4 v = vPrime + lorentzDot(u, vPrime)*u;
+    vec4 v = vPrime + lorentzDotInvert(u, vPrime)*u;
     return (1.0/hypNorm(v)*v);
   }
 
   float hypDistance(vec4 u, vec4 v){
-    float qUPV = lorentzDot(u+v, u+v);
-    float qU = lorentzDot(u,u);
-    float qV = lorentzDot(v,v);
+    float qUPV = lorentzDotInvert(u+v, u+v);
+    float qU = lorentzDotInvert(u,u);
+    float qV = lorentzDotInvert(v,v);
     float bUV = (qUPV - qU - qV)/2.0;
     return acos(bUV);
   }
@@ -121,9 +127,10 @@
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
-    vec2 xy = (fragCoord - resolution / 2.0)/resolution.x;
+    vec2 xy = (fragCoord - resolution / 2.0)/resolution.xy;
     float z = 0.1;
-    vec4 p = projectToHyperboloid(vec4(vec3(xy,-z),1.0));
+    vec3 pPre = qtransform(cameraQuat, vec3(xy,-z));
+    vec4 p = projectToHyperboloid(vec4(pPre,1.0));
     return normalize(p);
   }
 
@@ -140,7 +147,7 @@
   //Raymarch primitives
 
   float sphereHSDF(vec4 samplePoint){
-    return hypDistance(samplePoint, vec4(0,0,0,1))- 1.0;
+    return hypDistance(vec4(0,0,0,1), samplePoint) - 0.1;
   }
 
   float sceneHSDF(vec4 samplePoint){
@@ -177,15 +184,16 @@
       gl_FragColor = vec4(rayDirV.x,rayDirV.y,rayDirV.z,1.0);
       return;
     }
-    //float depthColor = 1.0-dist/MAX_DIST;
-    //gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
-    gl_FragColor = vec4(0.3,0.1,0.3,1.0);
+    float depthColor = 1.0-dist/MAX_DIST;
+    gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
   }
 </script>
 
 <!-- Scripts
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <script src="js/lib/three.min.js"></script>
+<script src="js/HypMath.js"></script>
+<script src="js/vr/PhoneVR.js"></script>
+<script src="js/vr/VRControlsHyperbolic.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
-<!--script src="js/HypMath.js"></script-->
 </html>

@@ -101,13 +101,13 @@ THREE.VRControls = function ( camera, done ) {
 		      		   getUpVector().multiplyScalar(0.2 * interval * this.manualMoveRate[2]));
 
 		}
-		if (offset !== undefined) {
+		/*if (offset !== undefined) {
 			m = translateByVector(offset);
 		    m.multiply(currentBoost);
 		    currentBoost.copy(m);
-		}
+		}*/
 
-		//do parabolic motion
+		/*do parabolic motion
 		var m2, parabolicVector;
 		if (this.manualParabolicRate[0] != 0 || this.manualParabolicRate[1] != 0) {
 			parabolicVector = new THREE.Vector2(0.2 * interval * this.manualParabolicRate[0],
@@ -115,7 +115,7 @@ THREE.VRControls = function ( camera, done ) {
 		    m2 = parabolicBy2DVector(parabolicVector);
 		    m2.multiply(currentBoost);
 		    currentBoost.copy(m2);
-		}
+		}*/
 
 		//if outside central cell, move back
 		/*if (fixOutside){
@@ -137,7 +137,7 @@ THREE.VRControls = function ( camera, done ) {
 		if ( camera ) {
 			if ( !vrState ) {
 				camera.quaternion.copy(manualRotation);
-				// camera.position = camera.position.add(offset);
+				//camera.position = camera.position.add(offset);
 				return;
 			}
 
@@ -224,7 +224,7 @@ THREE.VRControls = function ( camera, done ) {
 //var fixOutside = true; //moves you back inside the central cell if you leave it
 /*
 Listen for double click event to enter full-screen VR mode
-*/
+
 document.body.addEventListener( 'click', function(event) {
 	if (event.target.id === "vr-icon") {
 		event.target.style.display = "none";
@@ -237,7 +237,7 @@ document.body.addEventListener( 'click', function(event) {
 		  window.screen.orientation.lock('landscape-primary');
 		}
 	}
-});
+});*/
 
 /*
 Listen for keyboard events

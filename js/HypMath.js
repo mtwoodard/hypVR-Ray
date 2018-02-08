@@ -106,13 +106,13 @@ function parabolicBy2DVector(v) {  ///  something is wrong here we think...
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(0,0,-1).applyQuaternion(virtCamera.quaternion);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(1,0,0).applyQuaternion(virtCamera.quaternion);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0).applyQuaternion(camera.quaternion);
+  return new THREE.Vector3(0,1,0).applyQuaternion(virtCamera.quaternion);
 }
 
 // fastGramSchmidt from Jeff Week's CurvedSpaces. Causes some wobble when far from the origin...

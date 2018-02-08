@@ -59,7 +59,7 @@
   //From https://www.opengl.org/discussion_boards/showthread.php/160134-Quaternion-functions-for-GLSL
 
   vec3 qtransform( vec4 q, vec3 v ){
-    return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+    return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
   }
 
   //From http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
@@ -147,7 +147,7 @@
 
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
-      gl_FragColor = vec4(rayDirection.x, rayDirection.y, rayDirection.z, 1.0);
+      gl_FragColor = vec4(worldDirection.x, worldDirection.y, worldDirection.z, 1.0);
       return;
     }
 

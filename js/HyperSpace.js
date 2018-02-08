@@ -24,8 +24,7 @@ var init = function(){
   camera.position.x = 2.0; //Just for fun shows the actual "Screen"
   camera.lookAt(0,0,0);*/
   virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
-  virtCamera.position.x = 0.0;
-  virtCamera.position.z = 0.5;
+  virtCamera.position.z = 0.1;
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
@@ -60,7 +59,7 @@ var init = function(){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  virtCamera.position.z = 0.5 + 0.5*Math.sin((Date.now()-time)/1000);
+  //virtCamera.position.z = 0.5 + 0.5*Math.sin((Date.now()-time)/1000);
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }

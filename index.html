@@ -110,20 +110,20 @@
     return (1.0/hypNorm(v)*v);
   }
 
-  /*float hypDistance(vec4 u, vec4 v){
+  float hypDistance(vec4 u, vec4 v){
     float qUPV = lorentzDot(u+v, u+v);
     float qU = lorentzDot(u,u);
     float qV = lorentzDot(v,v);
     float bUV = (qUPV - qU - qV)/2.0;
     return acos(bUV);
-  }*/
+  }
 
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
-    vec2 xy = fragCoord - resolution / 2.0;
-    float z = resolution.y/tan(radians(fov)/2.0);
-    vec4 p = projectToHyperboloid(vec4(normalize(vec3(xy,-z)),1.0));
+    vec2 xy = (fragCoord - resolution / 2.0)/resolution.x;
+    float z = 0.1;
+    vec4 p = projectToHyperboloid(vec4(vec3(xy,-z),1.0));
     return normalize(p);
   }
 
@@ -140,7 +140,7 @@
   //Raymarch primitives
 
   float sphereHSDF(vec4 samplePoint){
-    return lorentzDot(samplePoint, vec4(0,0,0,1))- 1.05;
+    return hypDistance(samplePoint, vec4(0,0,0,1))- 1.0;
   }
 
   float sceneHSDF(vec4 samplePoint){

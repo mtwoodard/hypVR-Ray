@@ -56,8 +56,13 @@
   uniform vec4 cameraQuat;
   uniform float fov;
 
+
+  float lorentzDot(vec4 u, vec4 v){
+    return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  }
+
   vec4 projectToHyperboloid(vec4 v) {
-    float scaleFactor = sqrt(v.w * v.w - v.x * v.x - v.y * v.y - v.z * v.z);
+    float scaleFactor = sqrt(lorentzDot(v,v));
 
     vec4 result;
     result.x = v.x / scaleFactor;
@@ -99,29 +104,22 @@
     return (0.5 * (eX - 1.0/eX));
   }
 
-  float lorentzDotInvert(vec4 u, vec4 v){
-  	return u.x*v.x - u.y*v.y - u.z*v.z - u.w*v.w;
-  }
-
-  float lorentzDot(vec4 u, vec4 v){
-  	return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  float acosh(float rads){ //must be more than 1
+    return log(rads + sqrt(rads*rads-1.0));
   }
 
   float hypNorm(vec4 v){
-  	return sqrt(abs(lorentzDotInvert(v,v)));
+  	return sqrt(abs(lorentzDot(v,v)));
   }
 
   vec4 vFromVPrime(vec4 u, vec4 vPrime){
-    vec4 v = vPrime + lorentzDotInvert(u, vPrime)*u;
+    vec4 v = vPrime - lorentzDot(u, vPrime)*u;
     return (1.0/hypNorm(v)*v);
   }
 
   float hypDistance(vec4 u, vec4 v){
-    float qUPV = lorentzDotInvert(u+v, u+v);
-    float qU = lorentzDotInvert(u,u);
-    float qV = lorentzDotInvert(v,v);
-    float bUV = (qUPV - qU - qV)/2.0;
-    return acos(bUV);
+    float bUV = lorentzDot(u,v);
+    return acosh(bUV);
   }
 
   //-------------------------------------------------------
@@ -147,7 +145,7 @@
   //Raymarch primitives
 
   float sphereHSDF(vec4 samplePoint){
-    return hypDistance(vec4(0,0,0,1), samplePoint) - 0.1;
+    return hypDistance(vec4(0,0,0,1), samplePoint) - 0.05;
   }
 
   float sceneHSDF(vec4 samplePoint){
@@ -157,10 +155,9 @@
   //-------------------------------------------------------
 
   float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end){
-    float depth = start; //depth is in radians
-    vec4 samplePoint = rO*cosh(depth)+rD*sinh(depth);
+    float depth = start;
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-      samplePoint = rO*cosh(depth)+rD*sinh(depth);
+      vec4 samplePoint = rO*cosh(depth)+rD*sinh(depth);
       float dist = sceneHSDF(samplePoint);
       if(dist < EPSILON){
         return depth;
@@ -184,8 +181,9 @@
       gl_FragColor = vec4(rayDirV.x,rayDirV.y,rayDirV.z,1.0);
       return;
     }
-    float depthColor = 1.0-dist/MAX_DIST;
-    gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    //float depthColor = 1.0-dist/MAX_DIST;
+    //gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    gl_FragColor = vec4(0.5,0.0,0.5,1.0);
   }
 </script>
 

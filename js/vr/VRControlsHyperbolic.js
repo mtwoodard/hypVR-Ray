@@ -291,10 +291,10 @@ document.addEventListener('touchend', function(event) { tap(event, -1); }, false
 
 /*
 Handle window resizes
-*/
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   effect.setSize( window.innerWidth, window.innerHeight );
 }
-window.addEventListener( 'resize', onWindowResize, false );
+window.addEventListener( 'resize', onWindowResize, false );*/

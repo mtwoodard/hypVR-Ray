@@ -125,7 +125,7 @@
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
-    vec2 xy = (fragCoord - resolution / 2.0)/resolution.xy;
+    vec2 xy = (fragCoord - resolution / 2.0)/resolution.x;
     float z = 0.1;
     vec3 pPre = qtransform(cameraQuat, vec3(xy,-z));
     vec4 p = projectToHyperboloid(vec4(pPre,1.0));

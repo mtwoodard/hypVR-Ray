@@ -89,9 +89,8 @@ THREE.VRControls = function ( camera, done ) {
 
 		///do translation
 		var m;
-		var offset;
+		var offset = new THREE.Vector3();;
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
-			offset = new THREE.Vector3();
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
 			offset.y = vrState.hmd.lastPosition[1] - vrState.hmd.position[1];
 			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
@@ -137,7 +136,7 @@ THREE.VRControls = function ( camera, done ) {
 		if ( camera ) {
 			if ( !vrState ) {
 				camera.quaternion.copy(manualRotation);
-				//camera.position = camera.position.add(offset);
+				cameraOffset = cameraOffset.add(offset);
 				return;
 			}
 

@@ -50,9 +50,11 @@
   const float MIN_DIST = 0.0;
   const float MAX_DIST = 100.0;
   const float EPSILON = 0.0001;
+  const float TILE_SIZE = 0.1;
 
   uniform vec2 screenResolution;
   uniform vec3 cameraOrigin;
+  uniform vec3 cameraOffset;
   uniform vec4 cameraQuat;
   uniform float fov;
 
@@ -76,19 +78,17 @@
     return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
   }
 
-  float mapRadiansTo0toPI(float r){ //?
-    float rF = r;
-    for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-      if(rF<0.0){
-        rF+=3.14;
-      }
-      else if(r>3.14){
-        rF-=3.14;
-      }
-      else{
-        return rF;
-      }
-    }
+  vec4 qmult(vec4 q, vec4 r){
+    float a = r.x*q.x - r.y*q.y - r.z*q.z - r.w*q.w;
+    float b = r.x*q.y + r.y*q.x - r.z*q.w + r.w*q.z;
+    float c = r.x*q.z + r.y*q.w + r.z*q.x - r.w*q.y;
+    float d = r.x*q.w - r.y*q.z - r.z*q.y + r.w*q.x;
+    return vec4(a,b,c,d);
+  }
+
+  vec4 qinverse(vec4 q){
+    float d = q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w;
+    return vec4(q.x/d, -q.y/d, -q.z/d, -q.w/d);
   }
 
   //-------------------------------------------------------
@@ -122,13 +122,45 @@
     return acosh(bUV);
   }
 
+  mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
+    float dx = v.x;
+    float dy = v.y;
+    float dz = v.z;
+    float len = sqrt(dx*dx + dy*dy + dz*dz);
+    if (len == 0.0)
+    {
+      return mat4(1.0);
+    }
+    else
+      {
+        dx /= len;
+        dy /= len;
+        dz /= len;
+        mat4 m = mat4(
+          vec4(0, 0, 0, dx),
+          vec4(0, 0, 0, dy),
+          vec4(0, 0, 0, dz),
+          vec4(dx,dy,dz, 0)
+        );
+        mat4 m2 = m*m;
+        float c1 = sinh(len);
+        float c2 = cosh(len) - 1.0;
+        m *= c1;
+        m2 *= c2;
+        mat4 result = mat4(1.0);
+        result += m;
+        result += m2;
+        return result;
+      }
+  }
+
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
     vec2 xy = (fragCoord - resolution / 2.0)/resolution.x;
     float z = 0.1;
     vec3 pPre = qtransform(cameraQuat, vec3(xy,-z));
-    vec4 p = projectToHyperboloid(vec4(pPre,1.0));
+    vec4 p = projectToHyperboloid(vec4(pPre, 1.0));
     return normalize(p);
   }
 
@@ -153,8 +185,14 @@
     return final;
   }
   //-------------------------------------------------------
+  /*bool isOutsideCell(vec4 rayOrigin){
 
-  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end){
+  }
+  vec4 fixOutsideCentralCell(vec4 rayOrigin, out vec4 tiling){
+
+  }*/
+
+  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec4 tiling){
     float depth = start;
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
       vec4 samplePoint = rO*cosh(depth)+rD*sinh(depth);
@@ -170,20 +208,39 @@
     return end;
   }
 
+ //COLORING FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ vec4 estimateNormal(vec4 p) {
+   return normalize(vec4(
+       sceneHSDF(vec4(p.x + EPSILON, p.y, p.z, p.w)) - sceneHSDF(vec4(p.x - EPSILON, p.y, p.z, p.w)),
+       sceneHSDF(vec4(p.x, p.y + EPSILON, p.z, p.w)) - sceneHSDF(vec4(p.x, p.y - EPSILON, p.z, p.w)),
+       sceneHSDF(vec4(p.x, p.y, p.z + EPSILON, p.w)) - sceneHSDF(vec4(p.x, p.y, p.z - EPSILON, p.w)),
+       sceneHSDF(vec4(p.x, p.y, p.z, p.w + EPSILON)) - sceneHSDF(vec4(p.x, p.y, p.z, p.w + EPSILON))
+   ));
+ }
+ //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   void main(){
+    vec4 tiling;
     vec4 rayOrigin = projectToHyperboloid(vec4(cameraOrigin.xyz,1.0));
+    rayOrigin *= translateByVector(cameraOffset);
+    /*if(isOutsideCell(rayOrigin)){
+      rayOrigin = fixOutsideCentralCell(rayOrigin, tiling);
+    }*/
     vec4 rayDirVPrime = getRay(90.0, screenResolution, gl_FragCoord.xy);
     vec4 rayDirV = vFromVPrime(rayOrigin, rayDirVPrime);
+    //rayDirV = qmult(rayDirV, cameraQuat);
 
-    float dist = shortestDistanceToSurface(rayOrigin, rayDirV, MIN_DIST, MAX_DIST);
+    float dist = shortestDistanceToSurface(rayOrigin, rayDirV, MIN_DIST, MAX_DIST, tiling);
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
       gl_FragColor = vec4(rayDirV.x,rayDirV.y,rayDirV.z,1.0);
       return;
     }
-    //float depthColor = 1.0-dist/MAX_DIST;
-    //gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
-    gl_FragColor = vec4(0.5,0.0,0.5,1.0);
+    float depthColor = 1.0-dist/MAX_DIST;
+    gl_FragColor = vec4(0.25,0.25,depthColor,1.0);
+    //vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
+    //vec4 color = estimateNormal(p);
+    //gl_FragColor = vec4(color.x,color.y,color.z,1.0);
   }
 </script>
 

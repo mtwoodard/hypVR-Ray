@@ -6,6 +6,7 @@ var mesh;
 var geom;
 var material;
 var controls;
+var cameraOffset;
 
 var time;
 
@@ -20,18 +21,17 @@ var init = function(){
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  /*camera = new THREE.PerspectiveCamera(60,1,0.1,1000);
-  camera.position.z = 2.0;
-  camera.position.x = 2.0; //Just for fun shows the actual "Screen"
-  camera.lookAt(0,0,0);*/
+
   virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
   virtCamera.position.z = 0.1;
+  cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraOrigin:{type:"v3", value:virtCamera.position},
+      cameraOffset:{type:"v3", value:cameraOffset},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
       fov:{type:"f", value:virtCamera.fov}
     },

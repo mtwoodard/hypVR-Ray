@@ -88,7 +88,7 @@
 
   vec4 qinverse(vec4 q){
     float d = q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w;
-    return vec4(q.x/d, -q.y/d, -q.z/d, -q.w/d);
+    return vec4(-q.x/d, -q.y/d, -q.z/d, q.w/d);
   }
 
   //-------------------------------------------------------
@@ -145,23 +145,18 @@
         mat4 m2 = m*m;
         float c1 = sinh(len);
         float c2 = cosh(len) - 1.0;
-        m *= c1;
-        m2 *= c2;
-        mat4 result = mat4(1.0);
-        result += m;
-        result += m2;
-        return result;
+        return mat4(1.0) + c1 * m + c2 * m2;
       }
   }
 
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
-    vec2 xy = (fragCoord - resolution / 2.0)/resolution.x;
+    vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
     float z = 0.1;
-    vec3 pPre = qtransform(cameraQuat, vec3(xy,-z));
+    vec3 pPre = qtransform(cameraQuat, vec3(xy,z));
     vec4 p = projectToHyperboloid(vec4(pPre, 1.0));
-    return normalize(p);
+    return p;
   }
 
   //Raymarch functions http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
@@ -176,12 +171,12 @@
 
   //Raymarch primitives
 
-  float sphereHSDF(vec4 samplePoint){
-    return hypDistance(vec4(0,0,0,1), samplePoint) - 0.05;
+  float sphereHSDF(vec4 samplePoint, vec3 eTranslate){
+    return hypDistance(vec4(0,0,0,1)*translateByVector(eTranslate), samplePoint) - 0.05;
   }
 
   float sceneHSDF(vec4 samplePoint){
-    float final = sphereHSDF(samplePoint);
+    float final = unionSDF(sphereHSDF(samplePoint, vec3(0.1,0.0,0.5)), sphereHSDF(samplePoint, vec3(-0.1,0.0,0.5)));
     return final;
   }
   //-------------------------------------------------------
@@ -209,26 +204,25 @@
   }
 
  //COLORING FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
- vec4 estimateNormal(vec4 p) {
-   return normalize(vec4(
-       sceneHSDF(vec4(p.x + EPSILON, p.y, p.z, p.w)) - sceneHSDF(vec4(p.x - EPSILON, p.y, p.z, p.w)),
-       sceneHSDF(vec4(p.x, p.y + EPSILON, p.z, p.w)) - sceneHSDF(vec4(p.x, p.y - EPSILON, p.z, p.w)),
-       sceneHSDF(vec4(p.x, p.y, p.z + EPSILON, p.w)) - sceneHSDF(vec4(p.x, p.y, p.z - EPSILON, p.w)),
-       sceneHSDF(vec4(p.x, p.y, p.z, p.w + EPSILON)) - sceneHSDF(vec4(p.x, p.y, p.z, p.w + EPSILON))
+ vec3 estimateNormal(vec4 p) {
+   return normalize(vec3(
+       sceneHSDF(p*translateByVector(vec3(EPSILON,0.0,0.0))) - sceneHSDF(p*translateByVector(vec3(-EPSILON,0.0,0.0))),
+       sceneHSDF(p*translateByVector(vec3(0.0,EPSILON,0.0))) - sceneHSDF(p*translateByVector(vec3(0.0,-EPSILON,0.0))),
+       sceneHSDF(p*translateByVector(vec3(0.0,0.0,EPSILON))) - sceneHSDF(p*translateByVector(vec3(0.0,0.0,-EPSILON)))
    ));
  }
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   void main(){
     vec4 tiling;
-    vec4 rayOrigin = projectToHyperboloid(vec4(cameraOrigin.xyz,1.0));
+    vec4 rayOrigin = projectToHyperboloid(vec4(0.0,0.0,0.0,1.0));
     rayOrigin *= translateByVector(cameraOffset);
     /*if(isOutsideCell(rayOrigin)){
       rayOrigin = fixOutsideCentralCell(rayOrigin, tiling);
     }*/
     vec4 rayDirVPrime = getRay(90.0, screenResolution, gl_FragCoord.xy);
+    rayDirVPrime *= translateByVector(cameraOffset);
     vec4 rayDirV = vFromVPrime(rayOrigin, rayDirVPrime);
-    //rayDirV = qmult(rayDirV, cameraQuat);
 
     float dist = shortestDistanceToSurface(rayOrigin, rayDirV, MIN_DIST, MAX_DIST, tiling);
     if(dist > MAX_DIST - EPSILON){
@@ -236,11 +230,11 @@
       gl_FragColor = vec4(rayDirV.x,rayDirV.y,rayDirV.z,1.0);
       return;
     }
-    float depthColor = 1.0-dist/MAX_DIST;
-    gl_FragColor = vec4(0.25,0.25,depthColor,1.0);
-    //vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
-    //vec4 color = estimateNormal(p);
-    //gl_FragColor = vec4(color.x,color.y,color.z,1.0);
+    //float depthColor = 1.0-dist/1.0;
+    //gl_FragColor = vec4(depthColor,depthColor,depthColor,1.0);
+    vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
+    vec3 color = estimateNormal(p);
+    gl_FragColor = vec4(color,1.0);
   }
 </script>
 

@@ -89,7 +89,7 @@ THREE.VRControls = function ( camera, done ) {
 
 		///do translation
 		var m;
-		var speed = 0.1;
+		var speed = 0.2;
 		var offset = new THREE.Vector3();
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];

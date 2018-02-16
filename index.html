@@ -233,6 +233,8 @@
         vec4 newDirection = rO*cosh(localDepth+0.1) + rD*sinh(localDepth+0.1);
         rO = samplePoint*fixMatrix;
         newDirection *= fixMatrix;
+        rO = projectToHyperboloid(rO);
+        newDirection = projectToHyperboloid(newDirection);
         rD = vPrimeFromV(rO,newDirection);
         localDepth = start;
       }
@@ -286,7 +288,7 @@
     float tilingColor = 1.0-tiling/5.0;
     vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
     vec3 color = estimateNormal(p);
-    gl_FragColor = vec4(depthColor,depthColor,0.0,1.0);
+    gl_FragColor = vec4(tilingColor,tilingColor*0.65,0.1,1.0);
   }
 </script>
 

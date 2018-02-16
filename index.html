@@ -288,7 +288,7 @@
     float tilingColor = 1.0-tiling/5.0;
     vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
     vec3 color = estimateNormal(p);
-    gl_FragColor = vec4(tilingColor,tilingColor*0.65,0.1,1.0);
+    gl_FragColor = vec4(depthColor,depthColor*0.65,0.1,1.0);
   }
 </script>
 

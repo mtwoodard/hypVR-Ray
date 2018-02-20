@@ -1,5 +1,6 @@
 var scene;
 var renderer;
+var effect;
 var camera;
 var virtCamera;
 var mesh;
@@ -18,7 +19,8 @@ var init = function(){
   time = Date.now();
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  effect = new THREE.VREffect(renderer);
+  effect.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
 
@@ -30,7 +32,6 @@ var init = function(){
   material = new THREE.ShaderMaterial({
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
-      cameraOrigin:{type:"v3", value:virtCamera.position},
       cameraOffset:{type:"v3", value:cameraOffset},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
       fov:{type:"f", value:virtCamera.fov}
@@ -62,7 +63,7 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
-  renderer.render(scene, camera);
+  effect.render(scene, camera);
   requestAnimationFrame(animate);
 }
 
@@ -77,7 +78,7 @@ animate();
 // Event listeners
 //-------------------------------------------------------
 var onResize = function(){
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  effect.setSize(window.innerWidth, window.innerHeight);
   if(material != null){
     material.uniforms.screenResolution.value.x = window.innerWidth;
     material.uniforms.screenResolution.value.y = window.innerHeight;

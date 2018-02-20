@@ -72,7 +72,6 @@
 
 
   uniform vec2 screenResolution;
-  uniform vec3 cameraOrigin;
   uniform vec3 cameraOffset;
   uniform vec4 cameraQuat;
   uniform float fov;
@@ -224,43 +223,48 @@
   //-------------------------------------------------------
 
 
-  bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+  bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out vec3 tiling){
     vec4 kleinSamplePoint = samplePoint/samplePoint.w;
     if(kleinSamplePoint.x > halfCubeWidth){
       fixMatrix = invGenerators[0];
+      tiling.x += 1.0;
       return true;
     }
     if(kleinSamplePoint.x < -halfCubeWidth){
       fixMatrix = invGenerators[1];
+      tiling.x -= 1.0;
       return true;
     }
     if(kleinSamplePoint.y > halfCubeWidth){
       fixMatrix = invGenerators[2];
+      tiling.y += 1.0;
       return true;
     }
     if(kleinSamplePoint.y < -halfCubeWidth){
       fixMatrix = invGenerators[3];
+      tiling.y -= 1.0;
       return true;
     }
     if(kleinSamplePoint.z > halfCubeWidth){
       fixMatrix = invGenerators[4];
+      tiling.z += 1.0;
       return true;
     }
     if(kleinSamplePoint.z < -halfCubeWidth){
       fixMatrix = invGenerators[5];
+      tiling.z -= 1.0;
       return true;
     }
     return false;
   }
 
-  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out float tiling){
+  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling){
     float totalDepth = start;
     float localDepth = totalDepth;
     mat4 fixMatrix;
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
       vec4 samplePoint = rO*cosh(localDepth)+rD*sinh(localDepth);
-      if(isOutsideCell(samplePoint, fixMatrix)){
-        tiling++;
+      if(isOutsideCell(samplePoint, fixMatrix, tiling)){
         vec4 newDirection = rO*cosh(localDepth+0.1) + rD*sinh(localDepth+0.1);
         rO = samplePoint*fixMatrix;
         newDirection *= fixMatrix;
@@ -298,7 +302,7 @@
     initGENS();
     initInvGENS();
     initTILES();
-    float tiling = 0.0;
+    vec3 tiling = vec3(0.0);
     vec3 initOffset = vec3(0.0,0.0,0.0);
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
     rayOrigin *= translateByVector(cameraOffset + initOffset);
@@ -313,13 +317,23 @@
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
       gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
+      //gl_FragColor = vec4(0.0,0.0,0.0,1.0);
       return;
     }
+
     float depthColor = 1.0-dist/5.0;
-    float tilingColor = 1.0-tiling/5.0;
     vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
+
+    for(int i = 0; i<3; i++){
+      if(tiling[i] > 0.0)
+        p *= tiling[i]*invGenerators[i*2];
+      else if(tiling[i] < 0.0)
+        p *= tiling[i]*invGenerators[i*2+1];
+    }
     vec3 color = estimateNormal(p);
+
     gl_FragColor = vec4(depthColor,depthColor*0.65,0.1,1.0);
+    //gl_FragColor = vec4(color.x,color.y,color.z,1.0);
   }
 </script>
 
@@ -329,5 +343,6 @@
 <script src="js/HypMath.js"></script>
 <script src="js/vr/PhoneVR.js"></script>
 <script src="js/vr/VRControlsHyperbolic.js"></script>
+<script src="js/vr/VREffect.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

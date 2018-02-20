@@ -123,9 +123,20 @@
   	return sqrt(abs(lorentzDot(v,v)));
   }
 
-  vec4 vPrimeFromV(vec4 u, vec4 v){
+  vec4 vPrimeFromV(vec4 u, vec4 v){  // given points u and v on hyperboloid, make 
+    // the point vPrime for use in parametrising the geodesic from u through v
     vec4 w = v - lorentzDot(u, v)*u;
     return (1.0/hypNorm(w)*w);
+  }
+
+  vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point at distance
+    // dist on the geodesic from u through v
+    return u*cosh(dist)+vPrime*sinh(dist);
+  }
+
+  vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns a point on the light cone 
+    // corresponding to the point at infinity on the geodesic through u and v
+    return normalize(u + vPrime);
   }
 
   float hypDistance(vec4 u, vec4 v){
@@ -258,14 +269,15 @@
     return false;
   }
 
-  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling){
+  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling, out vec4 endPoint, out float tilingSteps){
     float totalDepth = start;
     float localDepth = totalDepth;
     mat4 fixMatrix;
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-      vec4 samplePoint = rO*cosh(localDepth)+rD*sinh(localDepth);
+      vec4 samplePoint = pointOnGeodesic(rO, rD, localDepth);
       if(isOutsideCell(samplePoint, fixMatrix, tiling)){
-        vec4 newDirection = rO*cosh(localDepth+0.1) + rD*sinh(localDepth+0.1);
+        tilingSteps++;
+        vec4 newDirection = pointOnGeodesic(rO, rD, localDepth + 0.1); //forwards a bit
         rO = samplePoint*fixMatrix;
         newDirection *= fixMatrix;
         rO = projectToHyperboloid(rO);
@@ -276,15 +288,18 @@
       else{
         float dist = sceneHSDF(samplePoint);
         if(dist < EPSILON){
+          endPoint = samplePoint;
           return totalDepth;
         }
         totalDepth += dist;
         localDepth += dist;
         if(totalDepth >= end){
+          endPoint = samplePoint;
           return end;
         }
       }
     }
+    endPoint = pointOnGeodesicAtInfinity(rO, rD);
     return end;
   }
 
@@ -303,6 +318,8 @@
     initInvGENS();
     initTILES();
     vec3 tiling = vec3(0.0);
+    vec4 endPoint = vec4(0.0,0.0,0.0,1.0);
+    float tilingSteps = 1.0;
     vec3 initOffset = vec3(0.0,0.0,0.0);
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
     rayOrigin *= translateByVector(cameraOffset + initOffset);
@@ -313,27 +330,26 @@
     rayDirV *= translateByVector(cameraOffset + initOffset);
     vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
 
-    float dist = shortestDistanceToSurface(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, tiling);
+    float dist = shortestDistanceToSurface(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, tiling, endPoint, tilingSteps);
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
-      gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
+      // gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
+      vec4 pointAtInfinity = 2.0*pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
+      gl_FragColor = vec4(pointAtInfinity.x, pointAtInfinity.y, pointAtInfinity.z,1.0);
       //gl_FragColor = vec4(0.0,0.0,0.0,1.0);
       return;
     }
 
-    float depthColor = 1.0-dist/5.0;
-    vec4 p = rayOrigin*cosh(dist)+rayDirV*sinh(dist);
+    float depthShade = 1.0-dist/4.0;
+    float stepsShade = 1.0-tilingSteps/10.0;
+    vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
+    // vec4 depthColor = vec4(depthShade,depthShade,depthShade,1.0);
+    vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
+    vec4 normalColor = vec4(abs(estimateNormal(endPoint)),1.0);  
+    //abs is needed to avoid inconsistencies in shading coming from different paths
+    //to the same cube giving different orientations of the cube
 
-    for(int i = 0; i<3; i++){
-      if(tiling[i] > 0.0)
-        p *= tiling[i]*invGenerators[i*2];
-      else if(tiling[i] < 0.0)
-        p *= tiling[i]*invGenerators[i*2+1];
-    }
-    vec3 color = estimateNormal(p);
-
-    gl_FragColor = vec4(depthColor,depthColor*0.65,0.1,1.0);
-    //gl_FragColor = vec4(color.x,color.y,color.z,1.0);
+    gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
   }
 </script>
 

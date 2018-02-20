@@ -50,8 +50,26 @@
   const float MIN_DIST = 0.0;
   const float MAX_DIST = 10.0;
   const float EPSILON = 0.0001;
-  const float TILE_SIZE = 0.6584789;
   const vec4 ORIGIN = vec4(0,0,0,1);
+
+//  const float TILE_SIZE = 0.5306375310;  // 5 around an edge
+  const float TILE_SIZE = 0.6584789485; // 6 around an edge
+//  const float TILE_SIZE = 0.7245373613; // 7 around an edge
+//  const float TILE_SIZE = 0.7642854597; // 8 around an edge
+//  const float TILE_SIZE = 0.7903490689; // 9 around an edge
+//  const float TILE_SIZE = 0.8084608338; // 10 around an edge
+//  const float TILE_SIZE = 0.8215961187; // 11 around an edge
+//  const float TILE_SIZE = 0.8314429455; // 12 around an edge
+
+//  const float halfCubeWidth = 0.4858682718; // 5 around an edge
+  const float halfCubeWidth = 0.5773502692; // 6 around an edge
+//  const float halfCubeWidth = 0.6197119841; // 7 around an edge
+//  const float halfCubeWidth = 0.6435942529; // 8 around an edge
+//  const float halfCubeWidth = 0.6586067372; // 9 around an edge
+//  const float halfCubeWidth = 0.6687403050; // 10 around an edge
+//  const float halfCubeWidth = 0.6759376756; // 11 around an edge
+//  const float halfCubeWidth = 0.6812500386; // 12 around an edge
+
 
   uniform vec2 screenResolution;
   uniform vec3 cameraOrigin;
@@ -65,14 +83,7 @@
   }
 
   vec4 projectToHyperboloid(vec4 v) {
-    float scaleFactor = sqrt(lorentzDot(v,v));
-
-    vec4 result;
-    result.x = v.x / scaleFactor;
-    result.y = v.y / scaleFactor;
-    result.z = v.z / scaleFactor;
-    result.w = v.w / scaleFactor;
-    return result;
+    return v/sqrt(lorentzDot(v,v));
   }
 
   vec3 qtransform( vec4 q, vec3 v ){
@@ -196,30 +207,50 @@
 
   //Raymarch primitives
 
-  float sphereHSDF(vec4 samplePoint, vec3 eTranslate){
-    return hypDistance(ORIGIN*translateByVector(eTranslate), samplePoint) - 0.3;
+  float sphereHSDF(vec4 samplePoint, vec3 eTranslate, float size){
+    return hypDistance(ORIGIN*translateByVector(eTranslate), samplePoint) - size;
+  }
+
+  float horosphereHSDF(vec4 samplePoint, vec4 lightRay){
+    return log(lorentzDot(samplePoint, lightRay));
   }
 
   float sceneHSDF(vec4 samplePoint){
-    float final = sphereHSDF(samplePoint, vec3(0.0,0.0,0.0));
+    float sphereInv = 0.5-sphereHSDF(samplePoint, vec3(0.0,0.0,0.0), 0.0);
+    float horosphere = horosphereHSDF(abs(samplePoint), 1.5*vec4(halfCubeWidth, halfCubeWidth, halfCubeWidth, 1.0));
+    float final = differenceSDF(horosphere, sphereInv);
     return final;
   }
   //-------------------------------------------------------
 
 
   bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
-    float newDist = hypDistance(ORIGIN, samplePoint);
-    float bestDist = newDist;
-    bool r = false;
-    for(int i = 0; i<6; i++){
-      newDist = hypDistance(tiles[i], samplePoint);
-      if(newDist<bestDist){
-        bestDist = newDist; //break out early optimization
-        r = true;
-        fixMatrix = invGenerators[i];
-      }
+    vec4 kleinSamplePoint = samplePoint/samplePoint.w;
+    if(kleinSamplePoint.x > halfCubeWidth){
+      fixMatrix = invGenerators[0];
+      return true;
     }
-    return r;
+    if(kleinSamplePoint.x < -halfCubeWidth){
+      fixMatrix = invGenerators[1];
+      return true;
+    }
+    if(kleinSamplePoint.y > halfCubeWidth){
+      fixMatrix = invGenerators[2];
+      return true;
+    }
+    if(kleinSamplePoint.y < -halfCubeWidth){
+      fixMatrix = invGenerators[3];
+      return true;
+    }
+    if(kleinSamplePoint.z > halfCubeWidth){
+      fixMatrix = invGenerators[4];
+      return true;
+    }
+    if(kleinSamplePoint.z < -halfCubeWidth){
+      fixMatrix = invGenerators[5];
+      return true;
+    }
+    return false;
   }
 
   float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out float tiling){
@@ -268,7 +299,7 @@
     initInvGENS();
     initTILES();
     float tiling = 0.0;
-    vec3 initOffset = vec3(0.0,0.0,-0.5);
+    vec3 initOffset = vec3(0.0,0.0,0.0);
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
     rayOrigin *= translateByVector(cameraOffset + initOffset);
     /*if(isOutsideCell(rayOrigin)){

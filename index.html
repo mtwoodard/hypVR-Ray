@@ -52,23 +52,32 @@
   const float EPSILON = 0.0001;
   const vec4 ORIGIN = vec4(0,0,0,1);
 
-//  const float TILE_SIZE = 0.5306375310;  // 5 around an edge
-  const float TILE_SIZE = 0.6584789485; // 6 around an edge
-//  const float TILE_SIZE = 0.7245373613; // 7 around an edge
-//  const float TILE_SIZE = 0.7642854597; // 8 around an edge
-//  const float TILE_SIZE = 0.7903490689; // 9 around an edge
-//  const float TILE_SIZE = 0.8084608338; // 10 around an edge
-//  const float TILE_SIZE = 0.8215961187; // 11 around an edge
-//  const float TILE_SIZE = 0.8314429455; // 12 around an edge
+// const float halfCubeWidthHyp = 0.5306375310;  // 5 around an edge
+  const float halfCubeWidthHyp = 0.6584789485; // 6 around an edge
+// const float halfCubeWidthHyp = 0.7245373613; // 7 around an edge
+//  const float halfCubeWidthHyp = 0.7642854597; // 8 around an edge
+//  const float halfCubeWidthHyp = 0.7903490689; // 9 around an edge
+//  const float halfCubeWidthHyp = 0.8084608338; // 10 around an edge
+//  const float halfCubeWidthHyp = 0.8215961187; // 11 around an edge
+//  const float halfCubeWidthHyp = 0.8314429455; // 12 around an edge
 
-//  const float halfCubeWidth = 0.4858682718; // 5 around an edge
-  const float halfCubeWidth = 0.5773502692; // 6 around an edge
-//  const float halfCubeWidth = 0.6197119841; // 7 around an edge
-//  const float halfCubeWidth = 0.6435942529; // 8 around an edge
-//  const float halfCubeWidth = 0.6586067372; // 9 around an edge
-//  const float halfCubeWidth = 0.6687403050; // 10 around an edge
-//  const float halfCubeWidth = 0.6759376756; // 11 around an edge
-//  const float halfCubeWidth = 0.6812500386; // 12 around an edge
+//  const float halfCubeWidthKlein = 0.4858682718; // 5 around an edge
+  const float halfCubeWidthKlein = 0.5773502692; // 6 around an edge
+//  const float halfCubeWidthKlein = 0.6197119841; // 7 around an edge
+//  const float halfCubeWidthKlein = 0.6435942529; // 8 around an edge
+//  const float halfCubeWidthKlein = 0.6586067372; // 9 around an edge
+//  const float halfCubeWidthKlein = 0.6687403050; // 10 around an edge
+//  const float halfCubeWidthKlein = 0.6759376756; // 11 around an edge
+//  const float halfCubeWidthKlein = 0.6812500386; // 12 around an edge
+
+  const float halfIdealCubeWidthKlein = 0.5773502692;
+  const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
+
+  const float sphereRad = 1.0;      
+  const float horosphereSize = 2.6;  //spheres intersect
+
+  // const float sphereRad = 0.5;
+  // const float horosphereSize = 1.5;  // horospheres intersect
 
 
   uniform vec2 screenResolution;
@@ -170,16 +179,16 @@
         return mat4(1.0) + c1 * m + c2 * m2;
       }
   }
-  //generators is tiles without ORIGIN*
+
   mat4 generators[6];
   mat4 invGenerators[6];
   void initGENS(){
-    generators[0] = translateByVector(vec3(2.0*TILE_SIZE, 0.0, 0.0)); //right
-    generators[1] = translateByVector(vec3(-2.0*TILE_SIZE,0.0, 0.0)); //left
-    generators[2] = translateByVector(vec3(0.0, 2.0*TILE_SIZE, 0.0)); //up
-    generators[3] = translateByVector(vec3(0.0,-2.0*TILE_SIZE, 0.0)); //down
-    generators[4] = translateByVector(vec3(0.0, 0.0, 2.0*TILE_SIZE)); //forward
-    generators[5] = translateByVector(vec3(0.0, 0.0,-2.0*TILE_SIZE)); //back
+    generators[0] = translateByVector(vec3(2.0*halfCubeWidthHyp, 0.0, 0.0)); //right
+    generators[1] = translateByVector(vec3(-2.0*halfCubeWidthHyp,0.0, 0.0)); //left
+    generators[2] = translateByVector(vec3(0.0, 2.0*halfCubeWidthHyp, 0.0)); //up
+    generators[3] = translateByVector(vec3(0.0,-2.0*halfCubeWidthHyp, 0.0)); //down
+    generators[4] = translateByVector(vec3(0.0, 0.0, 2.0*halfCubeWidthHyp)); //forward
+    generators[5] = translateByVector(vec3(0.0, 0.0,-2.0*halfCubeWidthHyp)); //back
   }
   void initInvGENS(){
     invGenerators[1] = generators[0]; //right
@@ -188,12 +197,6 @@
     invGenerators[2] = generators[3]; //down
     invGenerators[5] = generators[4]; //forward
     invGenerators[4] = generators[5]; //back
-  }
-  vec4 tiles[6];
-  void initTILES(){
-    for(int i=0; i<6; i++){
-      tiles[i] = ORIGIN*generators[i];
-    }
   }
   //-------------------------------------------------------
 
@@ -226,8 +229,8 @@
   }
 
   float sceneHSDF(vec4 samplePoint){
-    float sphereInv = 0.5-sphereHSDF(samplePoint, vec3(0.0,0.0,0.0), 0.0);
-    float horosphere = horosphereHSDF(abs(samplePoint), 1.5*vec4(halfCubeWidth, halfCubeWidth, halfCubeWidth, 1.0));
+    float sphereInv = -sphereHSDF(samplePoint, vec3(0.0,0.0,0.0), sphereRad);
+    float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
     float final = differenceSDF(horosphere, sphereInv);
     return final;
   }
@@ -236,32 +239,32 @@
 
   bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out vec3 tiling){
     vec4 kleinSamplePoint = samplePoint/samplePoint.w;
-    if(kleinSamplePoint.x > halfCubeWidth){
+    if(kleinSamplePoint.x > halfCubeWidthKlein){
       fixMatrix = invGenerators[0];
       tiling.x += 1.0;
       return true;
     }
-    if(kleinSamplePoint.x < -halfCubeWidth){
+    if(kleinSamplePoint.x < -halfCubeWidthKlein){
       fixMatrix = invGenerators[1];
       tiling.x -= 1.0;
       return true;
     }
-    if(kleinSamplePoint.y > halfCubeWidth){
+    if(kleinSamplePoint.y > halfCubeWidthKlein){
       fixMatrix = invGenerators[2];
       tiling.y += 1.0;
       return true;
     }
-    if(kleinSamplePoint.y < -halfCubeWidth){
+    if(kleinSamplePoint.y < -halfCubeWidthKlein){
       fixMatrix = invGenerators[3];
       tiling.y -= 1.0;
       return true;
     }
-    if(kleinSamplePoint.z > halfCubeWidth){
+    if(kleinSamplePoint.z > halfCubeWidthKlein){
       fixMatrix = invGenerators[4];
       tiling.z += 1.0;
       return true;
     }
-    if(kleinSamplePoint.z < -halfCubeWidth){
+    if(kleinSamplePoint.z < -halfCubeWidthKlein){
       fixMatrix = invGenerators[5];
       tiling.z -= 1.0;
       return true;
@@ -316,7 +319,6 @@
   void main(){
     initGENS();
     initInvGENS();
-    initTILES();
     vec3 tiling = vec3(0.0);
     vec4 endPoint = vec4(0.0,0.0,0.0,1.0);
     float tilingSteps = 1.0;

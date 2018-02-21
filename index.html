@@ -94,6 +94,10 @@
     return v/sqrt(lorentzDot(v,v));
   }
 
+  vec4 projectToKlein(vec4 v){
+    return v/v.w;
+  }
+
   vec3 qtransform( vec4 q, vec3 v ){
     return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
   }
@@ -143,9 +147,14 @@
     return u*cosh(dist)+vPrime*sinh(dist);
   }
 
-  vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns a point on the light cone 
-    // corresponding to the point at infinity on the geodesic through u and v
-    return normalize(u + vPrime);
+  vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist){
+    return u*sinh(dist)+vPrime*cosh(dist);
+  }
+
+  vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the light 
+    // cone intersect Klein model corresponding to the point at infinity on the 
+    // geodesic through u and v
+    return projectToKlein(u + vPrime);
   }
 
   float hypDistance(vec4 u, vec4 v){
@@ -238,7 +247,7 @@
 
 
   bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out vec3 tiling){
-    vec4 kleinSamplePoint = samplePoint/samplePoint.w;
+    vec4 kleinSamplePoint = projectToKlein(samplePoint);
     if(kleinSamplePoint.x > halfCubeWidthKlein){
       fixMatrix = invGenerators[0];
       tiling.x += 1.0;
@@ -272,7 +281,7 @@
     return false;
   }
 
-  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling, out vec4 endPoint, out float tilingSteps){
+  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
     float totalDepth = start;
     float localDepth = totalDepth;
     mat4 fixMatrix;
@@ -292,27 +301,34 @@
         float dist = sceneHSDF(samplePoint);
         if(dist < EPSILON){
           endPoint = samplePoint;
+          endRayTangentVector = tangentVectorOnGeodesic(rO, rD, localDepth);
           return totalDepth;
         }
         totalDepth += dist;
         localDepth += dist;
         if(totalDepth >= end){
           endPoint = samplePoint;
+          endRayTangentVector = tangentVectorOnGeodesic(rO, rD, localDepth);
           return end;
         }
       }
     }
     endPoint = pointOnGeodesicAtInfinity(rO, rD);
+    endRayTangentVector = tangentVectorOnGeodesic(rO, rD, localDepth);
     return end;
   }
 
  //COLORING FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
- vec3 estimateNormal(vec4 p) {
-   return normalize(vec3(
-       sceneHSDF(p*translateByVector(vec3(EPSILON,0.0,0.0))) - sceneHSDF(p*translateByVector(vec3(-EPSILON,0.0,0.0))),
-       sceneHSDF(p*translateByVector(vec3(0.0,EPSILON,0.0))) - sceneHSDF(p*translateByVector(vec3(0.0,-EPSILON,0.0))),
-       sceneHSDF(p*translateByVector(vec3(0.0,0.0,EPSILON))) - sceneHSDF(p*translateByVector(vec3(0.0,0.0,-EPSILON)))
-   ));
+ vec4 estimateNormal(vec4 p) { // normal vector is in tangent plane to hyperboloid at p
+    float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
+    vec4 basis_x = normalize(vec4(denom,0.0,0.0,p.x));  // dw/dx = x/denom on hyperboloid
+    vec4 basis_y = normalize(vec4(0.0,denom,0.0,p.y));  // dw/dy = y/denom
+    vec4 basis_z = normalize(vec4(0.0,0.0,denom,p.z));  // dw/dz = z/denom
+   return normalize(
+       basis_x * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_x)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_x))) +
+       basis_y * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_y)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_y))) +
+       basis_z * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_z)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_z)))
+   );
  }
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -321,6 +337,7 @@
     initInvGENS();
     vec3 tiling = vec3(0.0);
     vec4 endPoint = vec4(0.0,0.0,0.0,1.0);
+    vec4 endRayTangentVector = vec4(0.0,0.0,0.0,0.0);
     float tilingSteps = 1.0;
     vec3 initOffset = vec3(0.0,0.0,0.0);
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
@@ -332,26 +349,30 @@
     rayDirV *= translateByVector(cameraOffset + initOffset);
     vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
 
-    float dist = shortestDistanceToSurface(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, tiling, endPoint, tilingSteps);
+    float dist = shortestDistanceToSurface(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, tiling, endPoint, endRayTangentVector, tilingSteps);
     if(dist > MAX_DIST - EPSILON){
       //Didn't hit anything
       // gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
-      vec4 pointAtInfinity = 2.0*pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
+      vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
       gl_FragColor = vec4(pointAtInfinity.x, pointAtInfinity.y, pointAtInfinity.z,1.0);
       //gl_FragColor = vec4(0.0,0.0,0.0,1.0);
       return;
     }
 
+    vec4 normal = estimateNormal(endPoint);
+    float shineShade = -dot(normal, normalize(endRayTangentVector));
     float depthShade = 1.0-dist/4.0;
     float stepsShade = 1.0-tilingSteps/10.0;
     vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
     // vec4 depthColor = vec4(depthShade,depthShade,depthShade,1.0);
     vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
-    vec4 normalColor = vec4(abs(estimateNormal(endPoint)),1.0);  
+    vec4 shineColor = vec4(shineShade,shineShade,shineShade,1.0);
+    vec4 normalColor = vec4(abs(normal.xyz),1.0);  
     //abs is needed to avoid inconsistencies in shading coming from different paths
     //to the same cube giving different orientations of the cube
 
-    gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
+    // gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
+    gl_FragColor = 0.5 * depthColor + 0.5 * shineColor;
   }
 </script>
 

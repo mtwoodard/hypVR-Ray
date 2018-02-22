@@ -94,7 +94,8 @@ THREE.VRControls = function ( camera, done ) {
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
 			offset.y = vrState.hmd.lastPosition[1] - vrState.hmd.position[1];
 			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
-		} else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
+		}
+		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
 		    offset = getFwdVector().multiplyScalar(speed * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
@@ -108,30 +109,18 @@ THREE.VRControls = function ( camera, done ) {
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
 		if ( camera ) {
-			/*if ( !vrState ) {
-				camera.quaternion.copy(manualRotation);
-				cameraOffset = cameraOffset.add(offset);
-				return;
-			}*/
-
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
-
-		  if (vrState !== null) {
+		  if (vrState !== null) { //mobile devices/vr headsets
 				var vrStateRotation = new THREE.Quaternion(-vrState.hmd.rotation[0], -vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
 			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
-				cameraOffset = cameraOffset.add(offset);
+				camera.position = camera.position.add(offset);
 		  }
-			else {
+			else{ //standard browser
 		    totalRotation.copy(manualRotation);
-		  }
-
+			}
 			camera.quaternion.copy(totalRotation);
-			cameraOffset = cameraOffset.add(offset);
-
-			// if (vrState.hmd.position !== null) {
-			// 	camera.position.copy( {x: vrState.hmd.position[0], y: vrState.hmd.position[1], z: vrState.hmd.position[2]} ).multiplyScalar( this.scale );
-			// }
+			camera.position = camera.position.add(offset);
 		}
 	};
 

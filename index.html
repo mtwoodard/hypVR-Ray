@@ -52,39 +52,25 @@
   const float EPSILON = 0.0001;
   const vec4 ORIGIN = vec4(0,0,0,1);
 
-// const float halfCubeWidthHyp = 0.5306375310;  // 5 around an edge
-  const float halfCubeWidthHyp = 0.6584789485; // 6 around an edge
-// const float halfCubeWidthHyp = 0.7245373613; // 7 around an edge
-//  const float halfCubeWidthHyp = 0.7642854597; // 8 around an edge
-//  const float halfCubeWidthHyp = 0.7903490689; // 9 around an edge
-//  const float halfCubeWidthHyp = 0.8084608338; // 10 around an edge
-//  const float halfCubeWidthHyp = 0.8215961187; // 11 around an edge
-//  const float halfCubeWidthHyp = 0.8314429455; // 12 around an edge
-
-//  const float halfCubeWidthKlein = 0.4858682718; // 5 around an edge
-  const float halfCubeWidthKlein = 0.5773502692; // 6 around an edge
-//  const float halfCubeWidthKlein = 0.6197119841; // 7 around an edge
-//  const float halfCubeWidthKlein = 0.6435942529; // 8 around an edge
-//  const float halfCubeWidthKlein = 0.6586067372; // 9 around an edge
-//  const float halfCubeWidthKlein = 0.6687403050; // 10 around an edge
-//  const float halfCubeWidthKlein = 0.6759376756; // 11 around an edge
-//  const float halfCubeWidthKlein = 0.6812500386; // 12 around an edge
-
   const float halfIdealCubeWidthKlein = 0.5773502692;
   const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
-  const float sphereRad = 1.0;      
+  const float sphereRad = 1.0;
   const float horosphereSize = 2.6;  //spheres intersect
 
   // const float sphereRad = 0.5;
   // const float horosphereSize = 1.5;  // horospheres intersect
 
-
   uniform vec2 screenResolution;
-  uniform vec3 cameraOffset;
+  uniform vec3 cameraPos;
   uniform vec4 cameraQuat;
   uniform float fov;
+  uniform float halfCubeWidthHyp;
+  uniform float halfCubeWidthKlein;
 
+  //-------------------------------------------------------
+  //Hyperboloid Functions
+  //-------------------------------------------------------
 
   float lorentzDot(vec4 u, vec4 v){
     return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
@@ -100,19 +86,6 @@
 
   vec3 qtransform( vec4 q, vec3 v ){
     return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
-  }
-
-  vec4 qmult(vec4 q, vec4 r){
-    float a = r.x*q.x - r.y*q.y - r.z*q.z - r.w*q.w;
-    float b = r.x*q.y + r.y*q.x - r.z*q.w + r.w*q.z;
-    float c = r.x*q.z + r.y*q.w + r.z*q.x - r.w*q.y;
-    float d = r.x*q.w - r.y*q.z - r.z*q.y + r.w*q.x;
-    return vec4(a,b,c,d);
-  }
-
-  vec4 qinverse(vec4 q){
-    float d = q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w;
-    return vec4(-q.x/d, -q.y/d, -q.z/d, q.w/d);
   }
 
   //-------------------------------------------------------
@@ -136,7 +109,12 @@
   	return sqrt(abs(lorentzDot(v,v)));
   }
 
-  vec4 vPrimeFromV(vec4 u, vec4 v){  // given points u and v on hyperboloid, make 
+  float hypDistance(vec4 u, vec4 v){
+    float bUV = lorentzDot(u,v);
+    return acosh(bUV);
+  }
+
+  vec4 vPrimeFromV(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
     // the point vPrime for use in parametrising the geodesic from u through v
     vec4 w = v - lorentzDot(u, v)*u;
     return (1.0/hypNorm(w)*w);
@@ -151,15 +129,10 @@
     return u*sinh(dist)+vPrime*cosh(dist);
   }
 
-  vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the light 
-    // cone intersect Klein model corresponding to the point at infinity on the 
+  vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the light
+    // cone intersect Klein model corresponding to the point at infinity on the
     // geodesic through u and v
     return projectToKlein(u + vPrime);
-  }
-
-  float hypDistance(vec4 u, vec4 v){
-    float bUV = lorentzDot(u,v);
-    return acosh(bUV);
   }
 
   mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
@@ -217,7 +190,8 @@
     return p;
   }
 
-  //Raymarch functions http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+  //-------------------------------------------------------
+  //Raymarch functions
   //-------------------------------------------------------
   float unionSDF(float d1, float d2){
     return min(d1, d2);
@@ -246,48 +220,42 @@
   //-------------------------------------------------------
 
 
-  bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out vec3 tiling){
+  bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
     vec4 kleinSamplePoint = projectToKlein(samplePoint);
     if(kleinSamplePoint.x > halfCubeWidthKlein){
       fixMatrix = invGenerators[0];
-      tiling.x += 1.0;
       return true;
     }
     if(kleinSamplePoint.x < -halfCubeWidthKlein){
       fixMatrix = invGenerators[1];
-      tiling.x -= 1.0;
       return true;
     }
     if(kleinSamplePoint.y > halfCubeWidthKlein){
       fixMatrix = invGenerators[2];
-      tiling.y += 1.0;
       return true;
     }
     if(kleinSamplePoint.y < -halfCubeWidthKlein){
       fixMatrix = invGenerators[3];
-      tiling.y -= 1.0;
       return true;
     }
     if(kleinSamplePoint.z > halfCubeWidthKlein){
       fixMatrix = invGenerators[4];
-      tiling.z += 1.0;
       return true;
     }
     if(kleinSamplePoint.z < -halfCubeWidthKlein){
       fixMatrix = invGenerators[5];
-      tiling.z -= 1.0;
       return true;
     }
     return false;
   }
 
-  float shortestDistanceToSurface(vec4 rO, vec4 rD, float start, float end, out vec3 tiling, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
+  float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
     float totalDepth = start;
     float localDepth = totalDepth;
     mat4 fixMatrix;
     for(int i = 0; i< MAX_MARCHING_STEPS; i++){
       vec4 samplePoint = pointOnGeodesic(rO, rD, localDepth);
-      if(isOutsideCell(samplePoint, fixMatrix, tiling)){
+      if(isOutsideCell(samplePoint, fixMatrix)){
         tilingSteps++;
         vec4 newDirection = pointOnGeodesic(rO, rD, localDepth + 0.1); //forwards a bit
         rO = samplePoint*fixMatrix;
@@ -333,25 +301,23 @@
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   void main(){
+    //Since glsl is 1.00 we must initialize our arrays in functions
     initGENS();
     initInvGENS();
-    vec3 tiling = vec3(0.0);
     vec4 endPoint = vec4(0.0,0.0,0.0,1.0);
     vec4 endRayTangentVector = vec4(0.0,0.0,0.0,0.0);
     float tilingSteps = 1.0;
-    vec3 initOffset = vec3(0.0,0.0,0.0);
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
-    rayOrigin *= translateByVector(cameraOffset + initOffset);
-    /*if(isOutsideCell(rayOrigin)){
-      rayOrigin = fixOutsideCentralCell(rayOrigin, tiling);
-    }*/
+    //camera position must be translated in hyperboloid ------------------------
+    rayOrigin *= translateByVector(cameraPos);
+    //generate direction then transform to hyperboloid ------------------------
     vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
-    rayDirV *= translateByVector(cameraOffset + initOffset);
+    rayDirV *= translateByVector(cameraPos);
     vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
-
-    float dist = shortestDistanceToSurface(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, tiling, endPoint, endRayTangentVector, tilingSteps);
-    if(dist > MAX_DIST - EPSILON){
-      //Didn't hit anything
+    //get our raymarched distance back ------------------------
+    float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, endPoint, endRayTangentVector, tilingSteps);
+    if((dist > MAX_DIST - EPSILON)||(tilingSteps >= float(MAX_MARCHING_STEPS) - 0.5)){
+      //Didn't hit anything ------------------------
       // gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
       vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
       gl_FragColor = vec4(pointAtInfinity.x, pointAtInfinity.y, pointAtInfinity.z,1.0);
@@ -371,7 +337,7 @@
     vec4 comboColor = vec4(comboShade,comboShade,comboShade,1.0);
     vec4 orange = vec4(1.0,0.65,0.1,1.0);
     vec4 white = vec4(1.0,1.0,1.0,1.0);
-    vec4 normalColor = vec4(abs(normal.xyz),1.0);  
+    vec4 normalColor = vec4(abs(normal.xyz),1.0);
     //abs is needed to avoid inconsistencies in shading coming from different paths
     //to the same cube giving different orientations of the cube
 
@@ -394,4 +360,5 @@
 <script src="js/vr/VRControlsHyperbolic.js"></script>
 <script src="js/vr/VREffect.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
+<script src="js/SceneManipulator.js"></script>
 </html>

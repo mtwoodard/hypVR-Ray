@@ -7,7 +7,10 @@ var mesh;
 var geom;
 var material;
 var controls;
-var cameraOffset;
+
+//Scene Manipulator variables
+var hCWH = 0.6584789485;
+var hCWK = 0.5773502692;
 
 var time;
 
@@ -23,7 +26,6 @@ var init = function(){
   effect.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-
   virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
@@ -31,10 +33,13 @@ var init = function(){
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
+
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
-      cameraOffset:{type:"v3", value:cameraOffset},
+      cameraPos:{type:"v3", value:virtCamera.position},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
-      fov:{type:"f", value:virtCamera.fov}
+      fov:{type:"f", value:virtCamera.fov},
+      halfCubeWidthHyp:{type:"f", value: hCWH},
+      halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -63,6 +68,8 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+  //mesh.material.uniforms.halfCubeWidthHyp = hCWH;
+  //mesh.material.uniforms.halfCubeWidthKlein = hCWK;
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }

@@ -8,30 +8,18 @@ var geom;
 var material;
 var controls;
 
-//-------------------------------------------------------
-// //Scene Manipulator Functions
-//-------------------------------------------------------
-var gens;
+//Scene Manipulator variables
+var hCWH = 0.6584789485;
+var hCWK = 0.5773502692;
 
-var createGenerators = function(widthHyp){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*widthHyp, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*widthHyp, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*widthHyp, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*widthHyp, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*widthHyp));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*widthHyp));
-  return [gen0, gen1, gen2, gen3, gen4, gen5];
-}
-
-var invGenerators = function(genArr){
-  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
-}
+var time;
 
 //-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
 var init = function(){
   //Setup our THREE scene--------------------------------
+  time = Date.now();
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   effect = new THREE.VREffect(renderer);
@@ -42,17 +30,16 @@ var init = function(){
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
-  gens = createGenerators(0.6584789485);
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
+
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraPos:{type:"v3", value:virtCamera.position},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
       fov:{type:"f", value:virtCamera.fov},
-      generators:{type:"m4v", value:gens},
-      invGenerators:{type:"m4v", value:invGenerators(gens)},
-      halfCubeWidthKlein:{type:"f", value: 0.5773502692}
+      halfCubeWidthHyp:{type:"f", value: hCWH},
+      halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -72,6 +59,8 @@ var init = function(){
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
   mesh = new THREE.Mesh(geom, material);
   scene.add(mesh);
+
+
 }
 
 //-------------------------------------------------------
@@ -79,6 +68,8 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+  //mesh.material.uniforms.halfCubeWidthHyp = hCWH;
+  //mesh.material.uniforms.halfCubeWidthKlein = hCWK;
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -88,6 +79,7 @@ var animate = function(){
 //-------------------------------------------------------
 init();
 animate();
+
 
 //-------------------------------------------------------
 // Event listeners

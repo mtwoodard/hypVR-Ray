@@ -145,15 +145,18 @@ THREE.VRControls = function ( camera, done ) {
 				orientation = [rotation.x, rotation.y, rotation.z, rotation.w];
 				position = vrInput.getState().position;
 				position = [position.x, position.y, position.z];
-			} else {
+			}
+			else {
 				orientation = vrInput.getPose().orientation;
                 position = vrInput.getPose().position;
 			}
-		} else if (this.phoneVR.rotationQuat()) {
+		}
+		else if (this.phoneVR.rotationQuat()) {
 			var rotation = this.phoneVR.rotationQuat();
 			orientation = [rotation.x, rotation.y, rotation.z, rotation.w];
 			position = this._defaultPosition;
-		} else {
+		}
+		else {
 			return null;
 		}
 
@@ -217,7 +220,7 @@ function onkey(event) {
   }
 }
 
-window.addEventListener("keydown", onkey, true);
+window.addEventListener("keydown", onkey, false);
 
 //hold down keys to do rotations and stuff
 function key(event, sign) {

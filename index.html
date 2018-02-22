@@ -65,7 +65,8 @@
   uniform vec3 cameraPos;
   uniform vec4 cameraQuat;
   uniform float fov;
-  uniform float halfCubeWidthHyp;
+  uniform mat4 generators[6];
+  uniform mat4 invGenerators[6];
   uniform float halfCubeWidthKlein;
 
   //-------------------------------------------------------
@@ -162,24 +163,6 @@
       }
   }
 
-  mat4 generators[6];
-  mat4 invGenerators[6];
-  void initGENS(){
-    generators[0] = translateByVector(vec3(2.0*halfCubeWidthHyp, 0.0, 0.0)); //right
-    generators[1] = translateByVector(vec3(-2.0*halfCubeWidthHyp,0.0, 0.0)); //left
-    generators[2] = translateByVector(vec3(0.0, 2.0*halfCubeWidthHyp, 0.0)); //up
-    generators[3] = translateByVector(vec3(0.0,-2.0*halfCubeWidthHyp, 0.0)); //down
-    generators[4] = translateByVector(vec3(0.0, 0.0, 2.0*halfCubeWidthHyp)); //forward
-    generators[5] = translateByVector(vec3(0.0, 0.0,-2.0*halfCubeWidthHyp)); //back
-  }
-  void initInvGENS(){
-    invGenerators[1] = generators[0]; //right
-    invGenerators[0] = generators[1]; //left
-    invGenerators[3] = generators[2]; //up
-    invGenerators[2] = generators[3]; //down
-    invGenerators[5] = generators[4]; //forward
-    invGenerators[4] = generators[5]; //back
-  }
   //-------------------------------------------------------
 
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
@@ -301,9 +284,6 @@
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   void main(){
-    //Since glsl is 1.00 we must initialize our arrays in functions
-    initGENS();
-    initInvGENS();
     vec4 endPoint = vec4(0.0,0.0,0.0,1.0);
     vec4 endRayTangentVector = vec4(0.0,0.0,0.0,0.0);
     float tilingSteps = 1.0;

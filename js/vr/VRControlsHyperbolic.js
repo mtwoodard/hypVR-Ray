@@ -118,7 +118,7 @@ THREE.VRControls = function ( camera, done ) {
 			var totalRotation = new THREE.Quaternion();
 
 		  if (vrState !== null) {
-				var vrStateRotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
+				var vrStateRotation = new THREE.Quaternion(-vrState.hmd.rotation[0], -vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
 			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
 		  }
 			else {

@@ -51,43 +51,33 @@
   const float MAX_DIST = 10.0;
   const float EPSILON = 0.0001;
   const vec4 ORIGIN = vec4(0,0,0,1);
-
   const float halfIdealCubeWidthKlein = 0.5773502692;
   const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
-
   const float sphereRad = 1.0;
   const float horosphereSize = 2.6;  //spheres intersect
-
   // const float sphereRad = 0.5;
   // const float horosphereSize = 1.5;  // horospheres intersect
-
   uniform vec2 screenResolution;
   uniform vec3 cameraPos;
   uniform vec4 cameraQuat;
   uniform float fov;
   uniform float halfCubeWidthHyp;
   uniform float halfCubeWidthKlein;
-
   //-------------------------------------------------------
   //Hyperboloid Functions
   //-------------------------------------------------------
-
   float lorentzDot(vec4 u, vec4 v){
     return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
   }
-
   vec4 projectToHyperboloid(vec4 v) {
     return v/sqrt(lorentzDot(v,v));
   }
-
   vec4 projectToKlein(vec4 v){
     return v/v.w;
   }
-
   vec3 qtransform( vec4 q, vec3 v ){
     return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
   }
-
   //-------------------------------------------------------
   //Hyperbolic Math functions
   //-------------------------------------------------------
@@ -95,46 +85,37 @@
     float eX = exp(rads);
     return (0.5 * (eX + 1.0/eX));
   }
-
   float sinh(float rads){
     float eX = exp(rads);
     return (0.5 * (eX - 1.0/eX));
   }
-
   float acosh(float rads){ //must be more than 1
     return log(rads + sqrt(rads*rads-1.0));
   }
-
   float hypNorm(vec4 v){
   	return sqrt(abs(lorentzDot(v,v)));
   }
-
   float hypDistance(vec4 u, vec4 v){
     float bUV = lorentzDot(u,v);
     return acosh(bUV);
   }
-
   vec4 vPrimeFromV(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
     // the point vPrime for use in parametrising the geodesic from u through v
     vec4 w = v - lorentzDot(u, v)*u;
     return (1.0/hypNorm(w)*w);
   }
-
   vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point at distance
     // dist on the geodesic from u through v
     return u*cosh(dist)+vPrime*sinh(dist);
   }
-
   vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist){
     return u*sinh(dist)+vPrime*cosh(dist);
   }
-
   vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the light
     // cone intersect Klein model corresponding to the point at infinity on the
     // geodesic through u and v
     return projectToKlein(u + vPrime);
   }
-
   mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
     float dx = v.x;
     float dy = v.y;
@@ -161,7 +142,6 @@
         return mat4(1.0) + c1 * m + c2 * m2;
       }
   }
-
   mat4 generators[6];
   mat4 invGenerators[6];
   void initGENS(){
@@ -181,7 +161,6 @@
     invGenerators[4] = generators[5]; //back
   }
   //-------------------------------------------------------
-
   vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
     vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
     float z = 0.1;
@@ -189,28 +168,22 @@
     vec4 p = projectToHyperboloid(vec4(pPre, 1.0));
     return p;
   }
-
   //-------------------------------------------------------
   //Raymarch functions
   //-------------------------------------------------------
   float unionSDF(float d1, float d2){
     return min(d1, d2);
   }
-
   float differenceSDF(float d1, float d2){
     return max(-d1, d2);
   }
-
   //Raymarch primitives
-
   float sphereHSDF(vec4 samplePoint, vec3 eTranslate, float size){
     return hypDistance(ORIGIN*translateByVector(eTranslate), samplePoint) - size;
   }
-
   float horosphereHSDF(vec4 samplePoint, vec4 lightRay){
     return log(lorentzDot(samplePoint, lightRay));
   }
-
   float sceneHSDF(vec4 samplePoint){
     float sphereInv = -sphereHSDF(samplePoint, vec3(0.0,0.0,0.0), sphereRad);
     float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
@@ -218,8 +191,6 @@
     return final;
   }
   //-------------------------------------------------------
-
-
   bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
     vec4 kleinSamplePoint = projectToKlein(samplePoint);
     if(kleinSamplePoint.x > halfCubeWidthKlein){
@@ -248,7 +219,6 @@
     }
     return false;
   }
-
   float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
     float totalDepth = start;
     float localDepth = totalDepth;
@@ -285,7 +255,6 @@
     endRayTangentVector = tangentVectorOnGeodesic(rO, rD, localDepth);
     return end;
   }
-
  //COLORING FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
  vec4 estimateNormal(vec4 p) { // normal vector is in tangent plane to hyperboloid at p
     float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
@@ -299,7 +268,6 @@
    );
  }
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   void main(){
     //Since glsl is 1.00 we must initialize our arrays in functions
     initGENS();
@@ -324,7 +292,6 @@
       //gl_FragColor = vec4(0.0,0.0,0.0,1.0);
       return;
     }
-
     vec4 normal = estimateNormal(endPoint);
     float shineShade = max(0.3-0.7*dot(normal, normalize(endRayTangentVector)), 0.0);
     float depthShade = max(1.0-dist/5.0, 0.0);
@@ -340,7 +307,6 @@
     vec4 normalColor = vec4(abs(normal.xyz),1.0);
     //abs is needed to avoid inconsistencies in shading coming from different paths
     //to the same cube giving different orientations of the cube
-
     // gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
     // if(comboShade < 0.5){
     //   gl_FragColor = 2.0 * comboShade * orange;

@@ -316,7 +316,7 @@
     vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
     //get our raymarched distance back ------------------------
     float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, endPoint, endRayTangentVector, tilingSteps);
-    if(dist > MAX_DIST - EPSILON){
+    if((dist > MAX_DIST - EPSILON)||(tilingSteps >= float(MAX_MARCHING_STEPS) - 0.5)){
       //Didn't hit anything ------------------------
       // gl_FragColor = vec4(rayDirVPrime.x,rayDirVPrime.y,rayDirVPrime.z,1.0);
       vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);

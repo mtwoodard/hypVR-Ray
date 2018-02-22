@@ -100,36 +100,10 @@ THREE.VRControls = function ( camera, done ) {
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
 
 		}
-		/*if (offset !== undefined) {
-			m = translateByVector(offset);
-		    m.multiply(currentBoost);
-		    currentBoost.copy(m);
-		}*/
-
-		/*do parabolic motion
-		var m2, parabolicVector;
-		if (this.manualParabolicRate[0] != 0 || this.manualParabolicRate[1] != 0) {
-			parabolicVector = new THREE.Vector2(0.2 * interval * this.manualParabolicRate[0],
-												0.2 * interval * this.manualParabolicRate[1]);
-		    m2 = parabolicBy2DVector(parabolicVector);
-		    m2.multiply(currentBoost);
-		    currentBoost.copy(m2);
-		}*/
-
-		//if outside central cell, move back
-		/*if (fixOutside){
-			movedTowardsCentralCubeThisFrameIndex = fixOutsideCentralCell( currentBoost, tilingGens );
-		}*/
-
-		//run to avoid error accumulation
-
-		// currentBoost.elements = fastGramSchmidt( currentBoost.elements );
-		//currentBoost.elements = gramSchmidt( currentBoost.elements ); //seems more stable near infinity
-
 
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
-	                               this.manualRotateRate[1] * -0.2 * interval,
-	                               this.manualRotateRate[2] * -0.2 * interval, 1.0);
+	                               			this.manualRotateRate[1] * -0.2 * interval,
+	                               			this.manualRotateRate[2] * -0.2 * interval, 1.0);
 		update.normalize();
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
@@ -143,12 +117,13 @@ THREE.VRControls = function ( camera, done ) {
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
 
-		    if (vrState !== null) {
+		  if (vrState !== null) {
 				var vrStateRotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
-			    totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
-		    } else {
-		      	totalRotation = manualRotation;
-		    }
+			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
+		  }
+			else {
+		    totalRotation = manualRotation;
+		  }
 
 			camera.quaternion.copy(totalRotation);
 
@@ -220,9 +195,7 @@ THREE.VRControls = function ( camera, done ) {
 	};
 };
 
-//var fixOutside = true; //moves you back inside the central cell if you leave it
-/*
-Listen for double click event to enter full-screen VR mode
+//Listen for double click event to enter full-screen VR mode
 
 document.body.addEventListener( 'click', function(event) {
 	if (event.target.id === "vr-icon") {
@@ -231,12 +204,12 @@ document.body.addEventListener( 'click', function(event) {
 	}
 
  	if (renderer.phoneVR.orientationIsAvailable()) {
-  		renderer.setFullScreen( true );
+  	renderer.setFullScreen( true );
 		if (typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function') {
 		  window.screen.orientation.lock('landscape-primary');
 		}
 	}
-});*/
+});
 
 /*
 Listen for keyboard events
@@ -247,14 +220,10 @@ function onkey(event) {
   if (event.keyCode == 90) { // z
     controls.zeroSensor(); //zero rotation
   } else if (event.keyCode == 70 || event.keyCode == 13) { //f
-    renderer.setFullScreen(true); //fullscreen
+    effect.setFullScreen(true); //fullscreen
   } else if (event.keyCode == 86 || event.keyCode == 13 || event.keyCode == 32 ) { // v or 'enter' or 'space' for VR mode
-    renderer.toggleVRMode();
-  } /*else if (event.keyCode == 84) { // t
-  	fixOutside = !fixOutside;
-  }	else if (event.keyCode == 82) { // r
-  	fixOutsideCentralCell( currentBoost, tilingGens );
-  }	 */
+    effect.toggleVRMode();
+  }
 }
 
 window.addEventListener("keydown", onkey, true);
@@ -286,13 +255,3 @@ function tap(event, sign) {
 
 document.addEventListener('touchstart', function(event) { tap(event, 1); }, false);
 document.addEventListener('touchend', function(event) { tap(event, -1); }, false);
-
-/*
-Handle window resizes
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  effect.setSize( window.innerWidth, window.innerHeight );
-}
-window.addEventListener( 'resize', onWindowResize, false );*/

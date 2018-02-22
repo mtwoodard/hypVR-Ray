@@ -108,11 +108,11 @@ THREE.VRControls = function ( camera, done ) {
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
 		if ( camera ) {
-			if ( !vrState ) {
+			/*if ( !vrState ) {
 				camera.quaternion.copy(manualRotation);
 				cameraOffset = cameraOffset.add(offset);
 				return;
-			}
+			}*/
 
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
@@ -120,12 +120,14 @@ THREE.VRControls = function ( camera, done ) {
 		  if (vrState !== null) {
 				var vrStateRotation = new THREE.Quaternion(-vrState.hmd.rotation[0], -vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
 			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
+				cameraOffset = cameraOffset.add(offset);
 		  }
 			else {
-		    totalRotation = manualRotation;
+		    totalRotation.copy(manualRotation);
 		  }
 
 			camera.quaternion.copy(totalRotation);
+			cameraOffset = cameraOffset.add(offset);
 
 			// if (vrState.hmd.position !== null) {
 			// 	camera.position.copy( {x: vrState.hmd.position[0], y: vrState.hmd.position[1], z: vrState.hmd.position[2]} ).multiplyScalar( this.scale );

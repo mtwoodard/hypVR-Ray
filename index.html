@@ -364,10 +364,10 @@
     float depthShade = max(1.0-dist/5.0, 0.0);
     float stepsShade = max(1.0-tilingSteps/10.0,0.0);
     float comboShade = shineShade*depthShade;
-    // vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
+    vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
     // vec4 depthColor = vec4(depthShade,depthShade,depthShade,1.0);
     // vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
-    // vec4 shineColor = vec4(shineShade,shineShade,shineShade,1.0);
+    vec4 shineColor = vec4(shineShade,shineShade,shineShade,1.0);
     vec4 comboColor = vec4(comboShade,comboShade,comboShade,1.0);
     vec4 orange = vec4(1.0,0.65,0.1,1.0);
     vec4 white = vec4(1.0,1.0,1.0,1.0);
@@ -376,13 +376,13 @@
     //to the same cube giving different orientations of the cube
 
     // gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
-    if(comboShade < 0.5){
-      gl_FragColor = 2.0 * comboShade * orange;
-    }
-    else{
-      gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
-    }
-    // gl_FragColor = comboColor;
+    // if(comboShade < 0.5){
+    //   gl_FragColor = 2.0 * comboShade * orange;
+    // }
+    // else{
+    //   gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
+    // }
+    gl_FragColor = 0.5*depthColor + 0.5*shineColor;
   }
 </script>
 

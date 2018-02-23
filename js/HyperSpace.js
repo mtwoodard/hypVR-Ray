@@ -9,23 +9,45 @@ var material;
 var controls;
 
 //-------------------------------------------------------
-// //Scene Manipulator Functions
+// Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
+var hCWH = 0.6584789485;
+var hCWK = 0.5773502692;
 
-var createGenerators = function(widthHyp){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*widthHyp, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*widthHyp, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*widthHyp, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*widthHyp, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*widthHyp));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*widthHyp));
+var createGenerators = function(){
+  var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
+  var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
+  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
+  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
+  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
+  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
 var invGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
 }
+
+  if(virtCamera.position.x > hCWH){
+    virtCamera.position.x -= 2.0*hCWH;
+  }
+  if(virtCamera.position.x < -hCWH){
+    virtCamera.position.x += 2.0*hCWH;
+  }
+  if(virtCamera.position.y > hCWH){
+    virtCamera.position.y -= 2.0*hCWH;
+  }
+  if(virtCamera.position.y < -hCWH){
+    virtCamera.position.y += 2.0*hCWH;
+  }
+  if(virtCamera.position.z > hCWH){
+    virtCamera.position.z -= 2.0*hCWH;
+  }
+  if(virtCamera.position.z < -hCWH){
+    virtCamera.position.z += 2.0*hCWH;
+  }
+
 
 //-------------------------------------------------------
 // Sets up the scene
@@ -42,7 +64,7 @@ var init = function(){
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
-  gens = createGenerators(0.6584789485);
+  gens = createGenerators(hCWH);
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
@@ -52,7 +74,7 @@ var init = function(){
       fov:{type:"f", value:virtCamera.fov},
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGenerators(gens)},
-      halfCubeWidthKlein:{type:"f", value: 0.5773502692}
+      halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: document.getElementById('fragmentShader').textContent,

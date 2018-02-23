@@ -221,7 +221,7 @@ function fakeDist( v ){  //good enough for comparison of distances on the hyperb
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-function fixOutsideCentralCell( mat, gens ) {
+/*function fixOutsideCentralCell( mat, gens ) {
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
 	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
 	var bestDist = fakeDist(cPos);
@@ -240,4 +240,4 @@ function fixOutsideCentralCell( mat, gens ) {
     else {
         return false;
     }
-}
+}*/

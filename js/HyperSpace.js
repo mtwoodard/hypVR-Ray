@@ -29,6 +29,7 @@ var invGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
 }
 
+/*var fixOutsideCentralCell = function(){
   if(virtCamera.position.x > hCWH){
     virtCamera.position.x -= 2.0*hCWH;
   }
@@ -47,6 +48,7 @@ var invGenerators = function(genArr){
   if(virtCamera.position.z < -hCWH){
     virtCamera.position.z += 2.0*hCWH;
   }
+}*/
 
 
 //-------------------------------------------------------
@@ -101,6 +103,7 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+  //fixOutsideCentralCell();
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }

@@ -55,11 +55,16 @@
   const float halfIdealCubeWidthKlein = 0.5773502692;
   const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
-  const float sphereRad = 1.0;
-  const float horosphereSize = 2.6;  //spheres intersect
+  /// for {4,3,6}
+  // const float sphereRad = 1.0;
+  // const float horosphereSize = 2.6;  //spheres intersect
 
   // const float sphereRad = 0.5;
   // const float horosphereSize = 1.5;  // horospheres intersect
+
+  /// for {4,3,7}
+  const float sphereRad = 1.0;      //spheres intersect
+  const float planeOffset = 0.75;
 
   uniform vec2 screenResolution;
   uniform vec3 cameraPos;
@@ -201,12 +206,21 @@
     return asinh(lorentzDot(samplePoint, dualPoint)) - offset;
   }
 
-  float sceneHSDF(vec4 samplePoint){
+  // float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
+  //   float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
+  //   float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
+  //   float diff = differenceSDF(horosphere, sphereInv);
+  //   float final = differenceSDF(horosphere, sphereInv);
+  //   // float final = horosphere;
+  //   return final;
+  // }
+
+  float sceneHSDF(vec4 samplePoint){   /// for {4,3,7}
     float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
-    float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-    float diff = differenceSDF(horosphere, sphereInv);
-    float final = differenceSDF(horosphere, sphereInv);
-    // float final = horosphere;
+    vec4 dualPoint = projectToHyperboloid(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
+    float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
+    float diff = differenceSDF(plane0, sphereInv);
+    float final = diff;
     return final;
   }
 
@@ -226,22 +240,6 @@
   //   return final;
   // }
 
-  // float sceneHSDF(vec4 samplePoint){   /// draw dual cells?
-  //   // float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
-  //   // float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-  //   // float diff = differenceSDF(horosphere, sphereInv);
-  //   vec4 dualPoint0 = projectToHyperboloid(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
-  //   // vec4 dualPoint1 = projectToHyperboloid(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));
-  //   // vec4 dualPoint2 = projectToHyperboloid(vec4(0.0,0.0,1.0/halfCubeWidthKlein,1.0));
-  //   float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint0, 0.0);
-  //   // float plane1 = geodesicPlaneHSDF(abs(samplePoint), dualPoint1, 0.0);
-  //   // float plane2 = geodesicPlaneHSDF(abs(samplePoint), dualPoint2, 0.0);
-  //   // float final = unionSDF(diff,plane0);
-  //   // float final = unionSDF(unionSDF(plane0,plane1),plane2);
-  //   // float final = differenceSDF(horosphere, sphereInv);
-  //   float final = plane0;
-  //   return final;
-  // }
 
   //-------------------------------------------------------
 
@@ -345,7 +343,7 @@
     if((dist > MAX_DIST - EPSILON)||(tilingSteps >= float(MAX_MARCHING_STEPS) - 0.5)){
       //Didn't hit anything ------------------------
       vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
-      gl_FragColor = vec4(pointAtInfinity.x, pointAtInfinity.y, pointAtInfinity.z,1.0);
+      gl_FragColor = vec4(0.5*pointAtInfinity.xyz+vec3(0.5,0.5,0.5),1.0);
       return;
     }
 

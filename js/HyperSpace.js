@@ -12,6 +12,7 @@ var controls;
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
+var maxSteps;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -29,27 +30,21 @@ var invGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
 }
 
-/*var fixOutsideCentralCell = function(){
-  if(virtCamera.position.x > hCWH){
-    virtCamera.position.x -= 2.0*hCWH;
+var fps = {
+  start: 0,
+  frameNum: 0,
+  getFPS: function(){
+    this.frameNum++;
+    var date = new Date().getTime();
+    var currentTime = (date-this.start)/1000;
+    var res = Math.floor(this.frameNum/currentTime);
+    if(currentTime>1){
+      this.start = new Date().getTime();
+      this.frameNum=0;
+    }
+    return res;
   }
-  if(virtCamera.position.x < -hCWH){
-    virtCamera.position.x += 2.0*hCWH;
-  }
-  if(virtCamera.position.y > hCWH){
-    virtCamera.position.y -= 2.0*hCWH;
-  }
-  if(virtCamera.position.y < -hCWH){
-    virtCamera.position.y += 2.0*hCWH;
-  }
-  if(virtCamera.position.z > hCWH){
-    virtCamera.position.z -= 2.0*hCWH;
-  }
-  if(virtCamera.position.z < -hCWH){
-    virtCamera.position.z += 2.0*hCWH;
-  }
-}*/
-
+}
 
 //-------------------------------------------------------
 // Sets up the scene
@@ -76,6 +71,8 @@ var init = function(){
       fov:{type:"f", value:virtCamera.fov},
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGenerators(gens)},
+      currentBoost:{type:"m4", value:currentBoost},
+      maxSteps:{type:"f", value:maxSteps},
       halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
@@ -103,7 +100,7 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
-  //fixOutsideCentralCell();
+  fps.getFPS();
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }

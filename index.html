@@ -72,6 +72,8 @@
   uniform float fov;
   uniform mat4 generators[6];
   uniform mat4 invGenerators[6];
+  uniform mat4 currentBoost;
+  uniform mat4 maxSteps;
   uniform float halfCubeWidthKlein;
 
   //-------------------------------------------------------
@@ -82,7 +84,7 @@
     return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
   } /// on hyperbolold if lorentzDot(u,u) = 1, so w*w = 1 + x*x + y*y + z*z
 
-  vec4 projectToHyperboloid(vec4 v) {  //projects to either hyperboloid depending if input 
+  vec4 projectToHyperboloid(vec4 v) {  //projects to either hyperboloid depending if input
     //is timelike or spacelike
     return v/sqrt(abs(lorentzDot(v,v)));
   }
@@ -109,7 +111,7 @@
   float acosh(float x){ //must be more than 1
     return log(x + sqrt(x*x-1.0));
   }
-  float asinh(float x){ 
+  float asinh(float x){
     return log(x + sqrt(x*x+1.0));
   }
 
@@ -132,7 +134,7 @@
     return (1.0/hypNorm(w)*w);
   }
 
-  vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point on 
+  vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point on
     // hyperboloid at distance dist on the geodesic from u through v
     return u*cosh(dist) + vPrime*sinh(dist);
   }
@@ -333,10 +335,12 @@
     float tilingSteps = 1.0;
     vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
     //camera position must be translated in hyperboloid ------------------------
-    rayOrigin *= translateByVector(cameraPos);
+    //rayOrigin *= translateByVector(cameraPos);
+    rayOrigin *= currentBoost;
     //generate direction then transform to hyperboloid ------------------------
     vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
-    rayDirV *= translateByVector(cameraPos);
+    //rayDirV *= translateByVector(cameraPos);
+    rayDirV *= currentBoost;
     vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
     //get our raymarched distance back ------------------------
     float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, endPoint, endRayTangentVector, tilingSteps);

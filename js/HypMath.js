@@ -214,14 +214,13 @@ function gramSchmidt( m ){
 	return m;
 }
 
-
 ////////check if we are still inside the central fund dom...
 
 function fakeDist( v ){  //good enough for comparison of distances on the hyperboloid
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-/*function fixOutsideCentralCell( mat, gens ) {
+function fixOutsideCentralCell( mat ) {
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
 	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
 	var bestDist = fakeDist(cPos);
@@ -235,9 +234,9 @@ function fakeDist( v ){  //good enough for comparison of distances on the hyperb
 	}
 	if (bestIndex != 0){
 		mat = mat.multiply(gens[bestIndex]);
-        return bestIndex;
+    return;
 	}
-    else {
-        return false;
-    }
-}*/
+  else
+    return;
+
+}

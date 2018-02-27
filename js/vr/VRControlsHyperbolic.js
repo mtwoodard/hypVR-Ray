@@ -101,14 +101,14 @@ THREE.VRControls = function ( camera, done ) {
 		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
 		}
-		
+
 		if(offset !== undefined){
 			m = translateByVector(offset);
 			m.multiply(currentBoost);
 			currentBoost.copy(m);
 		}
 		fixOutsideCentralCell(currentBoost);
-		//currentBoost = gramSchmidt(currentBoost);
+		currentBoost.elements = gramSchmidt(currentBoost.elements);
 
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
 	                               			this.manualRotateRate[1] * -0.2 * interval,

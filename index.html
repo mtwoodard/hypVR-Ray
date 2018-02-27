@@ -56,15 +56,15 @@
   const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
   /// for {4,3,6}
-  // const float sphereRad = 1.0;
-  // const float horosphereSize = 2.6;  //spheres intersect
+   const float sphereRad = 1.0;
+   const float horosphereSize = 2.6;  //spheres intersect
 
   // const float sphereRad = 0.5;
   // const float horosphereSize = 1.5;  // horospheres intersect
 
   /// for {4,3,7}
-  const float sphereRad = 1.0;      //spheres intersect
-  const float planeOffset = 0.75;
+  //const float sphereRad = 1.0;      //spheres intersect
+  //const float planeOffset = 0.75;
 
   uniform vec2 screenResolution;
   uniform vec3 cameraPos;
@@ -208,23 +208,23 @@
     return asinh(lorentzDot(samplePoint, dualPoint)) - offset;
   }
 
-  // float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
-  //   float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
-  //   float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-  //   float diff = differenceSDF(horosphere, sphereInv);
-  //   float final = differenceSDF(horosphere, sphereInv);
-  //   // float final = horosphere;
-  //   return final;
-  // }
+  float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
+     float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
+     float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
+     float diff = differenceSDF(horosphere, sphereInv);
+     float final = differenceSDF(horosphere, sphereInv);
+     // float final = horosphere;
+     return final;
+   }
 
-  float sceneHSDF(vec4 samplePoint){   /// for {4,3,7}
+  /*float sceneHSDF(vec4 samplePoint){   /// for {4,3,7}
     float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
     vec4 dualPoint = projectToHyperboloid(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
     float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
     float diff = differenceSDF(plane0, sphereInv);
     float final = diff;
     return final;
-  }
+  }*/
 
   // float sceneHSDF(vec4 samplePoint){   /// draw sides of the cube fundamental domain
   //   // float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);

@@ -198,14 +198,14 @@ function v_from_vprime(u, vprime){
 }
 
 function gramSchmidt( m ){
-	// var m = mat.elements;
+	//var m = mat.elements;
 	for (var i = 0; i<4; i++) {  ///normalise row
-		var invRowNorm = 1.0 / norm( m.subarray(4*i, 4*i+4) );
+		var invRowNorm = 1.0 / norm( m.slice(4*i, 4*i+4) );
 		for (var l = 0; l<4; l++) {
 			m[4*i + l] = m[4*i + l] * invRowNorm;
 		}
 		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-			var component = lorentzDot( m.subarray(4*i, 4*i+4), m.subarray(4*j, 4*j+4) );
+			var component = lorentzDot( m.slice(4*i, 4*i+4), m.slice(4*j, 4*j+4) );
 			for (var l = 0; l<4; l++) {
 				m[4*j + l] -= component * m[4*i + l];
 			}
@@ -224,15 +224,15 @@ function fixOutsideCentralCell( mat ) {
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
 	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
 	var bestDist = fakeDist(cPos);
-	var bestIndex = 0;
-	for (var i=1; i < gens.length; i++){
+	var bestIndex = -1;
+	for (var i=0; i < gens.length; i++){
 		pos = new THREE.Vector4(0,0,0,1).applyMatrix4( gens[i] ).applyMatrix4( mat );
 		if (fakeDist(pos) < bestDist) {
 			bestDist = fakeDist(pos);
 			bestIndex = i;
 		}
 	}
-	if (bestIndex != 0){
+	if (bestIndex != -1){
 		mat = mat.multiply(gens[bestIndex]);
     return;
 	}

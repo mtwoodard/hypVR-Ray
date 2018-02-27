@@ -27,7 +27,7 @@ var createGenerators = function(){
 }
 
 var invGenerators = function(genArr){
-  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
+  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
 }
 
 var fps = {

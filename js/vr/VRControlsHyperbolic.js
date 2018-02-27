@@ -2,6 +2,7 @@
  * @author dmarcos / https://github.com/dmarcos
  with additions by https://github.com/hawksley and https://github.com/henryseg
  */
+ var currentBoost = new THREE.Matrix4();
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();
@@ -99,8 +100,15 @@ THREE.VRControls = function ( camera, done ) {
 		    offset = getFwdVector().multiplyScalar(speed * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
 		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
-
 		}
+
+		if(offset !== undefined){
+			m = translateByVector(offset);
+			m.multiply(currentBoost);
+			currentBoost.copy(m);
+		}
+		fixOutsideCentralCell(currentBoost);
+		currentBoost.elements = gramSchmidt(currentBoost.elements);
 
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
 	                               			this.manualRotateRate[1] * -0.2 * interval,

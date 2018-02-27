@@ -9,22 +9,41 @@ var material;
 var controls;
 
 //-------------------------------------------------------
-// //Scene Manipulator Functions
+// Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
+var maxSteps;
+var hCWH = 0.6584789485;
+var hCWK = 0.5773502692;
 
-var createGenerators = function(widthHyp){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*widthHyp, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*widthHyp, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*widthHyp, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*widthHyp, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*widthHyp));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*widthHyp));
+var createGenerators = function(){
+  var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
+  var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
+  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
+  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
+  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
+  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
 var invGenerators = function(genArr){
-  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]]
+  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
+}
+
+var fps = {
+  start: 0,
+  frameNum: 0,
+  getFPS: function(){
+    this.frameNum++;
+    var date = new Date().getTime();
+    var currentTime = (date-this.start)/1000;
+    var res = Math.floor(this.frameNum/currentTime);
+    if(currentTime>1){
+      this.start = new Date().getTime();
+      this.frameNum=0;
+    }
+    return res;
+  }
 }
 
 //-------------------------------------------------------
@@ -42,7 +61,7 @@ var init = function(){
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
-  gens = createGenerators(0.6584789485);
+  gens = createGenerators(hCWH);
   //Setup our material----------------------------------
   material = new THREE.ShaderMaterial({
     uniforms:{
@@ -52,7 +71,9 @@ var init = function(){
       fov:{type:"f", value:virtCamera.fov},
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGenerators(gens)},
-      halfCubeWidthKlein:{type:"f", value: 0.5773502692}
+      currentBoost:{type:"m4", value:currentBoost},
+      maxSteps:{type:"f", value:maxSteps},
+      halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -79,6 +100,7 @@ var init = function(){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+  fps.getFPS();
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }

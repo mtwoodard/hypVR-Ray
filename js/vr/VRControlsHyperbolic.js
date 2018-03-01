@@ -2,7 +2,6 @@
  * @author dmarcos / https://github.com/dmarcos
  with additions by https://github.com/hawksley and https://github.com/henryseg
  */
- var currentBoost = new THREE.Matrix4();
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();

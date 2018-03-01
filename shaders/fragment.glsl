@@ -25,7 +25,7 @@ uniform float fov;
 uniform mat4 generators[6];
 uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
-uniform int maxChoice;
+uniform int maxSteps;
 uniform float halfCubeWidthKlein;
 
 //-------------------------------------------------------
@@ -135,7 +135,7 @@ mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
 vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
-  vec3 pPre = qtransform(qinverse(cameraQuat), vec3(xy,z));
+  vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
   vec4 p = projectToHyperboloid(vec4(pPre, 1.0));
   return p;
 }
@@ -233,10 +233,16 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 }
 
 float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
+  int fakeI = 0;
   float totalDepth = start;
   float localDepth = totalDepth;
   mat4 fixMatrix;
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
+    if(fakeI >= maxSteps){
+      //when we break its as if we reached our max marching steps
+      break;
+    }
+    fakeI++;
     vec4 samplePoint = pointOnGeodesic(rO, rD, localDepth);
     if(isOutsideCell(samplePoint, fixMatrix)){
       tilingSteps++;

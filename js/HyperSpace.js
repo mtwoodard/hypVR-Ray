@@ -7,12 +7,13 @@ var mesh;
 var geom;
 var material;
 var controls;
+var currentBoost;
 
 //-------------------------------------------------------
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
-//var maxSteps;
+var maxSteps = 16;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -31,19 +32,40 @@ var invGenerators = function(genArr){
 }
 
 var fps = {
-  start: 0,
-  frameNum: 0,
+  lastTime: new Date().getTime(),
+  //frameNum: 0,
   getFPS: function(){
-    this.frameNum++;
+    //this.frameNum++;
     var date = new Date().getTime();
-    var currentTime = (date-this.start)/1000;
-    var res = Math.floor(this.frameNum/currentTime);
-    if(currentTime>1){
+    var deltaTime = (date-this.lastTime)/1000;
+    this.lastTime = date;
+    //var res = this.frameNum/deltaTime;
+    /*if(deltaTime>1){
       this.start = new Date().getTime();
       this.frameNum=0;
-    }
-    return res;
+    }*/
+    return 1/deltaTime;
   }
+}
+
+var lerp = function(a,b,t){
+  return (1-t)*a + t*b;
+}
+
+var fpsLog = new Array(10);
+fpsLog.fill(30.0);
+
+var calcMaxSteps = function(targetFPS, lastFPS, lastMaxSteps){
+  fpsLog.shift();
+  fpsLog.push(lastFPS);
+
+  var averageFPS = 0.0;
+  for(var i=0; i<fpsLog.length; i++){
+    averageFPS += fpsLog[i];
+  }
+  averageFPS /= fpsLog.length;
+  console.log(Math.floor(averageFPS));
+  return Math.max(Math.min(Math.round(Math.pow((averageFPS/targetFPS),(1/10)) * lastMaxSteps),127),15);
 }
 
 //-------------------------------------------------------
@@ -62,9 +84,9 @@ var init = function(){
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
   gens = createGenerators(hCWH);
+  currentBoost = new THREE.Matrix4();
   //Setup our material----------------------------------
   loadShaders();
-
 }
 
 var loadShaders = function(){
@@ -74,7 +96,7 @@ var loadShaders = function(){
 }
 
 var finishInit = function(fShader){
-  console.log(fShader);
+//  console.log(fShader);
   material = new THREE.ShaderMaterial({
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
@@ -84,7 +106,7 @@ var finishInit = function(fShader){
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGenerators(gens)},
       currentBoost:{type:"m4", value:currentBoost},
-      //maxSteps:{type:"f", value:maxSteps},
+      maxSteps:{type:"i", value:maxSteps},
       halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
@@ -105,6 +127,7 @@ var finishInit = function(fShader){
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
   mesh = new THREE.Mesh(geom, material);
   scene.add(mesh);
+  animate();
 }
 
 //-------------------------------------------------------
@@ -112,7 +135,9 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
-  fps.getFPS();
+  maxSteps = calcMaxSteps(30, fps.getFPS(), maxSteps);
+  material.uniforms.maxSteps.value = maxSteps;
+  //console.log(maxSteps);
   effect.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -121,7 +146,6 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 init();
-animate();
 
 //-------------------------------------------------------
 // Event listeners

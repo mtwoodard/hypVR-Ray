@@ -110,9 +110,9 @@ THREE.VRControls = function ( camera, done ) {
 		fixOutsideCentralCell(currentBoost);
 		currentBoost.elements = gramSchmidt(currentBoost.elements);
 
-		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
-	                               			this.manualRotateRate[1] * -0.2 * interval,
-	                               			this.manualRotateRate[2] * -0.2 * interval, 1.0);
+		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
+	                               			this.manualRotateRate[1] * 0.2 * interval,
+	                               			this.manualRotateRate[2] * 0.2 * interval, 1.0);
 		update.normalize();
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
@@ -120,7 +120,7 @@ THREE.VRControls = function ( camera, done ) {
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
 		  if (vrState !== null) { //mobile devices/vr headsets
-				var vrStateRotation = new THREE.Quaternion(-vrState.hmd.rotation[0], -vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
+				var vrStateRotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
 			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
 				camera.position = camera.position.add(offset);
 		  }

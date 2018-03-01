@@ -12,7 +12,7 @@ var controls;
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
-var maxSteps;
+//var maxSteps;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -63,6 +63,18 @@ var init = function(){
   controls = new THREE.VRControls(virtCamera);
   gens = createGenerators(hCWH);
   //Setup our material----------------------------------
+  loadShaders();
+
+}
+
+var loadShaders = function(){
+  var loader = new THREE.FileLoader();
+  loader.setResponseType('text')
+  loader.load('../shaders/fragment.glsl',function(data){finishInit(data);});
+}
+
+var finishInit = function(fShader){
+  console.log(fShader);
   material = new THREE.ShaderMaterial({
     uniforms:{
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
@@ -72,11 +84,11 @@ var init = function(){
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGenerators(gens)},
       currentBoost:{type:"m4", value:currentBoost},
-      maxSteps:{type:"f", value:maxSteps},
+      //maxSteps:{type:"f", value:maxSteps},
       halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
-    fragmentShader: document.getElementById('fragmentShader').textContent,
+    fragmentShader: fShader,
     transparent:true
   });
   //Setup a "quad" to render on-------------------------

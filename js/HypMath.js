@@ -109,10 +109,10 @@ function getFwdVector() {
   return new THREE.Vector3(0,0,1).applyQuaternion(virtCamera.quaternion);
 }
 function getRightVector() {
-  return new THREE.Vector3(1,0,0).applyQuaternion(virtCamera.quaternion);
+  return new THREE.Vector3(-1,0,0).applyQuaternion(virtCamera.quaternion);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,1,0).applyQuaternion(virtCamera.quaternion);
+  return new THREE.Vector3(0,-1,0).applyQuaternion(virtCamera.quaternion);
 }
 
 // fastGramSchmidt from Jeff Week's CurvedSpaces. Causes some wobble when far from the origin...
@@ -182,7 +182,9 @@ function fastGramSchmidt( m )
 	return m;
 }
 
-///// better GramSchmidt...seem more stable out near infinity
+function lerp(a, b, t){
+  return (1-t)*a + t*b;
+}
 
 function lorentzDot( u, v ){
 	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] - u[3]*v[3];
@@ -196,6 +198,8 @@ function v_from_vprime(u, vprime){
   var out = vprime - lorentzDot(u,vprime)*u;
   return (1.0/norm(out)*out);
 }
+
+///// better GramSchmidt...seem more stable out near infinity
 
 function gramSchmidt( m ){
 	//var m = mat.elements;

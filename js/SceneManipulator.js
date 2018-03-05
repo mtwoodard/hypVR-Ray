@@ -7,8 +7,8 @@ var onKey = function(event){
       didChange = true;
       break;
     case 50:// 2 - 6 around one edge
-      hCWH = 0.6584789485;
-      hCWK = 0.5773502692;
+      hCWH = 0.6584789485;  // half cube width in hyperbolic distance
+      hCWK = 0.5773502692;  // half cube width in Klein model 
       didChange = true;
       break;
     case 51:// 3 - 7 around one edge

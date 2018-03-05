@@ -153,8 +153,8 @@ float differenceSDF(float d1, float d2){
 
 //Raymarch primitives
 
-float sphereHSDF(vec4 samplePoint, vec4 center, float size){
-  return hypDistance(samplePoint, center) - size;
+float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
+  return hypDistance(samplePoint, center) - radius;
 }
 
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint){
@@ -165,14 +165,38 @@ float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
   return asinh(lorentzDot(samplePoint, dualPoint)) - offset;
 }
 
-float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
-   float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
-   float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-   float diff = differenceSDF(horosphere, sphereInv);
-   float final = differenceSDF(horosphere, sphereInv);
-   // float final = horosphere;
+float geodesicCylinderHSDF(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
+  // defined by two perpendicular geodesic planes
+  return asinh(sqrt(pow(lorentzDot(samplePoint, dualPoint1),2.0)+pow(lorentzDot(samplePoint, dualPoint2),2.0))) - radius;
+}
+
+float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
+   samplePoint = abs(samplePoint);
+   //now reflect until smallest xyz coord is z, so it will be close to the xy edge of cube
+   if(samplePoint.x < samplePoint.z){
+    samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+   }
+   if(samplePoint.y < samplePoint.z){
+    samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
+   }
+
+   // should precompute these orthonomal calculations
+   vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+   vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
+   dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1); 
+  
+   float final = geodesicCylinderHSDF(samplePoint, dualPoint1, dualPoint2, 0.1);
    return final;
  }
+
+// float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
+//    float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
+//    float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
+//    float diff = differenceSDF(horosphere, sphereInv);
+//    float final = differenceSDF(horosphere, sphereInv);
+//    // float final = horosphere;
+//    return final;
+//  }
 
 /*float sceneHSDF(vec4 samplePoint){   /// for {4,3,7}
   float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);

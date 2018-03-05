@@ -167,7 +167,9 @@ float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
 
 float geodesicCylinderHSDF(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
   // defined by two perpendicular geodesic planes
-  return asinh(sqrt(pow(lorentzDot(samplePoint, dualPoint1),2.0)+pow(lorentzDot(samplePoint, dualPoint2),2.0))) - radius;
+  float dot1 = lorentzDot(samplePoint, dualPoint1);
+  float dot2 = lorentzDot(samplePoint, dualPoint2);
+  return asinh(sqrt(dot1*dot1 + dot2*dot2)) - radius;
 }
 
 float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges

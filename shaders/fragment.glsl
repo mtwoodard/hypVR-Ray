@@ -165,11 +165,16 @@ float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
   return asinh(lorentzDot(samplePoint, dualPoint)) - offset;
 }
 
-float geodesicCylinderHSDF(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
+float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
   // defined by two perpendicular geodesic planes
   float dot1 = lorentzDot(samplePoint, dualPoint1);
   float dot2 = lorentzDot(samplePoint, dualPoint2);
   return asinh(sqrt(dot1*dot1 + dot2*dot2)) - radius;
+}
+
+float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoint2, float radius){
+  // defined by two light points (at ends of the geodesic) whose lorentzDot is 1
+  return acosh(sqrt(2.0*lorentzDot(lightPoint1, samplePoint)*lorentzDot(lightPoint2, samplePoint))) - radius;
 }
 
 float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
@@ -188,7 +193,7 @@ float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
    // vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
    // dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1); 
   
-   // // Cylinders through cube faces
+   // // Cylinders through cube faces (camera starts inside so the screen will be black!)
    // now reflect until biggest xyz coord is x, so it will be close to the x axis of cube
    if(samplePoint.x < samplePoint.z){
     samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
@@ -196,10 +201,16 @@ float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
    if(samplePoint.x < samplePoint.y){
     samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
    }
-   vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
-   vec4 dualPoint2 = vec4(0.0,0.0,1.0,0.0);
+   
+   // the following two ways to define the geodesic should give the same result
+   // vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
+   // vec4 dualPoint2 = vec4(0.0,0.0,1.0,0.0);
+   // float final = geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.1);
 
-   float final = geodesicCylinderHSDF(samplePoint, dualPoint1, dualPoint2, 0.1);
+   vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);
+   vec4 lightPoint2 = (1.0/sqrt(2.0))*vec4(-1.0,0.0,0.0,1.0);
+   float final = geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.1);
+
    return final;
  }
 

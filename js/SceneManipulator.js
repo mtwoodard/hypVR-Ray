@@ -8,7 +8,7 @@ var onKey = function(event){
       break;
     case 50:// 2 - 6 around one edge
       hCWH = 0.6584789485;  // half cube width in hyperbolic distance
-      hCWK = 0.5773502692;  // half cube width in Klein model 
+      hCWK = 0.5773502692;  // half cube width in Klein model
       didChange = true;
       break;
     case 51:// 3 - 7 around one edge
@@ -40,6 +40,14 @@ var onKey = function(event){
       hCWH = 0.8314429455;
       hCWK = 0.6812500386;
       didChange = true;
+      break;
+    case 112:
+      sceneIndex = 0;
+      material.uniforms.sceneIndex.value = sceneIndex;
+      break;
+    case 113:
+      sceneIndex = 1;
+      material.uniforms.sceneIndex.value = sceneIndex;
       break;
     default:
       break;

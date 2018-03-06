@@ -14,6 +14,7 @@ var currentBoost;
 //-------------------------------------------------------
 var gens;
 var maxSteps = 16;
+var sceneIndex = 0;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -64,7 +65,7 @@ var calcMaxSteps = function(targetFPS, lastFPS, lastMaxSteps){
     averageFPS += fpsLog[i];
   }
   averageFPS /= fpsLog.length;
-  console.log(Math.floor(averageFPS));
+  //console.log(Math.floor(averageFPS));
   return Math.max(Math.min(Math.round(Math.pow((averageFPS/targetFPS),(1/10)) * lastMaxSteps),127),15);
 }
 
@@ -92,7 +93,11 @@ var init = function(){
 var loadShaders = function(){
   var loader = new THREE.FileLoader();
   loader.setResponseType('text')
-  loader.load('../shaders/fragment.glsl',function(data){finishInit(data);});
+  loader.load('../shaders/fragment.glsl',function(main){
+    loader.load('../shaders/fragmentInclude.glsl', function(include){
+      finishInit(include.concat(main));
+    });
+  });
 }
 
 var finishInit = function(fShader){
@@ -107,6 +112,7 @@ var finishInit = function(fShader){
       invGenerators:{type:"m4v", value:invGenerators(gens)},
       currentBoost:{type:"m4", value:currentBoost},
       maxSteps:{type:"i", value:maxSteps},
+      sceneIndex:{type:"i", value: sceneIndex},
       halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,

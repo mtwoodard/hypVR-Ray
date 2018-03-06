@@ -13,3 +13,6 @@ Check out this project at www.michaelwoodard.net/hypVR-Ray/
 * http://www.geometrygames.org/CurvedSpaces/
 * https://github.com/MozVR/vr-web-examples/tree/master/threejs-vr-boilerplate
 * http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
+
+
+Running this locally requires a simple web server (to source the shader files at runtime), with the root at the same level as index.html. This can be done in python 3 by running the command "python -m http.server". On Windows, you can set up a server in the Control Panel Administrative Tools, in the IIS Manager (you may need to turn this feature on first). NOTE: The server will need to have a MIME type configuration for .glsl files set to "text/plain".

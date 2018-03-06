@@ -177,47 +177,78 @@ float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoi
   return acosh(sqrt(2.0*lorentzDot(lightPoint1, samplePoint)*lorentzDot(lightPoint2, samplePoint))) - radius;
 }
 
-float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
+float sceneHSDF(vec4 samplePoint){  /// for medial surface (halfway between the edges and the dual edges)
    samplePoint = abs(samplePoint);
 
-   // // Cylinders around cube edges
-   // //now reflect until smallest xyz coord is z, so it will be close to the xy edge of cube
-   // if(samplePoint.x < samplePoint.z){
-   //  samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
-   // }
-   // if(samplePoint.y < samplePoint.z){
-   //  samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
-   // }
-   // // should precompute these orthonomal calculations
-   // vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
-   // vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
-   // dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1); 
-  
-   // // Cylinders through cube faces (camera starts inside so the screen will be black!)
-   // now reflect until biggest xyz coord is x, so it will be close to the x axis of cube
+   // //now reflect until smallest xyz coord is z, and largest is x
    if(samplePoint.x < samplePoint.z){
     samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+   }
+   if(samplePoint.y < samplePoint.z){
+    samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
    }
    if(samplePoint.x < samplePoint.y){
     samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
    }
-   
+   // should precompute these orthonomal calculations
+   vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+   vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
+   dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1); 
+   float edgesDistance = -geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.0);
    // the following two ways to define the geodesic should give the same result
    // vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
    // vec4 dualPoint2 = vec4(0.0,0.0,1.0,0.0);
-   // float final = geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.1);
+   // float final = -geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.6);
 
    vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);
    vec4 lightPoint2 = (1.0/sqrt(2.0))*vec4(-1.0,0.0,0.0,1.0);
-   float final = geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.1);
+   float dualEdgesDistance = -geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.0);
 
+   float final = -0.5*edgesDistance + 0.5*dualEdgesDistance;
    return final;
  }
+
+
+// float sceneHSDF(vec4 samplePoint){  /// for {4,3,6} edges
+//    samplePoint = abs(samplePoint);
+
+//    // // Cylinders around cube edges
+//    // //now reflect until smallest xyz coord is z, so it will be close to the xy edge of cube
+//    // if(samplePoint.x < samplePoint.z){
+//    //  samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+//    // }
+//    // if(samplePoint.y < samplePoint.z){
+//    //  samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
+//    // }
+//    // // should precompute these orthonomal calculations
+//    // vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+//    // vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
+//    // dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1); 
+  
+//    // // Cylinders through cube faces (camera starts inside)
+//    // now reflect until biggest xyz coord is x, so it will be close to the x axis of cube
+//    if(samplePoint.x < samplePoint.z){
+//     samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+//    }
+//    if(samplePoint.x < samplePoint.y){
+//     samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
+//    }
+   
+//    // the following two ways to define the geodesic should give the same result
+//    // vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
+//    // vec4 dualPoint2 = vec4(0.0,0.0,1.0,0.0);
+//    // float final = -geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.6);
+
+//    vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);
+//    vec4 lightPoint2 = (1.0/sqrt(2.0))*vec4(-1.0,0.0,0.0,1.0);
+//    float final = -geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.6);
+
+//    return final;
+//  }
 
 // float sceneHSDF(vec4 samplePoint){  /// for {4,3,6}
 //    float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
 //    float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-//    float diff = differenceSDF(horosphere, sphereInv);
 //    float final = differenceSDF(horosphere, sphereInv);
 //    // float final = horosphere;
 //    return final;

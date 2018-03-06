@@ -14,7 +14,6 @@ var currentBoost;
 //-------------------------------------------------------
 var gens;
 var maxSteps = 16;
-var sceneIndex = 0;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -112,13 +111,15 @@ var finishInit = function(fShader){
       invGenerators:{type:"m4v", value:invGenerators(gens)},
       currentBoost:{type:"m4", value:currentBoost},
       maxSteps:{type:"i", value:maxSteps},
-      sceneIndex:{type:"i", value: sceneIndex},
+      sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,
     transparent:true
   });
+  var gui = new dat.GUI();
+  gui.add(material.uniforms.sceneIndex, 'value',{One: 1, Two: 2, Three: 3, Four: 4}).name("Scene");
   //Setup a "quad" to render on-------------------------
   geom = new THREE.BufferGeometry();
   var vertices = new Float32Array([
@@ -152,6 +153,13 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 init();
+
+
+//-------------------------------------------------------
+//DAT GUI
+//-------------------------------------------------------
+var sceneIndex = 0;
+
 
 //-------------------------------------------------------
 // Event listeners

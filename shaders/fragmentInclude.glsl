@@ -193,7 +193,7 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 
 
 float sceneHSDF(vec4 samplePoint){
-  if(sceneIndex == 0){
+  if(sceneIndex == 1){
      float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
      float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
      float diff = differenceSDF(horosphere, sphereInv);
@@ -201,13 +201,58 @@ float sceneHSDF(vec4 samplePoint){
      // float final = horosphere;
      return final;
   }
-
-  if(sceneIndex == 1){
+  else if(sceneIndex == 2){
    float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
    vec4 dualPoint = projectToHyperboloid(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
    float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
    float diff = differenceSDF(plane0, sphereInv);
    float final = diff;
    return final;
+  }
+  else if(sceneIndex == 3){
+    samplePoint = abs(samplePoint);
+
+    // //now reflect until smallest xyz coord is z, and largest is x
+    if(samplePoint.x < samplePoint.z){
+      samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+    }
+    if(samplePoint.y < samplePoint.z){
+      samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
+    }
+    if(samplePoint.x < samplePoint.y){
+      samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
+    }
+    // should precompute these orthonomal calculations
+    vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+    vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
+    dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
+    float edgesDistance = -geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.0);
+    // the following two ways to define the geodesic should give the same result
+    // vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
+    // vec4 dualPoint2 = vec4(0.0,0.0,1.0,0.0);
+    // float final = -geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.6);
+
+    vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);
+    vec4 lightPoint2 = (1.0/sqrt(2.0))*vec4(-1.0,0.0,0.0,1.0);
+    float dualEdgesDistance = -geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.0);
+
+    float final = -0.5*edgesDistance + 0.5*dualEdgesDistance;
+    return final;
+  }
+  else if(sceneIndex  == 4){
+    // float sceneHSDF(vec4 samplePoint){   /// draw sides of the cube fundamental domain
+    // float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
+    // float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
+    // float diff = differenceSDF(horosphere, sphereInv);
+    vec4 dualPoint0 = projectToHyperboloid(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+    vec4 dualPoint1 = projectToHyperboloid(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));
+    vec4 dualPoint2 = projectToHyperboloid(vec4(0.0,0.0,1.0/halfCubeWidthKlein,1.0));
+    float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint0, 0.0);
+    float plane1 = geodesicPlaneHSDF(abs(samplePoint), dualPoint1, 0.0);
+    float plane2 = geodesicPlaneHSDF(abs(samplePoint), dualPoint2, 0.0);
+    // float final = unionSDF(unionSDF(unionSDF(diff,plane0),plane1),plane2);
+    float final = unionSDF(unionSDF(plane0,plane1),plane2);
+    // float final = differenceSDF(horosphere, sphereInv);
+    return final;
   }
 }

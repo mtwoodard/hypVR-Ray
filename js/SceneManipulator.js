@@ -1,3 +1,7 @@
+var changeScene = function(index){
+  material.uniforms.sceneIndex.value = index;
+}
+
 var onKey = function(event){
   var didChange = false;
   switch(event.keyCode){
@@ -40,14 +44,6 @@ var onKey = function(event){
       hCWH = 0.8314429455;
       hCWK = 0.6812500386;
       didChange = true;
-      break;
-    case 112:
-      sceneIndex = 0;
-      material.uniforms.sceneIndex.value = sceneIndex;
-      break;
-    case 113:
-      sceneIndex = 1;
-      material.uniforms.sceneIndex.value = sceneIndex;
       break;
     default:
       break;

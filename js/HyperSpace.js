@@ -13,7 +13,7 @@ var currentBoost;
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
-var maxSteps = 16;
+var maxSteps = 31;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 
@@ -65,7 +65,7 @@ var calcMaxSteps = function(targetFPS, lastFPS, lastMaxSteps){
   }
   averageFPS /= fpsLog.length;
   //console.log(Math.floor(averageFPS));
-  return Math.max(Math.min(Math.round(Math.pow((averageFPS/targetFPS),(1/10)) * lastMaxSteps),127),15);
+  return Math.max(Math.min(Math.round(Math.pow((averageFPS/targetFPS),(1/10)) * lastMaxSteps),127),31);
 }
 
 //-------------------------------------------------------

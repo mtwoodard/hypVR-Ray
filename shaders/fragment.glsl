@@ -2,10 +2,9 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
   vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
-  vec4 p = projectToHyperboloid(vec4(pPre, 1.0));
+  vec4 p = lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }
-
 
 float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoint, out vec4 endRayTangentVector, out float tilingSteps){
   int fakeI = 0;
@@ -24,8 +23,8 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoi
       vec4 newDirection = pointOnGeodesic(rO, rD, localDepth + 0.1); //forwards a bit
       rO = samplePoint*fixMatrix;
       newDirection *= fixMatrix;
-      rO = projectToHyperboloid(rO);
-      newDirection = projectToHyperboloid(newDirection);
+      rO = lorentzNormalize(rO);
+      newDirection = lorentzNormalize(newDirection);
       rD = vPrimeFromV(rO,newDirection);
       localDepth = start;
     }
@@ -61,9 +60,9 @@ vec4 estimateNormal(vec4 p, vec4 rO) { // normal vector is in tangent plane to h
   basis_y = lorentzNormalize(basis_y + lorentzDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
   basis_z = lorentzNormalize(basis_z + lorentzDot(basis_z, basis_x)*basis_x + lorentzDot(basis_z, basis_y)*basis_y);
  return lorentzNormalize(
-     basis_x * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_x)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_x))) +
-     basis_y * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_y)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_y))) +
-     basis_z * (sceneHSDF(projectToHyperboloid(p + EPSILON*basis_z)) - sceneHSDF(projectToHyperboloid(p - EPSILON*basis_z)))
+     basis_x * (sceneHSDF(lorentzNormalize(p + EPSILON*basis_x)) - sceneHSDF(lorentzNormalize(p - EPSILON*basis_x))) +
+     basis_y * (sceneHSDF(lorentzNormalize(p + EPSILON*basis_y)) - sceneHSDF(lorentzNormalize(p - EPSILON*basis_y))) +
+     basis_z * (sceneHSDF(lorentzNormalize(p + EPSILON*basis_z)) - sceneHSDF(lorentzNormalize(p - EPSILON*basis_z)))
  );
 }
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -119,7 +119,7 @@ var finishInit = function(fShader){
     transparent:true
   });
   var gui = new dat.GUI();
-  gui.add(material.uniforms.sceneIndex, 'value',{One: 1, Two: 2, Three: 3, Four: 4}).name("Scene");
+  gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
   //Setup a "quad" to render on-------------------------
   geom = new THREE.BufferGeometry();
   var vertices = new Float32Array([

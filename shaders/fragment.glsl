@@ -25,7 +25,7 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 endPoi
       newDirection *= fixMatrix;
       rO = lorentzNormalize(rO);
       newDirection = lorentzNormalize(newDirection);
-      rD = vPrimeFromV(rO,newDirection);
+      rD = directionFrom2Points(rO,newDirection);
       localDepth = start;
     }
     else{
@@ -79,7 +79,7 @@ void main(){
   vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
   //rayDirV *= translateByVector(cameraPos);
   rayDirV *= currentBoost;
-  vec4 rayDirVPrime = vPrimeFromV(rayOrigin, rayDirV);
+  vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, endPoint, endRayTangentVector, tilingSteps);
   if((dist > MAX_DIST - EPSILON)||(tilingSteps >= float(MAX_MARCHING_STEPS) - 0.5)){

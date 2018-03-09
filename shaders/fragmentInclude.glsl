@@ -37,8 +37,6 @@ float lorentzDot(vec4 u, vec4 v){
   return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
 } /// on hyperbolold if lorentzDot(u,u) = 1, so w*w = 1 + x*x + y*y + z*z
 
-
-
 vec4 projectToKlein(vec4 v){
   return v/v.w;
 }
@@ -70,7 +68,7 @@ float hypNorm(vec4 v){
 }
 
 vec4 lorentzNormalize(vec4 v){  // cannot do to a light like vector
-  return v/hypNorm(v);  // note that this is the same function as lorentzNormalize
+  return v/hypNorm(v);  // projects a non-light vector to one of the two hyperboloids
 }
 
 float hypDistance(vec4 u, vec4 v){
@@ -78,8 +76,8 @@ float hypDistance(vec4 u, vec4 v){
   return acosh(bUV);
 }
 
-vec4 vPrimeFromV(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
-  // the point vPrime for use in parametrising the geodesic from u through v
+vec4 directionFrom2Points(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
+  // the "direction" (velocity vector) vPrime for use in parametrising the geodesic from u through v
   vec4 w = v - lorentzDot(u, v)*u;
   return (1.0/hypNorm(w)*w);
 }
@@ -194,20 +192,20 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 
 
 float sceneHSDF(vec4 samplePoint){
-  if(sceneIndex == 1){
+  if(sceneIndex == 1){  // sphere and horosphere
      float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
      float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
      float final = -unionSDF(horosphere, sphere);
      return final;
   }
-  else if(sceneIndex == 2){
+  else if(sceneIndex == 2){  // sphere and plane
    float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
    vec4 dualPoint = lorentzNormalize(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
    float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
    float final = -unionSDF(plane0, sphere);
    return final;
   }
-  else if(sceneIndex == 3){
+  else if(sceneIndex == 3){  // edge medial surfaces
     samplePoint = abs(samplePoint);
 
     // //now reflect until smallest xyz coord is z, and largest is x
@@ -237,7 +235,7 @@ float sceneHSDF(vec4 samplePoint){
     float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
     return final;
   }
-  else if(sceneIndex  == 4){
+  else if(sceneIndex  == 4){  // cube sides
     // float sceneHSDF(vec4 samplePoint){   /// draw sides of the cube fundamental domain
     // float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
     // float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);

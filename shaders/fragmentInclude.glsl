@@ -159,8 +159,6 @@ float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoi
   return acosh(sqrt(2.0*lorentzDot(lightPoint1, samplePoint)*lorentzDot(lightPoint2, samplePoint))) - radius;
 }
 
-
-
 bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   if(kleinSamplePoint.x > halfCubeWidthKlein){
@@ -190,8 +188,7 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   return false;
 }
 
-
-float sceneHSDF(vec4 samplePoint){
+float localSceneHSDF(vec4 samplePoint){
   if(sceneIndex == 1){  // sphere and horosphere
      float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
      float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
@@ -207,7 +204,6 @@ float sceneHSDF(vec4 samplePoint){
   }
   else if(sceneIndex == 3){  // edge medial surfaces
     samplePoint = abs(samplePoint);
-
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
       samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
@@ -236,19 +232,18 @@ float sceneHSDF(vec4 samplePoint){
     return final;
   }
   else if(sceneIndex  == 4){  // cube sides
-    // float sceneHSDF(vec4 samplePoint){   /// draw sides of the cube fundamental domain
-    // float sphereInv = -sphereHSDF(samplePoint, ORIGIN, sphereRad);
-    // float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
-    // float diff = differenceSDF(horosphere, sphereInv);
+    /// draw sides of the cube fundamental domain
     vec4 dualPoint0 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint1 = lorentzNormalize(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));
     vec4 dualPoint2 = lorentzNormalize(vec4(0.0,0.0,1.0/halfCubeWidthKlein,1.0));
     float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint0, 0.0);
     float plane1 = geodesicPlaneHSDF(abs(samplePoint), dualPoint1, 0.0);
     float plane2 = geodesicPlaneHSDF(abs(samplePoint), dualPoint2, 0.0);
-    // float final = unionSDF(unionSDF(unionSDF(diff,plane0),plane1),plane2);
     float final = unionSDF(unionSDF(plane0,plane1),plane2);
-    // float final = differenceSDF(horosphere, sphereInv);
     return final;
   }
 }
+
+float globalSceneHSDF(vec4 samplePoint){
+  return sphereHSDF(samplePoint, lorentzNormalize(vec4(0.0,0.0,0.7,1.0)), 0.05);
+  }

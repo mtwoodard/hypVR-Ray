@@ -106,8 +106,13 @@ THREE.VRControls = function ( camera, done ) {
 			m.multiply(currentBoost);
 			currentBoost.copy(m);
 		}
-		fixOutsideCentralCell(currentBoost);
+		var fixIndex = fixOutsideCentralCell(currentBoost);
 		currentBoost.elements = gramSchmidt(currentBoost.elements);
+		if(fixIndex != -1){
+			cellBoost = cellBoost.premultiply(invGens[fixIndex]);
+			cellBoost.elements = gramSchmidt(cellBoost.elements);
+			console.log(cellBoost);
+		}
 
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
 	                               			this.manualRotateRate[1] * 0.2 * interval,

@@ -13,6 +13,7 @@ var currentBoost;
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
 var gens;
+var invGens;
 var maxSteps = 31;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
@@ -84,7 +85,9 @@ var init = function(){
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
   gens = createGenerators(hCWH);
-  currentBoost = new THREE.Matrix4();
+  invGens = invGenerators(gens);
+  currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
+  cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   //Setup our material----------------------------------
   loadShaders();
 }
@@ -108,8 +111,9 @@ var finishInit = function(fShader){
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
       fov:{type:"f", value:virtCamera.fov},
       generators:{type:"m4v", value:gens},
-      invGenerators:{type:"m4v", value:invGenerators(gens)},
+      invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:currentBoost},
+      cellBoost:{type:"m4", value:cellBoost},
       maxSteps:{type:"i", value:maxSteps},
       sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK}

@@ -6,7 +6,7 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   return p;
 }
 
-float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint, out vec4 globalEndPoint, out vec4 endRayTangentVector, out float tilingSteps, out int hitWhich){
+float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint, out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector, out float tilingSteps, out int hitWhich){
   int fakeI = 0;
   float globalDepth = start;
   float localDepth = globalDepth;
@@ -41,7 +41,8 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
         else{hitWhich = 2;}
         localEndPoint = localSamplePoint;
         globalEndPoint = globalSamplePoint;
-        endRayTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        globalEndTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
         return globalDepth;
       }
       globalDepth += dist;
@@ -49,14 +50,17 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
       if(globalDepth >= end){
         hitWhich = 0;
         globalEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
-        endRayTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        globalEndTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
         return end;
       }
     }
   }
   hitWhich = 0;
   globalEndPoint = pointOnGeodesicAtInfinity(localrO, localrD);
-  endRayTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+  localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+  globalEndTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
+
   return end;
 }
 
@@ -101,7 +105,8 @@ vec4 globalEstimateNormal(vec4 p) { // normal vector is in tangent plane to hype
 void main(){
   vec4 localEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 globalEndPoint = vec4(0.0,0.0,0.0,1.0);
-  vec4 endRayTangentVector = vec4(0.0,0.0,0.0,0.0);
+  vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
+  vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   float tilingSteps = 1.0;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
@@ -114,7 +119,7 @@ void main(){
   rayDirV *= currentBoost;
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, globalEndPoint, endRayTangentVector, tilingSteps, hitWhich);
+  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, globalEndPoint, localEndTangentVector, globalEndTangentVector, tilingSteps, hitWhich);
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
     gl_FragColor = vec4(0.5*pointAtInfinity.xyz+vec3(0.5,0.5,0.5),1.0);
@@ -122,13 +127,13 @@ void main(){
   }
   else if(hitWhich == 2){ // global
     vec4 surfaceNormal = globalEstimateNormal(globalEndPoint);
-    float shineShade = lorentzDot(surfaceNormal, endRayTangentVector);
-    gl_FragColor = vec4(0.6*shineShade,0.0,0.0,1.0);
+    float shineShade = lorentzDot(surfaceNormal, globalEndTangentVector);
+    gl_FragColor = vec4(shineShade,0.0,0.0,1.0);
     return;
   }
   else if(hitWhich == 1){ // local
     vec4 surfaceNormal = localEstimateNormal(localEndPoint);
-    float shineShade = lorentzDot(surfaceNormal, endRayTangentVector);
+    float shineShade = lorentzDot(surfaceNormal, localEndTangentVector);
     float depthShade = max(1.0-dist/5.0, 0.0);
     float stepsShade = max(1.0-tilingSteps/3.0,0.0);
     // float comboShade = shineShade*depthShade;

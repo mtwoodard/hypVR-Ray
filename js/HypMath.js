@@ -238,9 +238,9 @@ function fixOutsideCentralCell( mat ) {
 	}
 	if (bestIndex != -1){
 		mat = mat.multiply(gens[bestIndex]);
-    return;
+    return bestIndex;
 	}
-  else
-    return;
+    else
+    return -1;
 
 }

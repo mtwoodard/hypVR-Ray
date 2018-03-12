@@ -51,8 +51,9 @@ var onKey = function(event){
 
   if(didChange){
     gens = createGenerators();
+    invGens = invGenerators(gens);
     material.uniforms.generators.value = gens;
-    material.uniforms.invGenerators.value = invGenerators(gens);
+    material.uniforms.invGenerators.value = invGens;
     material.uniforms.halfCubeWidthKlein.value = hCWK;
   }
 }

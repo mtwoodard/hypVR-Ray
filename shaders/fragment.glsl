@@ -121,8 +121,8 @@ void main(){
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, globalEndPoint, localEndTangentVector, globalEndTangentVector, tilingSteps, hitWhich);
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime);
-    gl_FragColor = vec4(0.5*pointAtInfinity.xyz+vec3(0.5,0.5,0.5),1.0);
+    vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
+    gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
     return;
   }
   else if(hitWhich == 2){ // global

@@ -26,6 +26,7 @@ uniform mat4 generators[6];
 uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
 uniform mat4 cellBoost;
+uniform vec4 lightSourcePosition;
 uniform int maxSteps;
 uniform int sceneIndex;
 uniform float halfCubeWidthKlein;
@@ -247,5 +248,5 @@ float localSceneHSDF(vec4 samplePoint){
 
 float globalSceneHSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
-  return sphereHSDF(absoluteSamplePoint, lorentzNormalize(vec4(0.0,0.0,0.7,1.0)), 0.3);
+  return sphereHSDF(absoluteSamplePoint, lightSourcePosition, 0.1);
   }

@@ -132,8 +132,8 @@ void main(){
     return;
   }
   else if(hitWhich == 1){ // local
-    vec4 surfaceNormal = localEstimateNormal(localEndPoint);
-    float shineShade = lorentzDot(surfaceNormal, localEndTangentVector);
+    vec4 localSurfaceNormal = localEstimateNormal(localEndPoint);
+    float shineShade = lorentzDot(localSurfaceNormal, localEndTangentVector);
     float depthShade = max(1.0-dist/5.0, 0.0);
     float stepsShade = max(1.0-tilingSteps/3.0,0.0);
     // float comboShade = shineShade*depthShade;

@@ -8,31 +8,11 @@ var geom;
 var material;
 var controls;
 var currentBoost;
+var maxSteps = 31;
 
 //-------------------------------------------------------
 // Scene Manipulator Functions & Variables
 //-------------------------------------------------------
-var gens;
-var invGens;
-var maxSteps = 31;
-var hCWH = 0.6584789485;
-var hCWK = 0.5773502692;
-var sphereRad = 1.0;
-var horosphereSize = 2.6;
-
-var createGenerators = function(){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
-  return [gen0, gen1, gen2, gen3, gen4, gen5];
-}
-
-var invGenerators = function(genArr){
-  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
-}
 
 var fps = {
   lastTime: new Date().getTime(),
@@ -87,7 +67,8 @@ var init = function(){
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4(); 
   lightSourcePosition = new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084); // position on hyperboloid of light source, is lorentzNormalize(0,0,.7,1)
-  //Setup our material----------------------------------
+  //We need to load the shaders from file
+  //since web is async we need to wait on this to finish
   loadShaders();
 }
 
@@ -98,6 +79,7 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
     loader.load('shaders/hyperbolicScene.glsl', function(scene){
       loader.load('shaders/hyperbolicMath.glsl', function(math){
         loader.load('shaders/globalsInclude.glsl', function(globals){
+          //pass full shader string to finish our init
           finishInit(globals.concat(math).concat(scene).concat(main));
         });
       });
@@ -129,9 +111,8 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
-  //Setup dat GUI
-  var gui = new dat.GUI();
-  gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
+  //Setup dat GUI --- SceneManipulator.js
+  initGui();
   //Setup a "quad" to render on-------------------------
   geom = new THREE.BufferGeometry();
   var vertices = new Float32Array([
@@ -163,7 +144,6 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 init();
-
 
 //-------------------------------------------------------
 // Event listeners

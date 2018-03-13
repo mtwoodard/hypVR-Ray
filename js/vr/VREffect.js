@@ -23,8 +23,8 @@
  *
  */
 THREE.VREffect = function ( renderer, done ) {
-	var cameraLeft = new THREE.PerspectiveCamera();
-	var cameraRight = new THREE.PerspectiveCamera();
+	var cameraLeft = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
+	var cameraRight = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
 
 	// var frameData = new VRFrameData();
 
@@ -110,7 +110,7 @@ THREE.VREffect = function ( renderer, done ) {
 	this._init();
 
 	var iconHidden = true;
-	
+
 	this.render = function ( scene, camera, animate ) {
 		var renderer = this._renderer;
 		var vrHMD = this._vrHMD;
@@ -137,6 +137,11 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
+		if ( false ) { //change this to true to debug stereo render
+			this.renderStereo.apply( this, [scene, camera] );
+			return;
+		}
+
 		// Regular render mode if not HMD
 		renderer.render.apply( this._renderer, [scene, camera]  );
 	};
@@ -157,7 +162,7 @@ THREE.VREffect = function ( renderer, done ) {
 			camera.updateMatrixWorld();
 		}
 
-		cameraLeft.projectionMatrix = this.FovToProjection( this.leftEyeFOV, true, camera.near, camera.far );
+		/*cameraLeft.projectionMatrix = this.FovToProjection( this.leftEyeFOV, true, camera.near, camera.far );
 		cameraRight.projectionMatrix = this.FovToProjection( this.rightEyeFOV, true, camera.near, camera.far );
 
 		camera.matrixWorld.decompose( cameraLeft.position, cameraLeft.quaternion, cameraLeft.scale );
@@ -169,7 +174,7 @@ THREE.VREffect = function ( renderer, done ) {
 		} else {
 			cameraLeft.translateX( leftEyeTranslation[0] );
 			cameraRight.translateX( rightEyeTranslation[0] );
-		}
+		}*/
 
 
 		// render left eye

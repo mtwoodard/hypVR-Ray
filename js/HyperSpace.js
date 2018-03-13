@@ -93,10 +93,10 @@ var init = function(){
 var loadShaders = function(){ //Since our shader is made up of strings we can construct it from parts
   var loader = new THREE.FileLoader();
   loader.setResponseType('text')
-  loader.load('../shaders/fragment.glsl',function(main){
-    loader.load('../shaders/hyperbolicScene.glsl', function(scene){
-      loader.load('../shaders/hyperbolicMath.glsl', function(math){
-        loader.load('../shaders/globalsInclude.glsl', function(globals){
+  loader.load('/shaders/fragment.glsl',function(main){
+    loader.load('/shaders/hyperbolicScene.glsl', function(scene){
+      loader.load('/shaders/hyperbolicMath.glsl', function(math){
+        loader.load('/shaders/globalsInclude.glsl', function(globals){
           finishInit(globals.concat(math).concat(scene).concat(main));
         });
       });

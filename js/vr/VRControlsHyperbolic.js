@@ -206,11 +206,11 @@ THREE.VRControls = function ( camera, done ) {
 document.body.addEventListener( 'click', function(event) {
 	if (event.target.id === "vr-icon") {
 		event.target.style.display = "none";
-		renderer.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
+		effect.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
 	}
 
- 	if (renderer.phoneVR.orientationIsAvailable()) {
-  	renderer.setFullScreen( true );
+ 	if (effect.phoneVR.orientationIsAvailable()) {
+  	effect.setFullScreen( true );
 		if (typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function') {
 		  window.screen.orientation.lock('landscape-primary');
 		}

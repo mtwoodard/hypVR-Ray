@@ -2,7 +2,6 @@
  * @author dmarcos / https://github.com/dmarcos
  with additions by https://github.com/hawksley and https://github.com/henryseg
  */
- var currentBoost = new THREE.Matrix4();
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();
@@ -107,12 +106,17 @@ THREE.VRControls = function ( camera, done ) {
 			m.multiply(currentBoost);
 			currentBoost.copy(m);
 		}
-		fixOutsideCentralCell(currentBoost);
+		var fixIndex = fixOutsideCentralCell(currentBoost);
 		currentBoost.elements = gramSchmidt(currentBoost.elements);
+		if(fixIndex != -1){
+			cellBoost = cellBoost.premultiply(invGens[fixIndex]);
+			cellBoost.elements = gramSchmidt(cellBoost.elements);
+			console.log(cellBoost);
+		}
 
-		var update = new THREE.Quaternion(this.manualRotateRate[0] * -0.2 * interval,
-	                               			this.manualRotateRate[1] * -0.2 * interval,
-	                               			this.manualRotateRate[2] * -0.2 * interval, 1.0);
+		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
+	                               			this.manualRotateRate[1] * 0.2 * interval,
+	                               			this.manualRotateRate[2] * 0.2 * interval, 1.0);
 		update.normalize();
 		manualRotation.multiplyQuaternions(manualRotation, update);
 
@@ -120,7 +124,7 @@ THREE.VRControls = function ( camera, done ) {
 			// Applies head rotation from sensors data.
 			var totalRotation = new THREE.Quaternion();
 		  if (vrState !== null) { //mobile devices/vr headsets
-				var vrStateRotation = new THREE.Quaternion(-vrState.hmd.rotation[0], -vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
+				var vrStateRotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
 			  totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
 				camera.position = camera.position.add(offset);
 		  }
@@ -202,11 +206,11 @@ THREE.VRControls = function ( camera, done ) {
 document.body.addEventListener( 'click', function(event) {
 	if (event.target.id === "vr-icon") {
 		event.target.style.display = "none";
-		renderer.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
+		effect.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
 	}
 
- 	if (renderer.phoneVR.orientationIsAvailable()) {
-  	renderer.setFullScreen( true );
+ 	if (effect.phoneVR.orientationIsAvailable()) {
+  	effect.setFullScreen( true );
 		if (typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function') {
 		  window.screen.orientation.lock('landscape-primary');
 		}

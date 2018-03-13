@@ -85,6 +85,7 @@ var init = function(){
   invGens = invGenerators(gens);
   currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
+  invCellBoost = new THREE.Matrix4(); 
   lightSourcePosition = new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084); // position on hyperboloid of light source, is lorentzNormalize(0,0,.7,1)
   //Setup our material----------------------------------
   loadShaders();
@@ -116,6 +117,7 @@ var finishInit = function(fShader){
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:currentBoost},
       cellBoost:{type:"m4", value:cellBoost},
+      invCellBoost:{type:"m4", value:invCellBoost},
       lightSourcePosition:{type:"v4", value:lightSourcePosition},
       maxSteps:{type:"i", value:maxSteps},
       sceneIndex:{type:"i", value: 1},

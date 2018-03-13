@@ -6,13 +6,16 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   return p;
 }
 
-float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint, out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector, out float tilingSteps, out int hitWhich){
+float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint, 
+  out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector, 
+  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich){
   int fakeI = 0;
   float globalDepth = start;
   float localDepth = globalDepth;
   mat4 fixMatrix;
   vec4 localrO = rO;
   vec4 localrD = rD;
+  totalFixMatrix = mat4(1.0);  // out variables start undeclared in the function
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
       //when we break its as if we reached our max marching steps
@@ -23,6 +26,7 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
     vec4 globalSamplePoint = pointOnGeodesic(rO, rD, globalDepth);
     if(isOutsideCell(localSamplePoint, fixMatrix)){
       tilingSteps++;
+      totalFixMatrix *= fixMatrix;
       vec4 newDirection = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
       localrO = localSamplePoint*fixMatrix;
       newDirection *= fixMatrix;
@@ -71,6 +75,7 @@ void main(){
   vec4 globalEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
+  mat4 totalFixMatrix;
   float tilingSteps = 1.0;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
@@ -83,7 +88,9 @@ void main(){
   rayDirV *= currentBoost;
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, globalEndPoint, localEndTangentVector, globalEndTangentVector, tilingSteps, hitWhich);
+  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, 
+    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix, 
+    tilingSteps, hitWhich);
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
     gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
@@ -97,7 +104,12 @@ void main(){
   }
   else if(hitWhich == 1){ // local
     vec4 localSurfaceNormal = localEstimateNormal(localEndPoint);
-    float shineShade = lorentzDot(localSurfaceNormal, localEndTangentVector);
+    vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
+    vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
+
+    // float shineShade = lorentzDot(localSurfaceNormal, localEndTangentVector);
+    float shineShade = lorentzDot(localSurfaceNormal, directionToLightSource);
+    
     float depthShade = max(1.0-dist/5.0, 0.0);
     float stepsShade = max(1.0-tilingSteps/3.0,0.0);
     // float comboShade = shineShade*depthShade;

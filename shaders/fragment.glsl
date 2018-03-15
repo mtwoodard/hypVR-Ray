@@ -98,24 +98,31 @@ void main(){
   }
   else if(hitWhich == 2){ // global
     vec4 surfaceNormal = globalEstimateNormal(globalEndPoint);
-    float shineShade = lorentzDot(surfaceNormal, globalEndTangentVector);
-    gl_FragColor = vec4(shineShade,0.0,0.0,1.0);
+    float cameraLightMatteShade = lorentzDot(surfaceNormal, globalEndTangentVector);
+    gl_FragColor = vec4(cameraLightMatteShade,0.0,0.0,1.0);
     return;
   }
   else if(hitWhich == 1){ // local
     vec4 localSurfaceNormal = localEstimateNormal(localEndPoint);
     vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
     vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
-
-    // float shineShade = lorentzDot(localSurfaceNormal, localEndTangentVector);
-    float shineShade = lorentzDot(localSurfaceNormal, directionToLightSource);
+    vec4 reflectedLightDirection = -2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
     
+    float cameraLightMatteShade = max(lorentzDot(localSurfaceNormal, localEndTangentVector),0.0);
+    float sourceLightMatteShade = max(lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
+    float reflectedShineShade = max(-lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
+    // float matteShade = sourceLightMatteShade;
+    float matteShade = 0.2*cameraLightMatteShade + 0.8*sourceLightMatteShade;
+
     float depthShade = max(1.0-dist/5.0, 0.0);
     float stepsShade = max(1.0-tilingSteps/3.0,0.0);
     // float comboShade = shineShade*depthShade;
     vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
     // vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
-    vec4 shineColor = vec4(shineShade,shineShade,shineShade,1.0);
+    vec4 matteColor = vec4(matteShade,matteShade,matteShade,1.0);
+    vec4 reflectedColor;
+    if(sourceLightMatteShade > 0.0) {reflectedColor = vec4(reflectedShineShade,reflectedShineShade,reflectedShineShade,1.0);}
+    else {reflectedColor = vec4(0.0,0.0,0.0,1.0);}
     // vec4 comboColor = vec4(comboShade,comboShade,comboShade,1.0);
     // vec4 orange = vec4(1.0,0.65,0.1,1.0);
     // vec4 white = vec4(1.0,1.0,1.0,1.0);
@@ -131,7 +138,8 @@ void main(){
     // else{
     //   gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
     // }
-    gl_FragColor = 0.5*depthColor + 0.5*shineColor;
+    gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+    // gl_FragColor = reflectedColor;
     // gl_FragColor = shineColor;
     // gl_FragColor = 0.2*stepsColor + 0.8*normalColor;
     // gl_FragColor = normalColor;

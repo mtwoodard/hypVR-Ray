@@ -133,16 +133,19 @@ THREE.VREffect = function ( renderer, done ) {
 		}
 
 		if ( this.phoneVR.isVRMode === true && this.phoneVR.orientationIsAvailable()) { //default to stereo render for devices with orientation sensor, like mobile
+			material.uniforms.isStereo.value = 1;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
 
 		if ( false ) { //change this to true to debug stereo render
+			material.uniforms.isStereo.value = 1;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
 
 		// Regular render mode if not HMD
+		material.uniforms.isStereo.value = 0;
 		renderer.render.apply( this._renderer, [scene, camera]  );
 	};
 
@@ -178,11 +181,27 @@ THREE.VREffect = function ( renderer, done ) {
 
 
 		// render left eye
+		if(leftEyeTranslation.x !== undefined)
+			virtCamera.translateX(leftEyeTranslation.x);
+		else
+			virtCamera.translateX(leftEyeTranslation[0]);
+		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale); //wasn't certain on what this did or how to translate it to the single camera system.
+		material.uniforms.cameraProjection = this.FovToProjection(this.leftEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, cameraLeft );
 
 		// render right eye
+		if(leftEyeTranslation.x !== undefined){
+			virtCamera.translateX(-leftEyeTranslation.x);
+			virtCamera.translateX(rightEyeTranslation.x);
+		}
+		else{
+			virtCamera.translateX(-leftEyeTranslation[0]);
+			virtCamera.translateX(rightEyeTranslation[0]);
+		}
+		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale);
+		material.uniforms.cameraProjection = this.FovToProjection(this.rightEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, cameraRight );

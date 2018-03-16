@@ -199,6 +199,61 @@ function v_from_vprime(u, vprime){
   return (1.0/norm(out)*out);
 }
 
+// Helper function for in-radius, mid-radius, and circum-radius functions
+function Pi_hpq( p, q, )
+{
+	var pi = Math.PI;
+	var pip = Math.PI / p;
+	var piq = Math.PI / q;
+
+	var temp = Math.pow(Math.cos(pip), 2) + Math.pow(Math.cos(piq), 2);
+	var hab = pi / Math.acos(Math.sqrt(temp));
+
+	var pi_hpq = pi / hab;
+	return pi_hpq;
+}
+
+// Returns the hyperbolic in-radius of a hyperbolic {p,q,r} honeycomb
+function inRadius(p, q, r)
+{
+	var pip = Math.PI / p;
+	var pir = Math.PI / r;
+
+	var pi_hpq = Pi_hpq(p, q);
+	var inRadius = Math.sin(pip) * Math.cos(pir) / Math.sin(pi_hpq);
+
+	return Math.acosh(inRadius);
+}
+
+// Given a Poincare norm, returns the hyperbolic norm.
+function p2hnorm( pNorm )
+{
+	return 2 * Math.atanh(pNorm);
+}
+
+// Given a hyperbolic norm, returns the Poincare norm.
+function h2pNorm( hNorm )
+{
+	return Math.tanh(.5 * hNorm);
+}
+
+// Poincare norm to klein norm.
+function poincareToKlein( p )
+{
+	var mag = 2 / (1 + p*p);
+	return p * mag;
+}
+
+// Klein norm to poincare norm.
+function kleinToPoincare( k )
+{
+	var dot = k*k;
+	if( dot > 1 )
+		dot = 1;
+	var mag = (1 - Math.sqrt(1 - dot)) / dot;
+	return k * mag;
+}
+
 ///// better GramSchmidt...seem more stable out near infinity
 
 function gramSchmidt( m ){

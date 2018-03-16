@@ -6,7 +6,6 @@ const vec4 ORIGIN = vec4(0,0,0,1);
 
 const float halfIdealCubeWidthKlein = 0.5773502692;
 const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
-const float planeOffset = 0.75;
 
 uniform int isStereo;
 uniform mat4 cameraProjection;
@@ -28,6 +27,7 @@ uniform int sceneIndex;
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;
 uniform float horosphereSize;
+uniform float planeOffset;
 
 //Quaternion Math
 vec3 qtransform( vec4 q, vec3 v ){

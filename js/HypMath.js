@@ -199,8 +199,9 @@ function v_from_vprime(u, vprime){
   return (1.0/norm(out)*out);
 }
 
-// Helper function for in-radius, mid-radius, and circum-radius functions
-function Pi_hpq( p, q, )
+// Helper function for in-radius, mid-radius, and circum-radius
+// These are from Coxeter's paper classifying paracompact honeycombs
+function Pi_hpq( p, q )
 {
 	var pi = Math.PI;
 	var pip = Math.PI / p;
@@ -213,8 +214,8 @@ function Pi_hpq( p, q, )
 	return pi_hpq;
 }
 
-// Returns the hyperbolic in-radius of a hyperbolic {p,q,r} honeycomb
-function inRadius(p, q, r)
+// Returns the hyperbolic in-radius of a {p,q,r} honeycomb
+function inRadius( p, q, r) 
 {
 	var pip = Math.PI / p;
 	var pir = Math.PI / r;
@@ -223,6 +224,16 @@ function inRadius(p, q, r)
 	var inRadius = Math.sin(pip) * Math.cos(pir) / Math.sin(pi_hpq);
 
 	return Math.acosh(inRadius);
+}
+
+// Returns the hyperbolic mid-radius of a {p,q,r} honeycomb
+function MidRadius( p, q, r )
+{
+	var pir = Math.PI / r;
+
+	var inrad = InRadius(p, q, r);
+	var midrad = Math.sinh(inRadius) / Math.sin(pir);
+	return Math.asinh(midrad);
 }
 
 // Given a Poincare norm, returns the hyperbolic norm.

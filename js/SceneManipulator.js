@@ -4,6 +4,7 @@ var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 var sphereRad = 1.0;
 var horosphereSize = 2.6;
+var planeOffset = 0.75;
 
 var createGenerators = function(){
   var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
@@ -41,7 +42,7 @@ var initGui = function(){
 	case '5': r = 9; break;
 	case '6': r = 10; break;
 	case '7': r = 11; break;
-	case '8': r == 12; break;
+	case '8': r = 12; break;
 	default: break;	
 	}	
 
@@ -51,7 +52,16 @@ var initGui = function(){
 	hCWH = inrad;
 	hCWK = poincareToKlein( h2pNorm( inrad ) );
 
-	// TODO! Calculate sphereRad, horosphereSize, and planeOffset
+	// Calculate sphereRad, horosphereSize, and planeOffset
+	//
+	// Picture the truncated honeycomb cells filled with "spheres".
+	// We want them to be slightly bigger than that so that they intersect.
+	// This needs to be improved with some more thought. We should try to use  
+	// the geometry to calculate a standard circle intersection size.
+	var hOffset = 0.25;
+	sphereRad = inrad + hOffset;
+	horosphereSize = 2.6;
+	planeOffset = offset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
 
 	gens = createGenerators();
 	invGens = invGenerators(gens);
@@ -59,6 +69,7 @@ var initGui = function(){
 	material.uniforms.invGenerators.value = invGens;
 	material.uniforms.halfCubeWidthKlein.value = hCWK;
 	material.uniforms.sphereRad.value = sphereRad;
-	material.uniforms.horosphereSize.value = horosphereSize;	
+	material.uniforms.horosphereSize.value = horosphereSize;
+	material.uniforms.planeOffset.value = planeOffset;
   });
 }

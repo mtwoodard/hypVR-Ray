@@ -61,7 +61,7 @@ var initGui = function(){
 	var hOffset = 0.25;
 	sphereRad = inrad + hOffset;
 	horosphereSize = 2.6;
-	planeOffset = offset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
+	planeOffset = hOffset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
 
 	gens = createGenerators();
 	invGens = invGenerators(gens);

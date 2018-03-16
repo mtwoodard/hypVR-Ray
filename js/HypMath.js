@@ -199,53 +199,16 @@ function v_from_vprime(u, vprime){
   return (1.0/norm(out)*out);
 }
 
-// Helper function for in-radius, mid-radius, and circum-radius
-// These are from Coxeter's paper classifying paracompact honeycombs
-function Pi_hpq( p, q )
-{
-	var pi = Math.PI;
-	var pip = Math.PI / p;
-	var piq = Math.PI / q;
-
-	var temp = Math.pow(Math.cos(pip), 2) + Math.pow(Math.cos(piq), 2);
-	var hab = pi / Math.acos(Math.sqrt(temp));
-
-	var pi_hpq = pi / hab;
-	return pi_hpq;
-}
-
-// Returns the hyperbolic in-radius of a {p,q,r} honeycomb
-function inRadius( p, q, r) 
-{
-	var pip = Math.PI / p;
-	var pir = Math.PI / r;
-
-	var pi_hpq = Pi_hpq(p, q);
-	var inRadius = Math.sin(pip) * Math.cos(pir) / Math.sin(pi_hpq);
-
-	return Math.acosh(inRadius);
-}
-
-// Returns the hyperbolic mid-radius of a {p,q,r} honeycomb
-function MidRadius( p, q, r )
-{
-	var pir = Math.PI / r;
-
-	var inrad = InRadius(p, q, r);
-	var midrad = Math.sinh(inRadius) / Math.sin(pir);
-	return Math.asinh(midrad);
-}
-
 // Given a Poincare norm, returns the hyperbolic norm.
-function p2hnorm( pNorm )
+function poincareToHyperbolic( p )
 {
-	return 2 * Math.atanh(pNorm);
+	return 2 * Math.atanh(p);
 }
 
 // Given a hyperbolic norm, returns the Poincare norm.
-function h2pNorm( hNorm )
+function hyperbolicToPoincare( h )
 {
-	return Math.tanh(.5 * hNorm);
+	return Math.tanh(.5 * h);
 }
 
 // Poincare norm to klein norm.

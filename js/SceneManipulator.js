@@ -35,31 +35,35 @@ var initGui = function(){
 	var r = 6;
 	switch(value)
 	{
-	case '1': r = 5; break;
-	case '2': r = 6; break;
-	case '3': r = 7; break;
-	case '4': r = 8; break;
-	case '5': r = 9; break;
-	case '6': r = 10; break;
-	case '7': r = 11; break;
-	case '8': r = 12; break;
-	default: break;	
+		case '0': r = 3; break;
+		case '1': r = 5; break;
+		case '2': r = 6; break;
+		case '3': r = 7; break;
+		case '4': r = 8; break;
+		case '5': r = 9; break;
+		case '6': r = 10; break;
+		case '7': r = 11; break;
+		case '8': r = 12; break;
+		default: break;	
 	}	
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var p = 4, q = 3;
 	var inrad = inRadius( p, q, r );
 	hCWH = inrad;
-	hCWK = poincareToKlein( h2pNorm( inrad ) );
+	hCWK = poincareToKlein( hyperbolicToPoincare( inrad ) );
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//
-	// Picture the truncated honeycomb cells filled with "spheres".
+	// Picture the truncated honeycomb cells filled with "spheres", made
+	// big enough so that they become tangent at cell faces.
 	// We want them to be slightly bigger than that so that they intersect.
-	// This needs to be improved with some more thought. We should try to use  
-	// the geometry to calculate a standard circle intersection size.
+	// This needs to be improved with some more thought. Maybe we should try 
+	// to use the geometry to calculate a standard circle intersection size.
 	var hOffset = 0.25;
 	sphereRad = inrad + hOffset;
+	if (r == 6)
+		sphereRad = 1.0;
 	horosphereSize = 2.6;
 	planeOffset = hOffset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
 

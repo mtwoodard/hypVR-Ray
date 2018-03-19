@@ -27,7 +27,7 @@ var initGui = function(){
   };
   var gui = new dat.GUI();
   gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
-  var edgeController = gui.add(guiInfo, 'edgeCase', {"1-5":1, "2-6":2, "3-7":3, "4-8":4, "5-9":5, "6-10":6, "7-11":7, "8-12":8}).name("Edge Case");
+  var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge degree");
   edgeController.onFinishChange(function(value){
     //console.log(value);
 

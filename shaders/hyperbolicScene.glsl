@@ -3,8 +3,11 @@ float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
   return hypDistance(samplePoint, center) - radius;
 }
 
-float horosphereHSDF(vec4 samplePoint, vec4 lightPoint){
-  return log(lorentzDot(samplePoint, lightPoint));
+// A horosphere can be constructed by offseting from a standard horosphere.
+// Our standard horosphere will have a center in the direction of lightPoint 
+// and go through the origin. Negative offsets will "shrink" it.
+float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){
+  return log(lorentzDot(samplePoint, lightPoint)) - offset;
 }
 
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
@@ -27,7 +30,7 @@ float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoi
 float localSceneHSDF(vec4 samplePoint){
   if(sceneIndex == 1){  // sphere and horosphere
      float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
-     float horosphere = horosphereHSDF(abs(samplePoint), horosphereSize*idealCubeCornerKlein);
+     float horosphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);
      float final = -unionSDF(horosphere, sphere);
      return final;
   }

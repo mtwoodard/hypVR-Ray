@@ -2,8 +2,8 @@ var gens;
 var invGens;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
-var sphereRad = 1.0;
-var horosphereSize = 2.6;
+var sphereRad = 0.996216;
+var horosphereSize = -0.951621;
 var planeOffset = 0.75;
 
 var createGenerators = function(){
@@ -49,7 +49,8 @@ var initGui = function(){
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var p = 4, q = 3;
-	var inrad = inRadius( p, q, r );
+	var inrad = InRadius(p, q, r);
+	var midrad = MidRadius(p, q, r);
 	hCWH = inrad;
 	hCWK = poincareToKlein( hyperbolicToPoincare( inrad ) );
 
@@ -58,13 +59,21 @@ var initGui = function(){
 	// Picture the truncated honeycomb cells filled with "spheres", made
 	// big enough so that they become tangent at cell faces.
 	// We want them to be slightly bigger than that so that they intersect.
-	// This needs to be improved with some more thought. Maybe we should try 
-	// to use the geometry to calculate a standard circle intersection size.
-	var hOffset = 0.25;
-	sphereRad = inrad + hOffset;
-	if (r == 6)
-		sphereRad = 1.0;
-	horosphereSize = 2.6;
+	// We calculate so that hOffset is the in-radius of the main edges at their smallest neck.
+	// (zero is a reasonable value, and good for testing.)
+	// Make hOffset a UI parameter??
+	var hOffset = 0.15;
+
+	// sphereRad
+	sphereRad = midrad - hOffset;
+
+	// horosphereSize: It works well to take the horosphere to the middle of the edge.
+	var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
+	var midEdge = constructHyperboloidPoint(midEdgeDir, sphereRad);
+	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -sphereRad);
+	horosphereSize = -(sphereRad - distToMidEdge);
+
+	// planeOffset (this is still heuristic and needs to be worked out).
 	planeOffset = hOffset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
 
 	gens = createGenerators();

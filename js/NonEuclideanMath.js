@@ -5,15 +5,15 @@
 var Geometry = Object.freeze({ "Spherical": 1, "Euclidean": 2, "Hyperbolic": 3 });
 
 // Infinity-safe pi/n function.
-function piOverNSafe(n)
+function PiOverNSafe(n)
 {
 	return n == -1 ? 0 : Math.PI / n;
 }
 
 function GetGeometry(p, q, r)
 {
-	var t1 = Math.sin(piOverNSafe(p)) * Math.sin(piOverNSafe(r));
-	var t2 = Math.cos(piOverNSafe(q));
+	var t1 = Math.sin(PiOverNSafe(p)) * Math.sin(PiOverNSafe(r));
+	var t2 = Math.cos(PiOverNSafe(q));
 
 	// Might need to make this tolerance-safe.
 	if( t1 == t2 )
@@ -30,8 +30,8 @@ function GetGeometry(p, q, r)
 function Pi_hpq(p, q)
 {
 	var pi = Math.PI;
-	var pip = piOverNSafe(p);
-	var piq = piOverNSafe(q);
+	var pip = PiOverNSafe(p);
+	var piq = PiOverNSafe(q);
 
 	var temp = Math.pow(Math.cos(pip), 2) + Math.pow(Math.cos(piq), 2);
 	var hab = pi / Math.acos(Math.sqrt(temp));
@@ -41,10 +41,10 @@ function Pi_hpq(p, q)
 }
 
 // Returns the in-radius of a {p,q,r} honeycomb, in the induced geometry
-function inRadius(p, q, r)
+function InRadius(p, q, r)
 {
-	var pip = piOverNSafe(p);
-	var pir = piOverNSafe(r);
+	var pip = PiOverNSafe(p);
+	var pir = PiOverNSafe(r);
 
 	var pi_hpq = Pi_hpq(p, q);
 	var inRadius = Math.sin(pip) * Math.cos(pir) / Math.sin(pi_hpq);
@@ -61,16 +61,16 @@ function inRadius(p, q, r)
 // Returns the mid-radius of a {p,q,r} honeycomb, in the induced geometry
 function MidRadius(p, q, r)
 {
-	var pir = piOverNSafe(r);
+	var pir = PiOverNSafe(r);
 
 	var inrad = InRadius(p, q, r);
-	var midrad = Math.sinh(inRadius) / Math.sin(pir);
+	var midrad = Math.sinh(inrad) / Math.sin(pir);
 
 	switch( GetGeometry( p, q, r ) )
 	{
 		case Geometry.Hyperbolic:
-			return Math.asinh( midRadius );
+			return Math.asinh( midrad );
 		case Geometry.Spherical:
-			return Math.asin( midRadius );
+			return Math.asin( midrad );
 	}
 }

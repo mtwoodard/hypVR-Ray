@@ -59,7 +59,7 @@ var initGui = function(){
 	// Picture the truncated honeycomb cells filled with "spheres", made
 	// big enough so that they become tangent at cell faces.
 	// We want them to be slightly bigger than that so that they intersect.
-	// We calculate so that hOffset is the in-radius of the main edges at their smallest neck.
+	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
 	// Make hOffset a UI parameter??
 	var hOffset = 0.15;
@@ -67,14 +67,16 @@ var initGui = function(){
 	// sphereRad
 	sphereRad = midrad - hOffset;
 
-	// horosphereSize: It works well to take the horosphere to the middle of the edge.
+	// horosphereSize
 	var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
 	var midEdge = constructHyperboloidPoint(midEdgeDir, sphereRad);
 	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -sphereRad);
 	horosphereSize = -(sphereRad - distToMidEdge);
 
-	// planeOffset (this is still heuristic and needs to be worked out).
-	planeOffset = hOffset * 3 * ( 30 / ( Math.pow( r, 1.75 ) ) );
+	// planeOffset
+	var dualPoint = lorentzNormalizeTHREE(new THREE.Vector4(hCWK, hCWK, hCWK, 1.0));
+	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
+	planeOffset = distToMidEdge;
 
 	gens = createGenerators();
 	invGens = invGenerators(gens);

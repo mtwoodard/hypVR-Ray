@@ -194,6 +194,11 @@ function lorentzDotTHREE(u, v) {
 	return u.x * v.x + u.y * v.y + u.z * v.z - u.w * v.w;
 }
 
+function lorentzNormalizeTHREE(v) {
+	var norm = Math.sqrt(Math.abs(lorentzDotTHREE(v, v)));
+	return v.divideScalar( norm );
+}
+
 function norm( v ){
 	return Math.sqrt(Math.abs(lorentzDot(v,v)));
 }
@@ -255,8 +260,14 @@ var idealCubeCornerKlein = new THREE.Vector4(halfIdealCubeWidthKlein, halfIdealC
 function horosphereHSDF( samplePoint, lightPoint, offset )
 {
 	// Why is sign of lorentzDot opposite here and in glsl?
-	var dot = -lorentzDotTHREE(samplePoint, lightPoint)
+	var dot = -lorentzDotTHREE(samplePoint, lightPoint);
 	return Math.log( dot ) - offset;
+}
+
+function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
+{
+	var dot = -lorentzDotTHREE(samplePoint, dualPoint);
+	return Math.asinh( dot ) - offset;
 }
 
 ///// better GramSchmidt...seem more stable out near infinity

@@ -10,12 +10,13 @@ const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWid
 uniform int isStereo;
 uniform mat4 cameraProjection;
 uniform vec2 screenResolution;
-uniform vec3 cameraPos;
 uniform vec4 cameraQuat;
 uniform float fov;
 uniform mat4 generators[6];
 uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
+uniform mat4 leftCurrentBoost;
+uniform mat4 rightCurrentBoost;
 uniform mat4 cellBoost;
 uniform mat4 invCellBoost;
 uniform vec4 lightSourcePosition;

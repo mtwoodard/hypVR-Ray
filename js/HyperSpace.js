@@ -8,6 +8,8 @@ var geom;
 var material;
 var controls;
 var currentBoost;
+var leftCurrentBoost;
+var rightCurrentBoost;
 var maxSteps = 31;
 
 //-------------------------------------------------------
@@ -100,6 +102,8 @@ var finishInit = function(fShader){
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:currentBoost},
+      leftCurrentBoost:{type:"m4", value:leftCurrentBoost},
+      rightCurrentBoost:{type:"m4",value:rightCurrentBoost},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       lightSourcePosition:{type:"v4", value:lightSourcePosition},

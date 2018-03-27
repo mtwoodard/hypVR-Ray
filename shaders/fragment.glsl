@@ -2,7 +2,6 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
   vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
-  //pPre *= cameraProjection;
   vec4 p = lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }
@@ -79,14 +78,22 @@ void main(){
   mat4 totalFixMatrix;
   float tilingSteps = 1.0;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
+  vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
-  //rayOrigin *= translateByVector(cameraPos);
+  if(isStereo != 0){ //move left or right for stereo
+    if(isStereo == -1){
+      rayOrigin *= leftCurrentBoost;
+      rayDirV *= leftCurrentBoost;
+    }
+    else{
+      rayOrigin *= rightCurrentBoost;
+      rayDirV *= rightCurrentBoost;
+    }
+  }
   rayOrigin *= currentBoost;
-  //generate direction then transform to hyperboloid ------------------------
-  vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
-  //rayDirV *= translateByVector(cameraPos);
   rayDirV *= currentBoost;
+  //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint,

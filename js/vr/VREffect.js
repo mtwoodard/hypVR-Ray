@@ -23,9 +23,6 @@
  *
  */
 THREE.VREffect = function ( renderer, done ) {
-	var cameraLeft = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-	var cameraRight = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-
 	// var frameData = new VRFrameData();
 
 	this._renderer = renderer;
@@ -39,6 +36,14 @@ THREE.VREffect = function ( renderer, done ) {
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
+		if(self.leftEyeTranslation.x !== undefined){
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+		}
+		else{
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation[0]);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation[0]);
+		}
 
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
 			if ( done ) {
@@ -133,13 +138,11 @@ THREE.VREffect = function ( renderer, done ) {
 		}
 
 		if ( this.phoneVR.isVRMode === true && this.phoneVR.orientationIsAvailable()) { //default to stereo render for devices with orientation sensor, like mobile
-			material.uniforms.isStereo.value = 1;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
 
 		if ( true ) { //change this to true to debug stereo render
-			material.uniforms.isStereo.value = 1;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
@@ -165,44 +168,15 @@ THREE.VREffect = function ( renderer, done ) {
 			camera.updateMatrixWorld();
 		}
 
-		/*cameraLeft.projectionMatrix = this.FovToProjection( this.leftEyeFOV, true, camera.near, camera.far );
-		cameraRight.projectionMatrix = this.FovToProjection( this.rightEyeFOV, true, camera.near, camera.far );
-
-		camera.matrixWorld.decompose( cameraLeft.position, cameraLeft.quaternion, cameraLeft.scale );
-		camera.matrixWorld.decompose( cameraRight.position, cameraRight.quaternion, cameraRight.scale );
-
-		if (leftEyeTranslation.x !== undefined) {
-			cameraLeft.translateX( leftEyeTranslation.x );
-			cameraRight.translateX( rightEyeTranslation.x );
-		} else {
-			cameraLeft.translateX( leftEyeTranslation[0] );
-			cameraRight.translateX( rightEyeTranslation[0] );
-		}*/
-
-
 		// render left eye
-		if(leftEyeTranslation.x !== undefined)
-			currentBoost.elements[12] += leftEyeTranslation.x;
-		else
-			currentBoost.elements[12] += leftEyeTranslation[0];
-		material.uniforms.currentBoost.value = currentBoost;
-		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale); //wasn't certain on what this did or how to translate it to the single camera system.
+		material.uniforms.isStereo.value = -1;
 		material.uniforms.cameraProjection = this.FovToProjection(this.leftEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, camera );
 
 		//render right eye
-		if(leftEyeTranslation.x !== undefined){
-			currentBoost.elements[12] -= leftEyeTranslation.x;
-			currentBoost.elements[12] += rightEyeTranslation.x;
-		}
-		else{
-			currentBoost.elements[12] -= leftEyeTranslation[0];
-			currentBoost.elements[12] += rightEyeTranslation[0];
-		}
-		material.uniforms.currentBoost.value = currentBoost;
-		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale);
+		material.uniforms.isStereo.value = 1;
 		material.uniforms.cameraProjection = this.FovToProjection(this.rightEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );

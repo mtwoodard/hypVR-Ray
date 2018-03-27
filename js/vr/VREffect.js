@@ -138,7 +138,7 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
-		if ( false ) { //change this to true to debug stereo render
+		if ( true ) { //change this to true to debug stereo render
 			material.uniforms.isStereo.value = 1;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
@@ -182,29 +182,31 @@ THREE.VREffect = function ( renderer, done ) {
 
 		// render left eye
 		if(leftEyeTranslation.x !== undefined)
-			virtCamera.translateX(leftEyeTranslation.x);
+			currentBoost.elements[12] += leftEyeTranslation.x;
 		else
-			virtCamera.translateX(leftEyeTranslation[0]);
+			currentBoost.elements[12] += leftEyeTranslation[0];
+		material.uniforms.currentBoost.value = currentBoost;
 		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale); //wasn't certain on what this did or how to translate it to the single camera system.
 		material.uniforms.cameraProjection = this.FovToProjection(this.leftEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, cameraLeft );
+		renderer.render( scene, camera );
 
-		// render right eye
+		//render right eye
 		if(leftEyeTranslation.x !== undefined){
-			virtCamera.translateX(-leftEyeTranslation.x);
-			virtCamera.translateX(rightEyeTranslation.x);
+			currentBoost.elements[12] -= leftEyeTranslation.x;
+			currentBoost.elements[12] += rightEyeTranslation.x;
 		}
 		else{
-			virtCamera.translateX(-leftEyeTranslation[0]);
-			virtCamera.translateX(rightEyeTranslation[0]);
+			currentBoost.elements[12] -= leftEyeTranslation[0];
+			currentBoost.elements[12] += rightEyeTranslation[0];
 		}
+		material.uniforms.currentBoost.value = currentBoost;
 		//virtCamera.matrixWorld.decompose(virtCamera.position, virtCamera.quaternion, virtCamera.scale);
 		material.uniforms.cameraProjection = this.FovToProjection(this.rightEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, cameraRight );
+		renderer.render( scene, camera );
 
 	};
 

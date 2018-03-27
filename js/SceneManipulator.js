@@ -23,11 +23,13 @@ var invGenerators = function(genArr){
 //What we need to init our dat GUI
 var initGui = function(){
   var guiInfo = { //Since dat gui can only modify object values we store variables here.
-    edgeCase:2
+    edgeCase:2,
+    edgeThickness:1
   };
   var gui = new dat.GUI();
   gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge degree");
+  gui.add(guiInfo, 'edgeThickness', 0, 5);
   edgeController.onFinishChange(function(value){
     //console.log(value);
 
@@ -44,8 +46,8 @@ var initGui = function(){
 		case '6': r = 10; break;
 		case '7': r = 11; break;
 		case '8': r = 12; break;
-		default: break;	
-	}	
+		default: break;
+	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var p = 4, q = 3;

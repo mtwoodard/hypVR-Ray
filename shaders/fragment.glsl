@@ -2,12 +2,13 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
   vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
+  //pPre *= cameraProjection;
   vec4 p = lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }
 
-float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint, 
-  out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector, 
+float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint,
+  out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
   out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich){
   int fakeI = 0;
   float globalDepth = start;
@@ -88,8 +89,8 @@ void main(){
   rayDirV *= currentBoost;
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint, 
-    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix, 
+  float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint,
+    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
     tilingSteps, hitWhich);
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
@@ -107,7 +108,7 @@ void main(){
     vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
     vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
     vec4 reflectedLightDirection = -2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
-    
+
     float cameraLightMatteShade = max(lorentzDot(localSurfaceNormal, localEndTangentVector),0.0);
     float sourceLightMatteShade = max(lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
     float reflectedShineShade = max(-lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);

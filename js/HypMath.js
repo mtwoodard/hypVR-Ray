@@ -190,6 +190,15 @@ function lorentzDot( u, v ){
 	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] - u[3]*v[3];
 }
 
+function lorentzDotTHREE(u, v) {
+	return u.x * v.x + u.y * v.y + u.z * v.z - u.w * v.w;
+}
+
+function lorentzNormalizeTHREE(v) {
+	var norm = Math.sqrt(Math.abs(lorentzDotTHREE(v, v)));
+	return v.divideScalar( norm );
+}
+
 function norm( v ){
 	return Math.sqrt(Math.abs(lorentzDot(v,v)));
 }
@@ -197,6 +206,68 @@ function norm( v ){
 function v_from_vprime(u, vprime){
   var out = vprime - lorentzDot(u,vprime)*u;
   return (1.0/norm(out)*out);
+}
+
+// Constructs a point on the hyperboloid from a direction and a hyperbolic distance.
+function constructHyperboloidPoint(direction, distance)
+{
+	// acosh(lorentzDot(origin, v)) = distance
+	// origin = (0,0,0,1), so lorentzDot = -v.w
+	var w = Math.cosh(distance);
+
+	// lorentzDot( v, v ) = 1, so w*w = 1 + x*x + y*y + z*z
+	var magSquared = w * w - 1;
+	direction.normalize();
+	direction.multiplyScalar(Math.sqrt(magSquared));
+	return new THREE.Vector4(direction.x, direction.y, direction.z, w);
+}
+
+// Given a Poincare norm, returns the hyperbolic norm.
+function poincareToHyperbolic( p )
+{
+	return 2 * Math.atanh(p);
+}
+
+// Given a hyperbolic norm, returns the Poincare norm.
+function hyperbolicToPoincare( h )
+{
+	return Math.tanh(.5 * h);
+}
+
+// Poincare norm to klein norm.
+function poincareToKlein( p )
+{
+	var mag = 2 / (1 + p*p);
+	return p * mag;
+}
+
+// Klein norm to poincare norm.
+function kleinToPoincare( k )
+{
+	var dot = k*k;
+	if( dot > 1 )
+		dot = 1;
+	var mag = (1 - Math.sqrt(1 - dot)) / dot;
+	return k * mag;
+}
+
+var halfIdealCubeWidthKlein = 0.5773502692;
+var idealCubeCornerKlein = new THREE.Vector4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
+
+// A horosphere can be constructed by offseting from a standard horosphere.
+// Our standard horosphere will have a center in the direction of lightPoint 
+// and go through the origin. Negative offsets will "shrink" it.
+function horosphereHSDF( samplePoint, lightPoint, offset )
+{
+	// Why is sign of lorentzDot opposite here and in glsl?
+	var dot = -lorentzDotTHREE(samplePoint, lightPoint);
+	return Math.log( dot ) - offset;
+}
+
+function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
+{
+	var dot = -lorentzDotTHREE(samplePoint, dualPoint);
+	return Math.asinh( dot ) - offset;
 }
 
 ///// better GramSchmidt...seem more stable out near infinity

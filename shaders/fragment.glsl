@@ -81,8 +81,8 @@ void main(){
   vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
-  if(isStereo != 0){ //move left or right for stereo
-    if(isStereo == -1){
+  if(isStereo != 0.0){ //move left or right for stereo
+    if(isStereo == -1.0)
       rayOrigin *= leftCurrentBoost;
       rayDirV *= leftCurrentBoost;
     }

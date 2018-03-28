@@ -20,23 +20,14 @@ var invGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
 }
 
-//What we need to init our dat GUI
-var initGui = function(){
-  var guiInfo = { //Since dat gui can only modify object values we store variables here.
-    edgeCase:2,
-    edgeThickness:1
-  };
-  var gui = new dat.GUI();
-  gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
-  var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge degree");
-  gui.add(guiInfo, 'edgeThickness', 0, 5);
-  edgeController.onFinishChange(function(value){
-    //console.log(value);
-
+// Inputs are from the UI parameterizations.
+// e is the edge case
+// t is the edge thickness
+function updateUniformsFromUI(e, t)
+{
 	// Get the number of cubes around each edge.
 	var r = 6;
-	switch(value)
-	{
+	switch (e) {
 		case '0': r = 3; break;
 		case '1': r = 5; break;
 		case '2': r = 6; break;
@@ -54,7 +45,7 @@ var initGui = function(){
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
 	hCWH = inrad;
-	hCWK = poincareToKlein( hyperbolicToPoincare( inrad ) );
+	hCWK = poincareToKlein(hyperbolicToPoincare(inrad));
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//
@@ -64,7 +55,7 @@ var initGui = function(){
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
 	// Make hOffset a UI parameter??
-	var hOffset = 0.15;
+	var hOffset = t / 10;
 
 	// sphereRad
 	sphereRad = midrad - hOffset;
@@ -88,5 +79,25 @@ var initGui = function(){
 	material.uniforms.sphereRad.value = sphereRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
+}
+
+//What we need to init our dat GUI
+var initGui = function(){
+  var guiInfo = { //Since dat gui can only modify object values we store variables here.
+    edgeCase:2,
+    edgeThickness:1.5
+  };
+  var gui = new dat.GUI();
+  gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
+  var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge degree");
+  var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5);
+
+  edgeController.onFinishChange(function(value) {
+	  //console.log(value);
+	  updateUniformsFromUI(guiInfo.edgeCase, guiInfo.edgeThickness);
+  });
+
+  thicknessController.onFinishChange(function(value) {
+	  updateUniformsFromUI(guiInfo.edgeCase, guiInfo.edgeThickness);
   });
 }

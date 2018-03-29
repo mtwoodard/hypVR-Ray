@@ -8,6 +8,7 @@ const float halfIdealCubeWidthKlein = 0.5773502692;
 const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
 uniform int isStereo;
+uniform int lightingModel;
 uniform mat4 cameraProjection;
 uniform vec2 screenResolution;
 uniform vec4 cameraQuat;

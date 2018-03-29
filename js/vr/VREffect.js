@@ -142,7 +142,7 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
-		if ( true ) { //change this to true to debug stereo render
+		if ( false ) { //change this to true to debug stereo render
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}

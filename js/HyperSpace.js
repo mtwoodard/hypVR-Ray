@@ -78,11 +78,13 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   var loader = new THREE.FileLoader();
   loader.setResponseType('text')
   loader.load('shaders/fragment.glsl',function(main){
-    loader.load('shaders/hyperbolicScene.glsl', function(scene){
-      loader.load('shaders/hyperbolicMath.glsl', function(math){
-        loader.load('shaders/globalsInclude.glsl', function(globals){
-          //pass full shader string to finish our init
-          finishInit(globals.concat(math).concat(scene).concat(main));
+    loader.load('shaders/hyperbolicLighting.glsl',function(lighting){
+      loader.load('shaders/hyperbolicScene.glsl', function(scene){
+        loader.load('shaders/hyperbolicMath.glsl', function(math){
+          loader.load('shaders/globalsInclude.glsl', function(globals){
+            //pass full shader string to finish our init
+            finishInit(globals.concat(math).concat(scene).concat(lighting).concat(main));
+          });
         });
       });
     });
@@ -94,6 +96,7 @@ var finishInit = function(fShader){
   material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
+      lightingModel:{type: "i", value:1},
       cameraProjection:{type:"m4", value:new THREE.Matrix4()},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraPos:{type:"v3", value:virtCamera.position},

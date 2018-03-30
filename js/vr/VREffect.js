@@ -37,6 +37,15 @@ THREE.VREffect = function ( renderer, done ) {
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
+		if(self.leftEyeTranslation.x !== undefined){
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+		}
+		else{
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation[0]);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation[0]);
+		}
+
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
 			if ( done ) {
 				done("Your browser is not VR Ready");
@@ -51,14 +60,7 @@ THREE.VREffect = function ( renderer, done ) {
 			navigator.mozGetVRDevices( gotVRDevices );
 		}
 
-		if(self.leftEyeTranslation.x !== undefined){
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-		}
-		else{
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation[0]);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation[0]);
-		}
+
 
 		function gotVRDisplay( devices ) {
 			var vrHMD;

@@ -146,7 +146,15 @@ void main(){
     // else{
     //   gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
     // }
-    gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+
+    if (lightingModel == 1)
+    {
+      gl_FragColor = 0.3*depthColor + 0.7*matteColor;
+    }
+    else // lightingModel = 0
+    {
+      gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+    }
     // gl_FragColor = reflectedColor;
     // gl_FragColor = shineColor;
     // gl_FragColor = 0.2*stepsColor + 0.8*normalColor;

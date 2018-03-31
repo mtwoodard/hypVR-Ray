@@ -90,7 +90,7 @@ var initGui = function(){
   };
   var gui = new dat.GUI();
   gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Edge_tubes: 3, Medial_surface: 4, Cube_planes: 5}).name("Scene");
-  var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":1}).name("Lighting Model");
+  var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
 

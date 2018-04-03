@@ -121,8 +121,9 @@ var finishInit = function(fShader){
       sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK},
       sphereRad:{type:"f", value:sphereRad},
-	  horosphereSize:{type:"f", value:horosphereSize},
-	  planeOffset:{type:"f", value:planeOffset}
+      tubeRad:{type:"f", value:tubeRad},
+	    horosphereSize:{type:"f", value:horosphereSize},
+	    planeOffset:{type:"f", value:planeOffset}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

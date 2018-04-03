@@ -3,6 +3,7 @@ var invGens;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 var sphereRad = 0.996216;
+var tubeRad = 0.15;
 var horosphereSize = -0.951621;
 var planeOffset = 0.75;
 
@@ -56,6 +57,9 @@ function updateUniformsFromUI(gI)
 	// Make hOffset a UI parameter??
 	var hOffset = gI.edgeThickness / 10;
 
+  //Tube Radius
+  tubeRad = gI.edgeThickness/10;
+
 	// sphereRad
 	sphereRad = midrad - hOffset;
 
@@ -76,6 +80,7 @@ function updateUniformsFromUI(gI)
 	material.uniforms.invGenerators.value = invGens;
 	material.uniforms.halfCubeWidthKlein.value = hCWK;
 	material.uniforms.sphereRad.value = sphereRad;
+  material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
   material.uniforms.lightingModel.value = gI.lightingModel;

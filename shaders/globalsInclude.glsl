@@ -30,6 +30,7 @@ uniform int maxSteps;
 uniform int sceneIndex;
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;
+uniform float tubeRad;
 uniform float horosphereSize;
 uniform float planeOffset;
 

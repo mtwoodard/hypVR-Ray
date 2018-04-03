@@ -2,6 +2,19 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
   vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
+  vec3 pPrePre;
+  if(isStereo != 0){
+    if(isStereo == -1){
+       pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+    }
+    else{
+       pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
+    }
+     pPre = qtransform(cameraQuat, pPrePre);
+  }
+  else{
+     pPre = qtransform(cameraQuat, vec3(-xy,z));
+  }
   vec4 p = lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }

@@ -37,16 +37,18 @@ THREE.VREffect = function ( renderer, done ) {
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
-		if(self.leftEyeTranslation.x !== undefined){
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-		}
-		else{
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation[0]);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation[0]);
+		function getEyeRotation(translationDistance){
+			var turningAngle = Math.PI/2 - Math.asin(1/Math.cosh(Math.abs(translationDistance)));
+			leftEyeRotation = new THREE.Quaternion();
+			leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+			rightEyeRotation = new THREE.Quaternion();
+			rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
 		}
 
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+			getEyeRotation(self.rightEyeTranslation);
 			if ( done ) {
 				done("Your browser is not VR Ready");
 			}
@@ -60,7 +62,9 @@ THREE.VREffect = function ( renderer, done ) {
 			navigator.mozGetVRDevices( gotVRDevices );
 		}
 
-
+		leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+		rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+		getEyeRotation(self.rightEyeTranslation);
 
 		function gotVRDisplay( devices ) {
 			var vrHMD;
@@ -71,8 +75,8 @@ THREE.VREffect = function ( renderer, done ) {
 					self._vrHMD = vrHMD;
 					var parametersLeft = vrHMD.getEyeParameters( "left" );
 					var parametersRight = vrHMD.getEyeParameters( "right" );
-					self.leftEyeTranslation = parametersLeft.offset;
-					self.rightEyeTranslation = parametersRight.offset;
+					self.leftEyeTranslation.x = parametersLeft.offset[0];
+					self.rightEyeTranslation.x = parametersRight.offset[0];
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;
 						self.rightEyeFOV = parametersRight.fieldOfView;
@@ -98,8 +102,8 @@ THREE.VREffect = function ( renderer, done ) {
 					self._vrHMD = vrHMD;
 					var parametersLeft = vrHMD.getEyeParameters( "left" );
 					var parametersRight = vrHMD.getEyeParameters( "right" );
-					self.leftEyeTranslation = parametersLeft.eyeTranslation;
-					self.rightEyeTranslation = parametersRight.eyeTranslation;
+					self.leftEyeTranslation.x = parametersLeft.offset[0];
+					self.rightEyeTranslation.x = parametersRight.offset[0];
 					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
 					self.rightEyeFOV = parametersRight.recommendedFieldOfView;
 					break; // We keep the first we encounter

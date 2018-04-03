@@ -41,7 +41,28 @@ float localSceneHSDF(vec4 samplePoint){
    float final = -unionSDF(plane0, sphere);
    return final;
   }
-  else if(sceneIndex == 3){  // edge medial surfaces
+  else if(sceneIndex == 3){  // edge tubes
+    samplePoint = abs(samplePoint);
+    // //now reflect until smallest xyz coord is z, and largest is x
+    if(samplePoint.x < samplePoint.z){
+      samplePoint = vec4(samplePoint.z,samplePoint.y,samplePoint.x,samplePoint.w);
+    }
+    if(samplePoint.y < samplePoint.z){
+      samplePoint = vec4(samplePoint.x,samplePoint.z,samplePoint.y,samplePoint.w);
+    }
+    if(samplePoint.x < samplePoint.y){
+      samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
+    }
+    // should precompute these orthonomal calculations
+    vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
+    vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
+    dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
+    float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.2);
+
+    float final = edgesDistance;
+    return final;
+  }
+  else if(sceneIndex == 4){  // edge medial surfaces
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
@@ -70,7 +91,7 @@ float localSceneHSDF(vec4 samplePoint){
     float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
     return final;
   }
-  else if(sceneIndex  == 4){  // cube sides
+  else if(sceneIndex == 5){  // cube sides
     /// draw sides of the cube fundamental domain
     vec4 dualPoint0 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint1 = lorentzNormalize(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));

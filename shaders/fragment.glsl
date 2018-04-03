@@ -1,7 +1,28 @@
 vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
+  if(isStereo != 0){
+    resolution.x = resolution.x/2.0;
+  }
+  if(isStereo == 1){
+    fragCoord.x = fragCoord.x - resolution.x;
+  }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
-  vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
+  vec3 pPre;
+  vec3 pPrePre;
+  //pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+  //pPre = qtransform(cameraQuat, pPrePre);
+  if(isStereo != 0){
+    if(isStereo == -1){
+       pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+    }
+    else{
+       pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
+    }
+     pPre = qtransform(cameraQuat, pPrePre);
+  }
+  else{
+     pPre = qtransform(cameraQuat, vec3(-xy,z));
+  }
   vec4 p = lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }
@@ -146,7 +167,15 @@ void main(){
     // else{
     //   gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
     // }
-    gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+
+    if (lightingModel == 1)
+    {
+      gl_FragColor = 0.3*depthColor + 0.7*matteColor;
+    }
+    else // lightingModel = 0
+    {
+      gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+    }
     // gl_FragColor = reflectedColor;
     // gl_FragColor = shineColor;
     // gl_FragColor = 0.2*stepsColor + 0.8*normalColor;

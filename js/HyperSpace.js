@@ -11,6 +11,11 @@ var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
 var maxSteps = 31;
+var leftEyeRotation;
+var rightEyeRotation;
+var currentBoost;
+var leftCurrentBoost;
+var rightCurrentBoost;
 
 //-------------------------------------------------------
 // Scene Manipulator Functions & Variables
@@ -107,6 +112,8 @@ var finishInit = function(fShader){
       currentBoost:{type:"m4", value:currentBoost},
       leftCurrentBoost:{type:"m4", value:leftCurrentBoost},
       rightCurrentBoost:{type:"m4",value:rightCurrentBoost},
+      leftEyeRotation:{type:"v4", value:leftEyeRotation},
+      rightEyeRotation:{type:"v4", value:rightEyeRotation},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       lightSourcePosition:{type:"v4", value:lightSourcePosition},

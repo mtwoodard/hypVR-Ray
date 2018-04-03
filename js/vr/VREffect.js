@@ -32,12 +32,28 @@ THREE.VREffect = function ( renderer, done ) {
 
 		// default some stuff for mobile VR
 		self.phoneVR = new PhoneVR();
-		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
-		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.leftEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
+		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
+	//	self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
+		function getEyeRotation(translationDistance){
+			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
+			leftEyeRotation = new THREE.Quaternion();
+			leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+		//	leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+			rightEyeRotation = new THREE.Quaternion();
+			rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
+		//	rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+
+		}
+
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
+			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+			getEyeRotation(self.rightEyeTranslation.x);
 			if ( done ) {
 				done("Your browser is not VR Ready");
 			}
@@ -51,14 +67,9 @@ THREE.VREffect = function ( renderer, done ) {
 			navigator.mozGetVRDevices( gotVRDevices );
 		}
 
-		if(self.leftEyeTranslation.x !== undefined){
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-		}
-		else{
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation[0]);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation[0]);
-		}
+		leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+		rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+		getEyeRotation(self.rightEyeTranslation);
 
 		function gotVRDisplay( devices ) {
 			var vrHMD;
@@ -69,8 +80,8 @@ THREE.VREffect = function ( renderer, done ) {
 					self._vrHMD = vrHMD;
 					var parametersLeft = vrHMD.getEyeParameters( "left" );
 					var parametersRight = vrHMD.getEyeParameters( "right" );
-					self.leftEyeTranslation = parametersLeft.offset;
-					self.rightEyeTranslation = parametersRight.offset;
+					self.leftEyeTranslation.x = parametersLeft.offset[0];
+					self.rightEyeTranslation.x = parametersRight.offset[0];
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;
 						self.rightEyeFOV = parametersRight.fieldOfView;
@@ -96,8 +107,8 @@ THREE.VREffect = function ( renderer, done ) {
 					self._vrHMD = vrHMD;
 					var parametersLeft = vrHMD.getEyeParameters( "left" );
 					var parametersRight = vrHMD.getEyeParameters( "right" );
-					self.leftEyeTranslation = parametersLeft.eyeTranslation;
-					self.rightEyeTranslation = parametersRight.eyeTranslation;
+					self.leftEyeTranslation.x = parametersLeft.offset[0];
+					self.rightEyeTranslation.x = parametersRight.offset[0];
 					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
 					self.rightEyeFOV = parametersRight.recommendedFieldOfView;
 					break; // We keep the first we encounter
@@ -171,14 +182,14 @@ THREE.VREffect = function ( renderer, done ) {
 
 		// render left eye
 		material.uniforms.isStereo.value = -1;
-		material.uniforms.cameraProjection = this.FovToProjection(this.leftEyeFOV, true, virtCamera.near, virtCamera.far);
+	//	material.uniforms.cameraProjection = this.FovToProjection(this.leftEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, camera );
 
 		//render right eye
 		material.uniforms.isStereo.value = 1;
-		material.uniforms.cameraProjection = this.FovToProjection(this.rightEyeFOV, true, virtCamera.near, virtCamera.far);
+		//material.uniforms.cameraProjection = this.FovToProjection(this.rightEyeFOV, true, virtCamera.near, virtCamera.far);
 		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, camera );

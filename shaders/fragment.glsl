@@ -1,8 +1,16 @@
 vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
+  if(isStereo != 0){
+    resolution.x = resolution.x/2.0;
+  }
+  if(isStereo == 1){
+    fragCoord.x = fragCoord.x - resolution.x;
+  }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1;
-  vec3 pPre = qtransform(cameraQuat, vec3(-xy,z));
+  vec3 pPre;
   vec3 pPrePre;
+  //pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+  //pPre = qtransform(cameraQuat, pPrePre);
   if(isStereo != 0){
     if(isStereo == -1){
        pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));

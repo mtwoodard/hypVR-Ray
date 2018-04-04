@@ -42,6 +42,7 @@ fpsLog.fill(targetFPS);
 function average(input)
 {
 	var average = 0.0;
+	for(var i = 0; i < input.length; i++) {
 		average += input[i];
 	}
 	average /= input.length;
@@ -53,8 +54,11 @@ function clamp(input, min, max)
 	return Math.max(Math.min(input, max), min);
 }
 
+var m_stepDamping = 0.75;
+var m_stepAccum = 0;
 var calcMaxSteps = function(lastFPS, lastMaxSteps)
 {
+	if(!lastFPS)
 		return lastMaxSteps;
 
 	fpsLog.shift();
@@ -62,14 +66,21 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 	var averageFPS = average(fpsLog);
 
 	// We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
+	// so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
 	var newVal = Math.pow((averageFPS / targetFPS), (1 / 20)) * lastMaxSteps;
 	var diff = newVal - lastMaxSteps;
+	if(Math.abs( m_stepAccum ) < 1)
 	{
+		m_stepAccum += diff;
+		m_stepAccum *= m_stepDamping;
+		//console.log(m_stepAccum);
 		return lastMaxSteps;
 	}
 
+	newVal = lastMaxSteps + m_stepAccum;
 	newVal = Math.round(clamp(newVal, 31, 127));
 	//console.log("updating maxSteps to " + newVal);
+	m_stepAccum = 0;
 	return newVal;
 }
 

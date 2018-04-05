@@ -19,7 +19,7 @@ var rightCurrentBoost;
 var targetFPS = 27.5;
 
 //-------------------------------------------------------
-// Scene Manipulator Functions & Variables
+// FPS Manager
 //-------------------------------------------------------
 
 var fps = {
@@ -58,30 +58,35 @@ var m_stepDamping = 0.75;
 var m_stepAccum = 0;
 var calcMaxSteps = function(lastFPS, lastMaxSteps)
 {
-	if(!lastFPS)
-		return lastMaxSteps;
+  if(guiInfo.autoSteps){
+	   if(!lastFPS)
+		  return lastMaxSteps;
 
-	fpsLog.shift();
-	fpsLog.push(lastFPS);
-	var averageFPS = average(fpsLog);
+	 fpsLog.shift();
+	 fpsLog.push(lastFPS);
+	 var averageFPS = average(fpsLog);
 
-	// We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
-	// so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	var newVal = Math.pow((averageFPS / targetFPS), (1 / 20)) * lastMaxSteps;
-	var diff = newVal - lastMaxSteps;
-	if(Math.abs( m_stepAccum ) < 1)
-	{
-		m_stepAccum += diff;
-		m_stepAccum *= m_stepDamping;
-		//console.log(m_stepAccum);
-		return lastMaxSteps;
-	}
+	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
+	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
+	 var newVal = Math.pow((averageFPS / targetFPS), (1 / 20)) * lastMaxSteps;
+	 var diff = newVal - lastMaxSteps;
+	 if(Math.abs( m_stepAccum ) < 1)
+	 {
+		  m_stepAccum += diff;
+		  m_stepAccum *= m_stepDamping;
+		  //console.log(m_stepAccum);
+		  return lastMaxSteps;
+	 }
 
-	newVal = lastMaxSteps + m_stepAccum;
-	newVal = Math.round(clamp(newVal, 31, 127));
-	//console.log("updating maxSteps to " + newVal);
-	m_stepAccum = 0;
-	return newVal;
+	 newVal = lastMaxSteps + m_stepAccum;
+	 newVal = Math.round(clamp(newVal, 31, 127));
+	 //console.log("updating maxSteps to " + newVal);
+	 m_stepAccum = 0;
+	 return newVal;
+  }
+  else {
+    return guiInfo.maxSteps;
+  }
 }
 
 //-------------------------------------------------------

@@ -7,6 +7,16 @@ var tubeRad = 0.15;
 var horosphereSize = -0.951621;
 var planeOffset = 0.75;
 
+var guiInfo = { //Since dat gui can only modify object values we store variables here.
+  edgeCase:2,
+  edgeThickness:1.5,
+  lightingModel:1,
+  toggleStereo:false,
+  rotateEyes:false,
+  autoSteps:true,
+  maxSteps: 31
+};
+
 var createGenerators = function(){
   var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
   var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
@@ -23,11 +33,11 @@ var invGenerators = function(genArr){
 
 // Inputs are from the UI parameterizations.
 // gI is the guiInfo object from initGui
-function updateUniformsFromUI(gI)
+function updateUniformsFromUI()
 {
 	// Get the number of cubes around each edge.
 	var r = 6;
-	switch (gI.edgeCase) {
+	switch (guiInfo.edgeCase) {
 		case '0': r = 3; break;
 		case '1': r = 5; break;
 		case '2': r = 6; break;
@@ -55,10 +65,10 @@ function updateUniformsFromUI(gI)
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
 	// Make hOffset a UI parameter??
-	var hOffset = gI.edgeThickness / 10;
+	var hOffset = guiInfo.edgeThickness / 10;
 
   //Tube Radius
-  tubeRad = gI.edgeThickness/10;
+  tubeRad = guiInfo.edgeThickness/10;
 
 	// sphereRad
 	sphereRad = midrad - hOffset;
@@ -83,31 +93,38 @@ function updateUniformsFromUI(gI)
   material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
-  material.uniforms.lightingModel.value = gI.lightingModel;
+  material.uniforms.lightingModel.value = guiInfo.lightingModel;
+  material.uniforms.leftEyeRotation.value = leftEyeRotation;
+  material.uniforms.rightEyeRotation.value = rightEyeRotation;
 }
 
 //What we need to init our dat GUI
 var initGui = function(){
-  var guiInfo = { //Since dat gui can only modify object values we store variables here.
-    edgeCase:2,
-    edgeThickness:1.5,
-    lightingModel:1
-  };
   var gui = new dat.GUI();
   gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Edge_tubes: 3, Medial_surface: 4, Cube_planes: 5}).name("Scene");
   var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
+  var debugFolder = gui.addFolder('Debug');
+  debugFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
+  var eyesController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
+  debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
+  debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
 
   edgeController.onFinishChange(function(value) {
-	  updateUniformsFromUI(guiInfo);
+	  updateUniformsFromUI();
   });
 
   thicknessController.onFinishChange(function(value) {
-	  updateUniformsFromUI(guiInfo);
+	  updateUniformsFromUI();
   });
 
   lightingController.onFinishChange(function(value){
-    updateUniformsFromUI(guiInfo);
+    updateUniformsFromUI();
+  });
+
+  eyesController.onFinishChange(function(value) {
+    effect.getEyeRotation(effect.leftEyeTranslation.x);
+    updateUniformsFromUI();
   });
 }

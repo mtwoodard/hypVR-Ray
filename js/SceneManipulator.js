@@ -14,7 +14,8 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   toggleStereo:false,
   rotateEyes:false,
   autoSteps:true,
-  maxSteps: 31
+  maxSteps: 31,
+  halfIpDistance: 0.03200000151991844
 };
 
 var createGenerators = function(){
@@ -94,8 +95,6 @@ function updateUniformsFromUI()
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
   material.uniforms.lightingModel.value = guiInfo.lightingModel;
-  material.uniforms.leftEyeRotation.value = leftEyeRotation;
-  material.uniforms.rightEyeRotation.value = rightEyeRotation;
 }
 
 //What we need to init our dat GUI
@@ -105,6 +104,8 @@ var initGui = function(){
   var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
+  var pupilDistanceController = gui.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
+  gui.add(controls, 'speed',0.2,2).name("Camera Speed");
   var debugFolder = gui.addFolder('Debug');
   debugFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
   var eyesController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
@@ -122,9 +123,21 @@ var initGui = function(){
   lightingController.onFinishChange(function(value){
     updateUniformsFromUI();
   });
-
+  pupilDistanceController.onFinishChange(function(value){
+    effect.leftEyeTranslation.x = guiInfo.halfIpDistance;
+    effect.rightEyeTranslation.x = -guiInfo.halfIpDistance;
+    leftCurrentBoost = translateByVector(effect.leftEyeTranslation);
+		rightCurrentBoost = translateByVector(effect.rightEyeTranslation);
+		effect.getEyeRotation(effect.leftEyeTranslation);
+    material.uniforms.leftEyeRotation.value = leftEyeRotation;
+    material.uniforms.rightEyeRotation.value = rightEyeRotation;
+    material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
+    material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
+  })
   eyesController.onFinishChange(function(value) {
     effect.getEyeRotation(effect.leftEyeTranslation.x);
+    material.uniforms.leftEyeRotation.value = leftEyeRotation;
+    material.uniforms.rightEyeRotation.value = rightEyeRotation;
     updateUniformsFromUI();
   });
 }

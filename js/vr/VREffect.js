@@ -58,7 +58,7 @@ THREE.VREffect = function ( renderer, done ) {
 
 		leftCurrentBoost = translateByVector(self.leftEyeTranslation);
 		rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-		this.getEyeRotation(self.rightEyeTranslation);
+		this.getEyeRotation(self.leftEyeTranslation.x);
 
 		function gotVRDisplay( devices ) {
 			var vrHMD;

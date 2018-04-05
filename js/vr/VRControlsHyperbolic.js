@@ -5,7 +5,7 @@
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();
-	var speed = 2.0;
+	this.speed = 0.2;
 	this._camera = camera;
 	this._oldVRState;
 	this._defaultPosition = [0,0,10];
@@ -88,7 +88,6 @@ THREE.VRControls = function ( camera, done ) {
 		var interval = (newTime - oldTime) * 0.001;
 		///do translation
 		var m;
-		var speed = 0.2;
 		var offset = new THREE.Vector3();
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
 			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
@@ -96,9 +95,9 @@ THREE.VRControls = function ( camera, done ) {
 			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
 		}
 		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
-		    offset = getFwdVector().multiplyScalar(speed * interval * this.manualMoveRate[0]).add(
-		      		   getRightVector().multiplyScalar(speed * interval * this.manualMoveRate[1])).add(
-		      		   getUpVector().multiplyScalar(speed * interval * this.manualMoveRate[2]));
+		    offset = getFwdVector().multiplyScalar(this.speed * interval * this.manualMoveRate[0]).add(
+		      		   getRightVector().multiplyScalar(this.speed * interval * this.manualMoveRate[1])).add(
+		      		   getUpVector().multiplyScalar(this.speed * interval * this.manualMoveRate[2]));
 		}
 
 		if(offset !== undefined){

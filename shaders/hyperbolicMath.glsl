@@ -21,7 +21,7 @@ float asinh(float x){
 //-------------------------------------------------------
 
 float lorentzDot(vec4 u, vec4 v){
-  return u.w*v.w - u.x*v.x - u.y*v.y - u.z*v.z;
+  return  u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w;
 } /// on hyperbolold if lorentzDot(u,u) = 1, so w*w = 1 + x*x + y*y + z*z
 
 vec4 projectToKlein(vec4 v){
@@ -37,13 +37,13 @@ vec4 lorentzNormalize(vec4 v){  // cannot do to a light like vector
 }
 
 float hypDistance(vec4 u, vec4 v){
-  float bUV = lorentzDot(u,v);
+  float bUV = -lorentzDot(u,v);
   return acosh(bUV);
 }
 
 vec4 directionFrom2Points(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
   // the "direction" (velocity vector) vPrime for use in parametrising the geodesic from u through v
-  vec4 w = v - lorentzDot(u, v)*u;
+  vec4 w = v + lorentzDot(u, v)*u;
   return (1.0/hypNorm(w)*w);
 }
 

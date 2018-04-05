@@ -255,7 +255,7 @@ var halfIdealCubeWidthKlein = 0.5773502692;
 var idealCubeCornerKlein = new THREE.Vector4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
 // A horosphere can be constructed by offseting from a standard horosphere.
-// Our standard horosphere will have a center in the direction of lightPoint 
+// Our standard horosphere will have a center in the direction of lightPoint
 // and go through the origin. Negative offsets will "shrink" it.
 function horosphereHSDF( samplePoint, lightPoint, offset )
 {

@@ -39,21 +39,10 @@ THREE.VREffect = function ( renderer, done ) {
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
-		function getEyeRotation(translationDistance){
-			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
-			leftEyeRotation = new THREE.Quaternion();
-			leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
-		//	leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
-			rightEyeRotation = new THREE.Quaternion();
-			rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
-		//	rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
-
-		}
-
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
 			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
 			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-			getEyeRotation(self.rightEyeTranslation.x);
+			this.getEyeRotation(self.rightEyeTranslation.x);
 			if ( done ) {
 				done("Your browser is not VR Ready");
 			}
@@ -69,7 +58,7 @@ THREE.VREffect = function ( renderer, done ) {
 
 		leftCurrentBoost = translateByVector(self.leftEyeTranslation);
 		rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-		getEyeRotation(self.rightEyeTranslation);
+		this.getEyeRotation(self.leftEyeTranslation.x);
 
 		function gotVRDisplay( devices ) {
 			var vrHMD;
@@ -123,10 +112,23 @@ THREE.VREffect = function ( renderer, done ) {
 			}
 		}
 	};
-
+	this.getEyeRotation = function(translationDistance){
+		var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
+		leftEyeRotation = new THREE.Quaternion();
+		rightEyeRotation = new THREE.Quaternion();
+		if(guiInfo.rotateEyes){
+			leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+			rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
+		}
+		else {
+			leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+			rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+		}
+	};
 	this._init();
 
 	var iconHidden = true;
+	var fixLeaveStereo = false;
 
 	this.render = function ( scene, camera, animate ) {
 		var renderer = this._renderer;
@@ -154,10 +156,22 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
-		if ( false ) { //change this to true to debug stereo render
+
+
+		if ( guiInfo.toggleStereo ) { //change this to true to debug stereo render
+			fixLeaveStereo = true;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
+
+		if(fixLeaveStereo && !guiInfo.toggleStereo){
+			fixLeaveStereo = false;
+			var size = renderer.getSize();
+			renderer.setScissorTest(false);
+			renderer.clear();
+			renderer.setViewport(0,0,size.width, size.height);
+		}
+
 
 		// Regular render mode if not HMD
 		material.uniforms.isStereo.value = 0;

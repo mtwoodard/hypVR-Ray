@@ -10,47 +10,83 @@ var controls;
 var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
-var maxSteps = 31;
+var maxSteps = 50;
 var leftEyeRotation;
 var rightEyeRotation;
 var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
+var targetFPS = 27.5;
 
 //-------------------------------------------------------
-// Scene Manipulator Functions & Variables
+// FPS Manager
 //-------------------------------------------------------
 
 var fps = {
-  lastTime: new Date().getTime(),
-  //frameNum: 0,
-  getFPS: function(){
-    //this.frameNum++;
-    var date = new Date().getTime();
-    var deltaTime = (date-this.lastTime)/1000;
-    this.lastTime = date;
-    //var res = this.frameNum/deltaTime;
-    /*if(deltaTime>1){
-      this.start = new Date().getTime();
-      this.frameNum=0;
-    }*/
-    return 1/deltaTime;
-  }
+	lastTime: null,
+	getFPS: function () {
+		if(!this.lastTime) {
+			this.lastTime = new Date();
+			return null;
+		}
+
+		var date = new Date();
+		var currentFps = 1000 / (date - this.lastTime);
+		this.lastTime = date;
+		return currentFps;
+	}
 }
 var fpsLog = new Array(10);
-fpsLog.fill(30.0);
+fpsLog.fill(targetFPS);
 
-var calcMaxSteps = function(targetFPS, lastFPS, lastMaxSteps){
-  fpsLog.shift();
-  fpsLog.push(lastFPS);
+function average(input)
+{
+	var average = 0.0;
+	for(var i = 0; i < input.length; i++) {
+		average += input[i];
+	}
+	average /= input.length;
+	return average;
+}
 
-  var averageFPS = 0.0;
-  for(var i=0; i<fpsLog.length; i++){
-    averageFPS += fpsLog[i];
+function clamp(input, min, max)
+{
+	return Math.max(Math.min(input, max), min);
+}
+
+var m_stepDamping = 0.75;
+var m_stepAccum = 0;
+var calcMaxSteps = function(lastFPS, lastMaxSteps)
+{
+  if(guiInfo.autoSteps){
+	   if(!lastFPS)
+		  return lastMaxSteps;
+
+	 fpsLog.shift();
+	 fpsLog.push(lastFPS);
+	 var averageFPS = average(fpsLog);
+
+	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
+	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
+	 var newVal = Math.pow((averageFPS / targetFPS), (1 / 20)) * lastMaxSteps;
+	 var diff = newVal - lastMaxSteps;
+	 if(Math.abs( m_stepAccum ) < 1)
+	 {
+		  m_stepAccum += diff;
+		  m_stepAccum *= m_stepDamping;
+		  //console.log(m_stepAccum);
+		  return lastMaxSteps;
+	 }
+
+	 newVal = lastMaxSteps + m_stepAccum;
+	 newVal = Math.round(clamp(newVal, 31, 127));
+	 //console.log("updating maxSteps to " + newVal);
+	 m_stepAccum = 0;
+	 return newVal;
   }
-  averageFPS /= fpsLog.length;
-  //console.log(Math.floor(averageFPS));
-  return Math.max(Math.min(Math.round(Math.pow((averageFPS/targetFPS),(1/10)) * lastMaxSteps),127),31);
+  else {
+    return guiInfo.maxSteps;
+  }
 }
 
 //-------------------------------------------------------
@@ -153,7 +189,7 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
-  maxSteps = calcMaxSteps(30, fps.getFPS(), maxSteps);
+  maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   material.uniforms.maxSteps.value = maxSteps;
   effect.render(scene, camera, animate);
 }

@@ -5,7 +5,7 @@
 
 THREE.VRControls = function ( camera, done ) {
 	this.phoneVR = new PhoneVR();
-	this.speed = 0.2;
+	var speed = 0.2;
 	this._camera = camera;
 	this._oldVRState;
 	this._defaultPosition = [0,0,10];
@@ -90,14 +90,14 @@ THREE.VRControls = function ( camera, done ) {
 		var m;
 		var offset = new THREE.Vector3();
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
-			offset.x = vrState.hmd.lastPosition[0] - vrState.hmd.position[0];
-			offset.y = vrState.hmd.lastPosition[1] - vrState.hmd.position[1];
-			offset.z = vrState.hmd.lastPosition[2] - vrState.hmd.position[2];
+			offset.x = guiInfo.eToHScale*(vrState.hmd.lastPosition[0] - vrState.hmd.position[0]);
+			offset.y = guiInfo.eToHScale*(vrState.hmd.lastPosition[1] - vrState.hmd.position[1]);
+			offset.z = guiInfo.eToHScale*(vrState.hmd.lastPosition[2] - vrState.hmd.position[2]);
 		}
 		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
-		    offset = getFwdVector().multiplyScalar(this.speed * interval * this.manualMoveRate[0]).add(
-		      		   getRightVector().multiplyScalar(this.speed * interval * this.manualMoveRate[1])).add(
-		      		   getUpVector().multiplyScalar(this.speed * interval * this.manualMoveRate[2]));
+		    offset = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[0]).add(
+		      		   getRightVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[1])).add(
+		      		   getUpVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[2]));
 		}
 
 		if(offset !== undefined){

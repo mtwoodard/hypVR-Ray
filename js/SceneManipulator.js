@@ -11,6 +11,7 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   edgeCase:2,
   edgeThickness:1.5,
   lightingModel:1,
+  eToHScale:1.0,
   toggleStereo:false,
   rotateEyes:false,
   autoSteps:true,
@@ -30,6 +31,19 @@ var createGenerators = function(){
 
 var invGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
+}
+
+function updateEyes(){
+  effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
+  effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
+
+  leftCurrentBoost = translateByVector(effect.leftEyeTranslation);
+  rightCurrentBoost = translateByVector(effect.rightEyeTranslation);
+  effect.getEyeRotation(effect.leftEyeTranslation);
+  material.uniforms.leftEyeRotation.value = leftEyeRotation;
+  material.uniforms.rightEyeRotation.value = rightEyeRotation;
+  material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
+  material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
 }
 
 // Inputs are from the UI parameterizations.
@@ -104,11 +118,11 @@ var initGui = function(){
   var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
-  var pupilDistanceController = gui.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
-  gui.add(controls, 'speed',0.2,2).name("Camera Speed");
+  var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var debugFolder = gui.addFolder('Debug');
+  var pupilDistanceController = debugFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
   debugFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
-  var eyesController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
+  var rotateController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
 
@@ -123,20 +137,16 @@ var initGui = function(){
   lightingController.onFinishChange(function(value){
     updateUniformsFromUI();
   });
-  pupilDistanceController.onFinishChange(function(value){
-    effect.leftEyeTranslation.x = guiInfo.halfIpDistance;
-    effect.rightEyeTranslation.x = -guiInfo.halfIpDistance;
 
-    leftCurrentBoost = translateByVector(effect.leftEyeTranslation);
-		rightCurrentBoost = translateByVector(effect.rightEyeTranslation);
-		effect.getEyeRotation(effect.leftEyeTranslation);
-    material.uniforms.leftEyeRotation.value = leftEyeRotation;
-    material.uniforms.rightEyeRotation.value = rightEyeRotation;
-    material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
-    material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
-    renderer.clear();
-  })
-  eyesController.onFinishChange(function(value) {
+  scaleController.onFinishChange(function(value) {
+    updateEyes();
+  });
+
+  pupilDistanceController.onFinishChange(function(value){
+    updateEyes();
+  });
+
+  rotateController.onFinishChange(function(value) {
     effect.getEyeRotation(effect.leftEyeTranslation.x);
     material.uniforms.leftEyeRotation.value = leftEyeRotation;
     material.uniforms.rightEyeRotation.value = rightEyeRotation;

@@ -126,6 +126,7 @@ var initGui = function(){
   pupilDistanceController.onFinishChange(function(value){
     effect.leftEyeTranslation.x = guiInfo.halfIpDistance;
     effect.rightEyeTranslation.x = -guiInfo.halfIpDistance;
+
     leftCurrentBoost = translateByVector(effect.leftEyeTranslation);
 		rightCurrentBoost = translateByVector(effect.rightEyeTranslation);
 		effect.getEyeRotation(effect.leftEyeTranslation);
@@ -133,6 +134,7 @@ var initGui = function(){
     material.uniforms.rightEyeRotation.value = rightEyeRotation;
     material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
     material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
+    renderer.clear();
   })
   eyesController.onFinishChange(function(value) {
     effect.getEyeRotation(effect.leftEyeTranslation.x);

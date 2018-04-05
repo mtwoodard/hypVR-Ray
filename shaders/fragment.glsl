@@ -127,7 +127,7 @@ void main(){
   }
   else if(hitWhich == 2){ // global
     vec4 surfaceNormal = globalEstimateNormal(globalEndPoint);
-    float cameraLightMatteShade = lorentzDot(surfaceNormal, globalEndTangentVector);
+    float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
     gl_FragColor = vec4(cameraLightMatteShade,0.0,0.0,1.0);
     return;
   }
@@ -135,11 +135,11 @@ void main(){
     vec4 localSurfaceNormal = localEstimateNormal(localEndPoint);
     vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
     vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
-    vec4 reflectedLightDirection = -2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
+    vec4 reflectedLightDirection = 2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
 
-    float cameraLightMatteShade = max(lorentzDot(localSurfaceNormal, localEndTangentVector),0.0);
-    float sourceLightMatteShade = max(lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
-    float reflectedShineShade = max(-lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
+    float cameraLightMatteShade = max(-lorentzDot(localSurfaceNormal, localEndTangentVector),0.0);
+    float sourceLightMatteShade = max(-lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
+    float reflectedShineShade = max(lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
     // float matteShade = sourceLightMatteShade;
     float matteShade = 0.2*cameraLightMatteShade + 0.8*sourceLightMatteShade;
 

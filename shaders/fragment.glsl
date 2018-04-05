@@ -62,8 +62,8 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
       float dist = min(localDist, globalDist);
       // float dist = localDist;
       if(dist < EPSILON){
-        if (localDist < globalDist){hitWhich = 1;}
-        else{hitWhich = 2;}
+        if (localDist < globalDist){hitWhich = 2;}
+        else{hitWhich = 1;}
         localEndPoint = localSamplePoint;
         globalEndPoint = globalSamplePoint;
         localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
@@ -125,14 +125,14 @@ void main(){
     gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
     return;
   }
-  else if(hitWhich == 2){ // global
-    vec4 surfaceNormal = globalEstimateNormal(globalEndPoint);
+  else if(hitWhich == 1){ // global
+    vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
     gl_FragColor = vec4(cameraLightMatteShade,0.0,0.0,1.0);
     return;
   }
-  else if(hitWhich == 1){ // local
-    vec4 localSurfaceNormal = localEstimateNormal(localEndPoint);
+  else if(hitWhich == 2){ // local
+    vec4 localSurfaceNormal = estimateNormal(localEndPoint, hitWhich);
     vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
     vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
     vec4 reflectedLightDirection = 2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;

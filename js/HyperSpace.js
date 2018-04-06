@@ -156,10 +156,11 @@ var finishInit = function(fShader){
       maxSteps:{type:"i", value:maxSteps},
       sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK},
+	  cut4:{type:"i", value:cut4},
       sphereRad:{type:"f", value:sphereRad},
       tubeRad:{type:"f", value:tubeRad},
-	    horosphereSize:{type:"f", value:horosphereSize},
-	    planeOffset:{type:"f", value:planeOffset}
+      horosphereSize:{type:"f", value:horosphereSize},
+      planeOffset:{type:"f", value:planeOffset}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

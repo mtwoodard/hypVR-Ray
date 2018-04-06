@@ -2,6 +2,7 @@ var gens;
 var invGens;
 var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
+var cut4 = 2;
 var sphereRad = 0.996216;
 var tubeRad = 0.15;
 var horosphereSize = -0.951621;
@@ -79,11 +80,11 @@ function updateUniformsFromUI()
 	// We want them to be slightly bigger than that so that they intersect.
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
-	// Make hOffset a UI parameter??
+	var cut4 = GetGeometry2D( q, r );
 	var hOffset = guiInfo.edgeThickness / 10;
 
-  //Tube Radius
-  tubeRad = guiInfo.edgeThickness/10;
+	//Tube Radius
+	tubeRad = guiInfo.edgeThickness/10;
 
 	// sphereRad
 	sphereRad = midrad - hOffset;
@@ -104,17 +105,18 @@ function updateUniformsFromUI()
 	material.uniforms.generators.value = gens;
 	material.uniforms.invGenerators.value = invGens;
 	material.uniforms.halfCubeWidthKlein.value = hCWK;
+	material.uniforms.cut4.value = cut4;
 	material.uniforms.sphereRad.value = sphereRad;
-  material.uniforms.tubeRad.value = tubeRad;
+	material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
-  material.uniforms.lightingModel.value = guiInfo.lightingModel;
+	material.uniforms.lightingModel.value = guiInfo.lightingModel;
 }
 
 //What we need to init our dat GUI
 var initGui = function(){
   var gui = new dat.GUI();
-  gui.add(material.uniforms.sceneIndex, 'value',{Sphere_horosphere: 1, Sphere_plane: 2, Edge_tubes: 3, Medial_surface: 4, Cube_planes: 5}).name("Scene");
+  gui.add(material.uniforms.sceneIndex, 'value',{Simplex_cuts: 1, Edge_tubes: 3, Medial_surface: 4, Cube_planes: 5}).name("Scene");
   var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");

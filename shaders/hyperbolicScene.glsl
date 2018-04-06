@@ -28,20 +28,20 @@ float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoi
 
 
 float localSceneHSDF(vec4 samplePoint){
-  if(sceneIndex == 1){  // sphere and horosphere
+  if(sceneIndex == 1){  // cuts into the simplex
      float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
-     float horosphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);
-     float final = -unionSDF(horosphere, sphere);
+     float vertexSphere = 0.0;
+     if(cut4 == 2) {
+        vertexSphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);
+     }
+	 if(cut4 == 1 || cut4 == 3) {	// Interesting that this works for finite spheres as well.
+        vec4 dualPoint = lorentzNormalize(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
+        vertexSphere = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
+     }
+     float final = -unionSDF(vertexSphere,sphere);
      return final;
   }
-  else if(sceneIndex == 2){  // sphere and plane
-   float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
-   vec4 dualPoint = lorentzNormalize(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
-   float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
-   float final = -unionSDF(plane0, sphere);
-   return final;
-  }
-  else if(sceneIndex == 3){  // edge tubes
+  else if(sceneIndex == 2){  // edge tubes
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
@@ -62,7 +62,7 @@ float localSceneHSDF(vec4 samplePoint){
     float final = edgesDistance;
     return final;
   }
-  else if(sceneIndex == 4){  // edge medial surfaces
+  else if(sceneIndex == 3){  // edge medial surfaces
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
@@ -91,7 +91,7 @@ float localSceneHSDF(vec4 samplePoint){
     float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
     return final;
   }
-  else if(sceneIndex == 5){  // cube sides
+  else if(sceneIndex == 4){  // cube sides
     /// draw sides of the cube fundamental domain
     vec4 dualPoint0 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint1 = lorentzNormalize(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));

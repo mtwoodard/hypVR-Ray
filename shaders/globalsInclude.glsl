@@ -34,6 +34,11 @@ uniform float tubeRad;
 uniform float horosphereSize;
 uniform float planeOffset;
 
+// The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
+// These integers match our values for the geometry of the honeycomb vertex figure.
+// We'll need more of these later when we support more symmetry groups.
+uniform int cut4;		
+
 //Quaternion Math
 vec3 qtransform( vec4 q, vec3 v ){
   return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);

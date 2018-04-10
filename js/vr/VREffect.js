@@ -31,7 +31,7 @@ THREE.VREffect = function ( renderer, done ) {
 		var self = this;
 
 		// default some stuff for mobile VR
-		//self.phoneVR = new PhoneVR();
+		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };

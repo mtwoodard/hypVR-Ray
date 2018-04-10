@@ -7,41 +7,41 @@ float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
 // Our standard horosphere will have a center in the direction of lightPoint
 // and go through the origin. Negative offsets will "shrink" it.
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){
-  return log(lorentzDot(samplePoint, lightPoint)) - offset;
+  return log(-lorentzDot(samplePoint, lightPoint)) - offset;
 }
 
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
-  return asinh(lorentzDot(samplePoint, dualPoint)) - offset;
+  return asinh(-lorentzDot(samplePoint, dualPoint)) - offset;
 }
 
 float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
   // defined by two perpendicular geodesic planes
-  float dot1 = lorentzDot(samplePoint, dualPoint1);
-  float dot2 = lorentzDot(samplePoint, dualPoint2);
+  float dot1 = -lorentzDot(samplePoint, dualPoint1);
+  float dot2 = -lorentzDot(samplePoint, dualPoint2);
   return asinh(sqrt(dot1*dot1 + dot2*dot2)) - radius;
 }
 
 float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoint2, float radius){
   // defined by two light points (at ends of the geodesic) whose lorentzDot is 1
-  return acosh(sqrt(2.0*lorentzDot(lightPoint1, samplePoint)*lorentzDot(lightPoint2, samplePoint))) - radius;
+  return acosh(sqrt(2.0*-lorentzDot(lightPoint1, samplePoint)*-lorentzDot(lightPoint2, samplePoint))) - radius;
 }
 
 
 float localSceneHSDF(vec4 samplePoint){
-  if(sceneIndex == 1){  // sphere and horosphere
+  if(sceneIndex == 1){  // cuts into the simplex
      float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
-     float horosphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);
-     float final = -unionSDF(horosphere, sphere);
+     float vertexSphere = 0.0;
+     if(cut4 == 2) {
+        vertexSphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);
+     }
+	 if(cut4 == 1 || cut4 == 3) {	// Interesting that this works for finite spheres as well.
+        vec4 dualPoint = lorentzNormalize(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
+        vertexSphere = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
+     }
+     float final = -unionSDF(vertexSphere,sphere);
      return final;
   }
-  else if(sceneIndex == 2){  // sphere and plane
-   float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
-   vec4 dualPoint = lorentzNormalize(vec4(halfCubeWidthKlein,halfCubeWidthKlein,halfCubeWidthKlein,1.0));
-   float plane0 = geodesicPlaneHSDF(abs(samplePoint), dualPoint, planeOffset);
-   float final = -unionSDF(plane0, sphere);
-   return final;
-  }
-  else if(sceneIndex == 3){  // edge tubes
+  else if(sceneIndex == 2){  // edge tubes
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
@@ -56,13 +56,13 @@ float localSceneHSDF(vec4 samplePoint){
     // should precompute these orthonomal calculations
     vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
-    dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
+    dualPoint2 = lorentzNormalize(dualPoint2 - lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
     float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, tubeRad);
 
     float final = edgesDistance;
     return final;
   }
-  else if(sceneIndex == 4){  // edge medial surfaces
+  else if(sceneIndex == 3){  // edge medial surfaces
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){
@@ -77,7 +77,7 @@ float localSceneHSDF(vec4 samplePoint){
     // should precompute these orthonomal calculations
     vec4 dualPoint1 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
-    dualPoint2 = lorentzNormalize(dualPoint2 + lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
+    dualPoint2 = lorentzNormalize(dualPoint2 - lorentzDot(dualPoint2, dualPoint1) * dualPoint1);
     float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, dualPoint1, dualPoint2, 0.0);
     // the following two ways to define the geodesic should give the same result
     // vec4 dualPoint1 = vec4(0.0,1.0,0.0,0.0);
@@ -91,7 +91,7 @@ float localSceneHSDF(vec4 samplePoint){
     float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
     return final;
   }
-  else if(sceneIndex == 5){  // cube sides
+  else if(sceneIndex == 4){  // cube sides
     /// draw sides of the cube fundamental domain
     vec4 dualPoint0 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
     vec4 dualPoint1 = lorentzNormalize(vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0));

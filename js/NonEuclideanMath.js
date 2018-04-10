@@ -10,6 +10,19 @@ function PiOverNSafe(n)
 	return n == -1 ? 0 : Math.PI / n;
 }
 
+// Returns the geometry induced by a polygon with p sides, q meeting at each vertex.
+function GetGeometry2D(p,q)
+{
+	var test = 1.0 / p + 1.0 / q;
+	if( test > 0.5 )
+		return Geometry.Spherical;
+	else if( test == 0.5 )
+		return Geometry.Euclidean;
+
+	return Geometry.Hyperbolic;
+}
+
+// Returns the geometry induced by a {p,q{} polyhedron, r meeting at each edge.
 function GetGeometry(p, q, r)
 {
 	var t1 = Math.sin(PiOverNSafe(p)) * Math.sin(PiOverNSafe(r));

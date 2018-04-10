@@ -135,7 +135,7 @@ THREE.VREffect = function ( renderer, done ) {
 		var vrHMD = this._vrHMD;
 		renderer.setScissorTest( false );
 		// VR render mode if HMD is available
-		/*if ( vrHMD ) {
+		if ( vrHMD ) {
 			vrHMD.requestAnimationFrame(animate);
 			this.renderStereo.apply( this, [scene, camera] );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
@@ -170,7 +170,7 @@ THREE.VREffect = function ( renderer, done ) {
 			renderer.setScissorTest(false);
 			renderer.clear();
 			renderer.setViewport(0,0,size.width, size.height);
-		}*/
+		}
 
 
 		// Regular render mode if not HMD

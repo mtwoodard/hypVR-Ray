@@ -118,7 +118,10 @@ var init = function(){
 var loadShaders = function(){ //Since our shader is made up of strings we can construct it from parts
   var loader = new THREE.FileLoader();
   loader.setResponseType('text')
-  loader.load('shaders/fragment.glsl',function(main){
+	loader.load('shaders/mobile.glsl',function(mobile){
+		finishInit(mobile);
+	});
+  /*loader.load('shaders/fragment.glsl',function(main){
     loader.load('shaders/hyperbolicLighting.glsl',function(lighting){
       loader.load('shaders/hyperbolicScene.glsl', function(scene){
         loader.load('shaders/hyperbolicMath.glsl', function(math){
@@ -129,7 +132,7 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
         });
       });
     });
-  });
+  });*/
 }
 
 var finishInit = function(fShader){

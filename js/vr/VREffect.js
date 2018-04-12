@@ -36,13 +36,13 @@ THREE.VREffect = function ( renderer, done ) {
 		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		//self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
+		leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+		rightCurrentBoost = translateByVector(self.rightEyeTranslation);
+		this.getEyeRotation(self.rightEyeTranslation.x);
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
-			leftCurrentBoost = translateByVector(self.leftEyeTranslation);
-			rightCurrentBoost = translateByVector(self.rightEyeTranslation);
-			this.getEyeRotation(self.rightEyeTranslation.x);
 			if ( done ) {
 				done("Your browser is not VR Ready");
 			}

@@ -90,7 +90,7 @@ float localSceneHSDF(vec4 samplePoint){
 
     float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
     return final;
-  }*/
+  }
   else if(sceneIndex == 4){  // cube sides
     /// draw sides of the cube fundamental domain
     vec4 dualPoint0 = lorentzNormalize(vec4(1.0/halfCubeWidthKlein,0.0,0.0,1.0));
@@ -101,7 +101,7 @@ float localSceneHSDF(vec4 samplePoint){
     float plane2 = geodesicPlaneHSDF(abs(samplePoint), dualPoint2, 0.0);
     float final = unionSDF(unionSDF(plane0,plane1),plane2);
     return final;
-  }
+  }*/
 }
 
 float globalSceneHSDF(vec4 samplePoint){

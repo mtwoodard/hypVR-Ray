@@ -106,5 +106,5 @@ float localSceneHSDF(vec4 samplePoint){
 
 float globalSceneHSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
-  return sphereHSDF(absoluteSamplePoint, lightSourcePosition, 0.1);
+  return sphereHSDF(absoluteSamplePoint, lightSourcePositions[0], 0.1);
 }

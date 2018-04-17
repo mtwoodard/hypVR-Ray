@@ -9,8 +9,7 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   float z = 0.1;
   vec3 pPre;
   vec3 pPrePre;
-  //pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
-  //pPre = qtransform(cameraQuat, pPrePre);
+
   if(isStereo != 0){
     if(isStereo == -1){
        pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));

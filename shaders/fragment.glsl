@@ -1,6 +1,7 @@
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
 vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plane to hyperboloid at p
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
+    int throwAway = 0;
     vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
@@ -12,9 +13,9 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plan
           // basis_x * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_x)) - HSDFp) +
           // basis_y * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_y)) - HSDFp) +
           // basis_z * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_z)) - HSDFp)
-          basis_x * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_x)) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_x))) +
-          basis_y * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_y)) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_y))) +
-          basis_z * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_z)) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_z)))
+          basis_x * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_x), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_x), throwAway)) +
+          basis_y * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_y), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_y), throwAway)) +
+          basis_z * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_z), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_z), throwAway))
       );
     }
     else{ //local scene
@@ -61,7 +62,8 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
 
 float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint,
   out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich){
+  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich, out int lightIndex){
+  lightIndex = 0;
   int fakeI = 0;
   float globalDepth = start;
   float localDepth = globalDepth;
@@ -90,7 +92,7 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
     }
     else{
       float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint);
+      float globalDist = globalSceneHSDF(globalSamplePoint, lightIndex);
       float dist = min(localDist, globalDist);
       // float dist = localDist;
       if(dist < EPSILON){
@@ -148,11 +150,11 @@ void main(){
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
-
+  int lightIndex = 0;
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint,
     globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
-    tilingSteps, hitWhich);
+    tilingSteps, hitWhich, lightIndex);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
@@ -163,7 +165,12 @@ void main(){
   else if(hitWhich == 1){ // global
     vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    gl_FragColor = vec4(cameraLightMatteShade,0.0,0.0,1.0);
+    vec3 lightColor;  //sort of hack to find which light is closest
+    for(int i = 0; i<8; i++){
+      if(i == lightIndex)
+        lightColor = lightIntensities[i];
+    }
+    gl_FragColor = vec4(lightColor,1.0);
     return;
   }
   else if(hitWhich == 2){ // local
@@ -174,13 +181,12 @@ void main(){
         vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
         vec4 L = -directionFrom2Points(localEndPoint, translatedLightPosition);
         vec4 R = 2.0*lorentzDot(L, N)*N - L;
-        vec4 V = -directionFrom2Points(localEndPoint, rayOrigin);
         //Calculate Diffuse Component
         float nDotL = max(-lorentzDot(N, L),0.0);
         vec3 diffuse = lightIntensities[i] * nDotL;
         //Calculate Specular Component
-        float rDotV = max(lorentzDot(R, V),0.0);
-        vec3 specular = lightIntensities[i] * pow(rDotV,10.0);
+        float rDotTV = max(lorentzDot(R, localEndTangentVector),0.0);
+        vec3 specular = lightIntensities[i] * pow(rDotTV,10.0);
         //Compute final color
         color += (diffuse + specular);
       }

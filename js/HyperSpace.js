@@ -17,7 +17,7 @@ var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
 var targetFPS = 27.5;
-
+var time;
 //-------------------------------------------------------
 // FPS Manager
 //-------------------------------------------------------
@@ -94,9 +94,9 @@ var lightPositions = [];
 var lightIntensities = [];
 var initLights = function(){
 	lightPositions.push(new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084));
-	lightIntensities.push(new THREE.Vector3(0.0,0.5,0.5));
-	lightPositions.push(new THREE.Vector4(0.0,0.0,-0.9801960588,-1.400280084));
-	lightIntensities.push(new THREE.Vector3(0.6,0.4,0.0));
+	lightIntensities.push(new THREE.Vector3(0.0,1.0,1.0).multiplyScalar(0.4));
+	lightPositions.push(new THREE.Vector4(0.0,0.0,-0.9801960588, 1.400280084));
+	lightIntensities.push(new THREE.Vector3(1.0,0.647,0.0).multiplyScalar(0.8));
 	for(var i = 1; i<7; i++){
 		lightPositions.push(new THREE.Vector4(0,0,0,0));
 		lightIntensities.push(new THREE.Vector3(0,0,0));
@@ -108,6 +108,7 @@ var initLights = function(){
 //-------------------------------------------------------
 var init = function(){
   //Setup our THREE scene--------------------------------
+	time = Date.now();
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
@@ -204,6 +205,7 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   material.uniforms.maxSteps.value = maxSteps;
   effect.render(scene, camera, animate);

@@ -8,7 +8,6 @@ const float halfIdealCubeWidthKlein = 0.5773502692;
 const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
 uniform int isStereo;
-uniform int lightingModel;
 uniform mat4 cameraProjection;
 uniform vec2 screenResolution;
 uniform vec4 cameraQuat;
@@ -22,8 +21,13 @@ uniform vec4 leftEyeRotation;
 uniform vec4 rightEyeRotation;
 uniform mat4 cellBoost;
 uniform mat4 invCellBoost;
-uniform vec4 lightSourcePosition;
 uniform int maxSteps;
+//--------------------------------------------
+//Lighting Variables
+//--------------------------------------------
+uniform int lightingModel;
+uniform vec4 lightSourcePositions[8];
+uniform vec3 lightSourceIntensities[8];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------
@@ -37,7 +41,7 @@ uniform float planeOffset;
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.
 // We'll need more of these later when we support more symmetry groups.
-uniform int cut4;		
+uniform int cut4;
 
 //Quaternion Math
 vec3 qtransform( vec4 q, vec3 v ){

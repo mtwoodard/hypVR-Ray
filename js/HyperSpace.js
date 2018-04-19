@@ -89,6 +89,18 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
   }
 }
 
+//Set Up Lights
+var lightSourcePositions = [];
+var lightSourceIntensities = [];
+var initLights = function(){
+	lightSourcePositions.push(new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084));
+	lightSourceIntensities.push(new THREE.Vector3(0.0,0.5,0.5));
+	for(var i = 1; i<8; i++){
+		lightSourcePositions.push(new THREE.Vector4(0,0,0,0));
+		lightSourceIntensities.push(new THREE.Vector3(0,0,0));
+	}
+}
+
 //-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
@@ -109,8 +121,9 @@ var init = function(){
   currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
-  lightSourcePosition = new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084); // position on hyperboloid of light source, is lorentzNormalize(0,0,.7,1)
-  //We need to load the shaders from file
+  //lightSourcePosition = new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084); // position on hyperboloid of light source, is lorentzNormalize(0,0,.7,1)
+	initLights();
+	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
   loadShaders();
 }
@@ -137,7 +150,6 @@ var finishInit = function(fShader){
   material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      lightingModel:{type: "i", value:1},
       cameraProjection:{type:"m4", value:new THREE.Matrix4()},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraPos:{type:"v3", value:virtCamera.position},
@@ -152,11 +164,13 @@ var finishInit = function(fShader){
       rightEyeRotation:{type:"v4", value:rightEyeRotation},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
-      lightSourcePosition:{type:"v4", value:lightSourcePosition},
       maxSteps:{type:"i", value:maxSteps},
+			lightingModel:{type: "i", value:1},
+			lightSourcePositions:{type:"v4v", value:lightSourcePositions},
+			lightSourceIntensities:{type:"v3v", value:lightSourceIntensities},
       sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK},
-	  cut4:{type:"i", value:cut4},
+	  	cut4:{type:"i", value:cut4},
       sphereRad:{type:"f", value:sphereRad},
       tubeRad:{type:"f", value:tubeRad},
       horosphereSize:{type:"f", value:horosphereSize},

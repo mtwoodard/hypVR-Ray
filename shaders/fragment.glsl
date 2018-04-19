@@ -133,25 +133,29 @@ void main(){
   }
   else if(hitWhich == 2){ // local
     vec4 localSurfaceNormal = estimateNormal(localEndPoint, hitWhich);
-    vec4 translatedLightSourcePosition = lightSourcePosition * invCellBoost * totalFixMatrix;
-    vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
-    vec4 reflectedLightDirection = 2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
+    vec3 color = vec3(0.1);
+    for(int i = 0; i<8; i++){ //8 is the size of the lightSourcePosition array
+      if(lightSourceIntensities[i] != vec3(0.0)){
+        vec4 translatedLightSourcePosition = lightSourcePositions[i] * invCellBoost * totalFixMatrix;
+        vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
+        vec4 reflectedLightDirection = 2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
+        float sourceLightDiffuse = max(-lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
+        vec3 diffuse = lightSourceIntensities[i] * sourceLightDiffuse;
+        float sourceLightSpecular = max(lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
+        vec3 specular = lightSourceIntensities[i] * pow(sourceLightSpecular,10.0);
+        color += (diffuse + specular);
+      }
+    }
 
-    float cameraLightMatteShade = max(-lorentzDot(localSurfaceNormal, localEndTangentVector),0.0);
-    float sourceLightMatteShade = max(-lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
-    float reflectedShineShade = max(lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
-    // float matteShade = sourceLightMatteShade;
-    float matteShade = 0.2*cameraLightMatteShade + 0.8*sourceLightMatteShade;
-
-    float depthShade = max(1.0-dist/5.0, 0.0);
-    float stepsShade = max(1.0-tilingSteps/3.0,0.0);
+    //float depthShade = max(1.0-dist/5.0, 0.0);
+    //float stepsShade = max(1.0-tilingSteps/3.0,0.0);
     // float comboShade = shineShade*depthShade;
-    vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
+    //vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
     // vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
-    vec4 matteColor = vec4(matteShade,matteShade,matteShade,1.0);
-    vec4 reflectedColor;
-    if(sourceLightMatteShade > 0.0) {reflectedColor = vec4(reflectedShineShade,reflectedShineShade,reflectedShineShade,1.0);}
-    else {reflectedColor = vec4(0.0,0.0,0.0,1.0);}
+    //vec4 matteColor = vec4(matteShade,matteShade,matteShade,1.0);
+    //vec4 reflectedColor;
+    //if(sourceLightMatteShade > 0.0) {reflectedColor = vec4(reflectedShineShade,reflectedShineShade,reflectedShineShade,1.0);}
+    //else {reflectedColor = vec4(0.0,0.0,0.0,1.0);}
     // vec4 comboColor = vec4(comboShade,comboShade,comboShade,1.0);
     // vec4 orange = vec4(1.0,0.65,0.1,1.0);
     // vec4 white = vec4(1.0,1.0,1.0,1.0);
@@ -170,11 +174,11 @@ void main(){
 
     if (lightingModel == 1)
     {
-      gl_FragColor = 0.3*depthColor + 0.7*matteColor;
+      gl_FragColor = vec4(color, 1.0);
     }
     else // lightingModel = 0
     {
-      gl_FragColor = 0.3*depthColor + 0.5*matteColor + 0.2*reflectedColor;
+      gl_FragColor = vec4(0.5,0.0,0.0,1.0);
     }
     // gl_FragColor = reflectedColor;
     // gl_FragColor = shineColor;

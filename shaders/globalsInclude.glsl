@@ -26,8 +26,8 @@ uniform int maxSteps;
 //Lighting Variables
 //--------------------------------------------
 uniform int lightingModel;
-uniform vec4 lightSourcePositions[8];
-uniform vec3 lightSourceIntensities[8];
+uniform vec4 lightPositions[8];
+uniform vec3 lightIntensities[8];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------

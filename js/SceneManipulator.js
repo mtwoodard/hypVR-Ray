@@ -127,6 +127,7 @@ var initGui = function(){
   var rotateController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
+  debugFolder.add(targetFPS, 'value', 15, 90).name("Target FPS");
 
   edgeController.onFinishChange(function(value) {
 	  updateUniformsFromUI();

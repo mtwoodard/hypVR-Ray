@@ -16,7 +16,8 @@ var rightEyeRotation;
 var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
-var targetFPS = 27.5;
+var targetFPS = {value:27.5};
+var textFPS;
 var time;
 //-------------------------------------------------------
 // FPS Manager
@@ -37,7 +38,7 @@ var fps = {
 	}
 }
 var fpsLog = new Array(10);
-fpsLog.fill(targetFPS);
+fpsLog.fill(targetFPS.value);
 
 function average(input)
 {
@@ -65,10 +66,11 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 	 fpsLog.shift();
 	 fpsLog.push(lastFPS);
 	 var averageFPS = average(fpsLog);
+	 textFPS.innerHTML = averageFPS.toPrecision(3);
 
 	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
 	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	 var newVal = Math.pow((averageFPS / targetFPS), (1 / 20)) * lastMaxSteps;
+	 var newVal = Math.pow((averageFPS / targetFPS.value), (1 / 20)) * lastMaxSteps;
 	 var diff = newVal - lastMaxSteps;
 	 if(Math.abs( m_stepAccum ) < 1)
 	 {
@@ -109,6 +111,7 @@ var initLights = function(){
 var init = function(){
   //Setup our THREE scene--------------------------------
 	time = Date.now();
+	textFPS = document.getElementById('fps');
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);

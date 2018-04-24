@@ -1,7 +1,7 @@
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
 vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plane to hyperboloid at p
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
-    int throwAway = 0;
+    vec3 throwAway = vec3(0.0);
     vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
@@ -62,8 +62,8 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
 
 float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich, out int lightIndex){
-  lightIndex = 0;
+  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich, out vec3 lightColor){
+  lightColor = vec3(0.0);
   int fakeI = 0;
   float globalDepth = MIN_DIST;
   float localDepth = globalDepth;
@@ -92,7 +92,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     }
     else{
       float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint, lightIndex);
+      float globalDist = globalSceneHSDF(globalSamplePoint, globalLightColor);
       float dist = min(localDist, globalDist);
       // float dist = localDist;
       if(dist < EPSILON){
@@ -126,6 +126,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void main(){
+  vec3 globalLightColor;
   vec4 localEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 globalEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
@@ -150,11 +151,10 @@ void main(){
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
-  int lightIndex = 0;
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint,
     globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
-    tilingSteps, hitWhich, lightIndex);
+    tilingSteps, hitWhich, globalLightColor);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
@@ -165,12 +165,7 @@ void main(){
   else if(hitWhich == 1){ // global
     vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    vec3 lightColor;  //sort of hack to find which light is closest
-    for(int i = 0; i<8; i++){
-      if(i == lightIndex)
-        lightColor = lightIntensities[i];
-    }
-    gl_FragColor = vec4(lightColor,1.0);
+    gl_FragColor = vec4(globalLightColor,1.0);
     return;
   }
   else if(hitWhich == 2){ // local

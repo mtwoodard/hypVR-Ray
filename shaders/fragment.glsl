@@ -1,3 +1,36 @@
+//NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
+vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plane to hyperboloid at p
+    // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
+    int throwAway = 0;
+    vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
+    vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
+    vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
+    basis_y = lorentzNormalize(basis_y - lorentzDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
+    basis_z = lorentzNormalize(basis_z - lorentzDot(basis_z, basis_x)*basis_x - lorentzDot(basis_z, basis_y)*basis_y);
+    // float HSDFp = localSceneHSDF(p);
+    if(sceneType == 1){ //global scene
+      return lorentzNormalize(
+          // basis_x * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_x)) - HSDFp) +
+          // basis_y * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_y)) - HSDFp) +
+          // basis_z * (globalSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_z)) - HSDFp)
+          basis_x * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_x), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_x), throwAway)) +
+          basis_y * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_y), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_y), throwAway)) +
+          basis_z * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_z), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_z), throwAway))
+      );
+    }
+    else{ //local scene
+      return lorentzNormalize(
+          // basis_x * (localSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_x)) - HSDFp) +
+          // basis_y * (localSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_y)) - HSDFp) +
+          // basis_z * (localSceneHSDF(lorentzNormalize(p + 2.0*EPSILON*basis_z)) - HSDFp)
+          basis_x * (localSceneHSDF(lorentzNormalize(p + EPSILON*basis_x)) - localSceneHSDF(lorentzNormalize(p - EPSILON*basis_x))) +
+          basis_y * (localSceneHSDF(lorentzNormalize(p + EPSILON*basis_y)) - localSceneHSDF(lorentzNormalize(p - EPSILON*basis_y))) +
+          basis_z * (localSceneHSDF(lorentzNormalize(p + EPSILON*basis_z)) - localSceneHSDF(lorentzNormalize(p - EPSILON*basis_z)))
+      );
+
+    }
+  }
+
 vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   if(isStereo != 0){
     resolution.x = resolution.x/2.0;
@@ -29,7 +62,8 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
 
 float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localEndPoint,
   out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich){
+  out mat4 totalFixMatrix, out float tilingSteps, out int hitWhich, out int lightIndex){
+  lightIndex = 0;
   int fakeI = 0;
   float globalDepth = start;
   float localDepth = globalDepth;
@@ -58,7 +92,7 @@ float raymarchDistance(vec4 rO, vec4 rD, float start, float end, out vec4 localE
     }
     else{
       float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint);
+      float globalDist = globalSceneHSDF(globalSamplePoint, lightIndex);
       float dist = min(localDist, globalDist);
       // float dist = localDist;
       if(dist < EPSILON){
@@ -116,10 +150,13 @@ void main(){
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
+  int lightIndex = 0;
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, MIN_DIST, MAX_DIST, localEndPoint,
     globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
-    tilingSteps, hitWhich);
+    tilingSteps, hitWhich, lightIndex);
+
+  //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
     gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
@@ -128,49 +165,32 @@ void main(){
   else if(hitWhich == 1){ // global
     vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    gl_FragColor = vec4(cameraLightMatteShade,0.0,0.0,1.0);
+    vec3 lightColor;  //sort of hack to find which light is closest
+    for(int i = 0; i<8; i++){
+      if(i == lightIndex)
+        lightColor = lightIntensities[i];
+    }
+    gl_FragColor = vec4(lightColor,1.0);
     return;
   }
   else if(hitWhich == 2){ // local
-    vec4 localSurfaceNormal = estimateNormal(localEndPoint, hitWhich);
-    vec3 color = vec3(0.1);
+    vec4 N = estimateNormal(localEndPoint, hitWhich);
+    vec3 color = vec3(0.1); //Setup up color with ambient component
     for(int i = 0; i<8; i++){ //8 is the size of the lightSourcePosition array
-      if(lightSourceIntensities[i] != vec3(0.0)){
-        vec4 translatedLightSourcePosition = lightSourcePositions[i] * invCellBoost * totalFixMatrix;
-        vec4 directionToLightSource = -directionFrom2Points(localEndPoint, translatedLightSourcePosition);
-        vec4 reflectedLightDirection = 2.0*lorentzDot(directionToLightSource, localSurfaceNormal)*localSurfaceNormal - directionToLightSource;
-        float sourceLightDiffuse = max(-lorentzDot(localSurfaceNormal, directionToLightSource),0.0);
-        vec3 diffuse = lightSourceIntensities[i] * sourceLightDiffuse;
-        float sourceLightSpecular = max(lorentzDot(reflectedLightDirection, localEndTangentVector),0.0);
-        vec3 specular = lightSourceIntensities[i] * pow(sourceLightSpecular,10.0);
+      if(lightIntensities[i] != vec3(0.0)){
+        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
+        vec4 L = -directionFrom2Points(localEndPoint, translatedLightPosition);
+        vec4 R = 2.0*lorentzDot(L, N)*N - L;
+        //Calculate Diffuse Component
+        float nDotL = max(-lorentzDot(N, L),0.0);
+        vec3 diffuse = lightIntensities[i] * nDotL;
+        //Calculate Specular Component
+        float rDotTV = max(lorentzDot(R, localEndTangentVector),0.0);
+        vec3 specular = lightIntensities[i] * pow(rDotTV,10.0);
+        //Compute final color
         color += (diffuse + specular);
       }
     }
-
-    //float depthShade = max(1.0-dist/5.0, 0.0);
-    //float stepsShade = max(1.0-tilingSteps/3.0,0.0);
-    // float comboShade = shineShade*depthShade;
-    //vec4 depthColor = vec4(depthShade,depthShade*0.65,0.1,1.0);
-    // vec4 stepsColor = vec4(stepsShade,stepsShade,stepsShade,1.0);
-    //vec4 matteColor = vec4(matteShade,matteShade,matteShade,1.0);
-    //vec4 reflectedColor;
-    //if(sourceLightMatteShade > 0.0) {reflectedColor = vec4(reflectedShineShade,reflectedShineShade,reflectedShineShade,1.0);}
-    //else {reflectedColor = vec4(0.0,0.0,0.0,1.0);}
-    // vec4 comboColor = vec4(comboShade,comboShade,comboShade,1.0);
-    // vec4 orange = vec4(1.0,0.65,0.1,1.0);
-    // vec4 white = vec4(1.0,1.0,1.0,1.0);
-    // vec4 normalColor = vec4(abs(normalize(projectToKlein(surfaceNormal).xyz)),1.0);
-    //abs is needed to avoid inconsistencies in shading coming from different paths
-    // vec4 endRayColor = vec4((normalize(projectToKlein(endRayTangentVector).xyz)),1.0);
-    //to the same cube giving different orientations of the cube
-
-    // gl_FragColor = 0.85 * depthColor + 0.15 * normalColor;
-    // if(comboShade < 0.5){
-    //   gl_FragColor = 2.0 * comboShade * orange;
-    // }
-    // else{
-    //   gl_FragColor = 2.0*(comboShade-0.5)*white + (1.0 - 2.0*(comboShade-0.5))*orange;
-    // }
 
     if (lightingModel == 1)
     {
@@ -180,10 +200,5 @@ void main(){
     {
       gl_FragColor = vec4(0.5,0.0,0.0,1.0);
     }
-    // gl_FragColor = reflectedColor;
-    // gl_FragColor = shineColor;
-    // gl_FragColor = 0.2*stepsColor + 0.8*normalColor;
-    // gl_FragColor = normalColor;
-    // gl_FragColor = endRayColor;
   }
 }

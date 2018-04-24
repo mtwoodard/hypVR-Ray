@@ -17,7 +17,7 @@ var currentBoost;
 var leftCurrentBoost;
 var rightCurrentBoost;
 var targetFPS = 27.5;
-
+var time;
 //-------------------------------------------------------
 // FPS Manager
 //-------------------------------------------------------
@@ -90,14 +90,16 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 }
 
 //Set Up Lights
-var lightSourcePositions = [];
-var lightSourceIntensities = [];
+var lightPositions = [];
+var lightIntensities = [];
 var initLights = function(){
-	lightSourcePositions.push(new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084));
-	lightSourceIntensities.push(new THREE.Vector3(0.0,0.5,0.5));
-	for(var i = 1; i<8; i++){
-		lightSourcePositions.push(new THREE.Vector4(0,0,0,0));
-		lightSourceIntensities.push(new THREE.Vector3(0,0,0));
+	lightPositions.push(new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084));
+	lightIntensities.push(new THREE.Vector3(0.0,1.0,1.0).multiplyScalar(0.4));
+	lightPositions.push(new THREE.Vector4(0.0,0.0,-0.9801960588, 1.400280084));
+	lightIntensities.push(new THREE.Vector3(1.0,0.647,0.0).multiplyScalar(0.8));
+	for(var i = 1; i<7; i++){
+		lightPositions.push(new THREE.Vector4(0,0,0,0));
+		lightIntensities.push(new THREE.Vector3(0,0,0));
 	}
 }
 
@@ -106,6 +108,7 @@ var initLights = function(){
 //-------------------------------------------------------
 var init = function(){
   //Setup our THREE scene--------------------------------
+	time = Date.now();
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
@@ -132,13 +135,11 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   var loader = new THREE.FileLoader();
   loader.setResponseType('text')
   loader.load('shaders/fragment.glsl',function(main){
-    loader.load('shaders/hyperbolicLighting.glsl',function(lighting){
-      loader.load('shaders/hyperbolicScene.glsl', function(scene){
-        loader.load('shaders/hyperbolicMath.glsl', function(math){
-          loader.load('shaders/globalsInclude.glsl', function(globals){
+    loader.load('shaders/hyperbolicScene.glsl', function(scene){
+      loader.load('shaders/hyperbolicMath.glsl', function(math){
+        loader.load('shaders/globalsInclude.glsl', function(globals){
             //pass full shader string to finish our init
-            finishInit(globals.concat(math).concat(scene).concat(lighting).concat(main));
-          });
+          finishInit(globals.concat(math).concat(scene).concat(main));
         });
       });
     });
@@ -166,8 +167,8 @@ var finishInit = function(fShader){
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightingModel:{type: "i", value:1},
-			lightSourcePositions:{type:"v4v", value:lightSourcePositions},
-			lightSourceIntensities:{type:"v3v", value:lightSourceIntensities},
+			lightPositions:{type:"v4v", value:lightPositions},
+			lightIntensities:{type:"v3v", value:lightIntensities},
       sceneIndex:{type:"i", value: 1},
       halfCubeWidthKlein:{type:"f", value: hCWK},
 	  	cut4:{type:"i", value:cut4},
@@ -204,6 +205,7 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   controls.update();
+	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   material.uniforms.maxSteps.value = maxSteps;
   effect.render(scene, camera, animate);

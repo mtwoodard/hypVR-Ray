@@ -104,7 +104,7 @@ float localSceneHSDF(vec4 samplePoint){
   }
 }
 
-float globalSceneHSDF(vec4 samplePoint, out int lightIndex/*,out string objID*/){
+float globalSceneHSDF(vec4 samplePoint, out int lightIndex){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
   for(int i=0; i<8; i++){

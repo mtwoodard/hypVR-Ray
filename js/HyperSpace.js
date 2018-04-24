@@ -18,7 +18,7 @@ var leftCurrentBoost;
 var rightCurrentBoost;
 var targetFPS = {value:27.5};
 var textFPS;
-var time;
+//var time;
 //-------------------------------------------------------
 // FPS Manager
 //-------------------------------------------------------
@@ -110,7 +110,7 @@ var initLights = function(){
 //-------------------------------------------------------
 var init = function(){
   //Setup our THREE scene--------------------------------
-	time = Date.now();
+	//time = Date.now();
 	textFPS = document.getElementById('fps');
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();

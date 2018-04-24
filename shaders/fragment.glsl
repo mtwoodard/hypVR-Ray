@@ -92,7 +92,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     }
     else{
       float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint, globalLightColor);
+      float globalDist = globalSceneHSDF(globalSamplePoint, lightColor);
       float dist = min(localDist, globalDist);
       // float dist = localDist;
       if(dist < EPSILON){

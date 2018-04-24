@@ -100,7 +100,7 @@ var initLights = function(){
 	lightPositions.push(new THREE.Vector4(0.0,0.0,-0.9801960588, 1.400280084));
 	lightIntensities.push(new THREE.Vector3(1.0,0.647,0.0).multiplyScalar(0.8));
 	for(var i = 1; i<7; i++){
-		lightPositions.push(new THREE.Vector4(0,0,0,0));
+		lightPositions.push(new THREE.Vector4(0,0,0,1));
 		lightIntensities.push(new THREE.Vector3(0,0,0));
 	}
 }

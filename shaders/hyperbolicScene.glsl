@@ -119,5 +119,5 @@ float localSceneHSDF(vec4 samplePoint){
 float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
   lightIntensity = lightIntensities[0];
   vec4 absoluteSamplePoint = samplePoint * cellBoost;
-  return sphereHSDF(absoluteSamplePoint, lightPosition[0], 0.1);
+  return sphereHSDF(absoluteSamplePoint, lightPositions[0], 0.1);
 }

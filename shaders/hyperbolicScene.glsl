@@ -107,8 +107,12 @@ float localSceneHSDF(vec4 samplePoint){
 float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
-  for(int i=0; i<5; i++){
-    float objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
+  for(int i=0; i<8; i++){
+    float objDist;
+    if(length(lightIntensities[i]) == 0.0)
+      objDist = MAX_DIST;
+    else
+      objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
     if(distance > objDist){
       distance = objDist;
       lightIntensity = lightIntensities[i];

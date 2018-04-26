@@ -25,11 +25,11 @@
 </head>
 
 <body>
-  <div id="fps" style="position: absolute; top:10px; left:10px; width:30px; text-align:center; z-index: 100; display:block;background-color:black;">
+  <div id="fps" style="position: absolute; top:10px; left:10px; width:30px; text-align:center; z-index: 100; display:block;background-color:black; visibility:hidden">
     0.0
   </div>
 
-  <img id="crosshair" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:50%; margin-top:-7.5px; margin-left:-7.5px" />
+  <img id="crosshair" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:50%; margin-top:-7.5px; margin-left:-7.5px; visibility:hidden" />
 
   <img id="vr-icon" src="images/vr-icon.png" height="50px"
     style="
@@ -60,6 +60,6 @@
 <script src="js/vr/PhoneVR.js"></script>
 <script src="js/vr/VRControlsHyperbolic.js"></script>
 <script src="js/vr/VREffect.js"></script>
-<script src="js/SceneManipulator.js"></script>
+<script src="js/UI.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

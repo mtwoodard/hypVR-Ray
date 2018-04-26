@@ -22,7 +22,6 @@
  * https://drive.google.com/folderview?id=0BzudLt22BqGRbW9WTHMtOWMzNjQ&usp=sharing#list
  *
  */
- var crosshair = document.getElementById("crosshair");
 THREE.VREffect = function ( renderer, done ) {
 	// var frameData = new VRFrameData();
 
@@ -167,14 +166,12 @@ THREE.VREffect = function ( renderer, done ) {
 
 		if ( guiInfo.toggleStereo ) { //change this to true to debug stereo render
 			fixLeaveStereo = true;
-			crosshair.style.visibility = "hidden"
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
 
 		if(fixLeaveStereo && !guiInfo.toggleStereo){
 			fixLeaveStereo = false;
-			crosshair.style.visibility = 'visible';
 			var size = renderer.getSize();
 			renderer.setScissorTest(false);
 			renderer.clear();

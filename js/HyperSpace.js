@@ -169,7 +169,6 @@ var finishInit = function(fShader){
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
-			lightingModel:{type: "i", value:1},
 			lightPositions:{type:"v4v", value:lightPositions},
 			lightIntensities:{type:"v3v", value:lightIntensities},
       sceneIndex:{type:"i", value: 1},

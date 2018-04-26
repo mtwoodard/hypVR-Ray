@@ -144,9 +144,9 @@ float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoi
   return acosh(sqrt(2.0*-lorentzDot(lightPoint1, samplePoint)*-lorentzDot(lightPoint2, samplePoint))) - radius;
 }
 
-float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 dualPoint2, float offset){
-  float xyPlane = geodesicPlaneHSDF(samplePoint, dualPoint0, offset); //side plane
-  float yzPlane = geodesicPlaneHSDF(samplePoint, dualPoint1, offset); //front plane
-  float xzPlane = geodesicPlaneHSDF(samplePoint, dualPoint2, offset); //bottom plane
-  return min(xzPlane, min(xyPlane, yzPlane));
-}
+float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 dualPoint2, vec3 offsets){
+  float plane0 = max(abs(geodesicPlaneHSDF(samplePoint, dualPoint0, 0.0))-offsets.x,0.0); 
+  float plane1 = max(abs(geodesicPlaneHSDF(samplePoint, dualPoint1, 0.0))-offsets.y,0.0); 
+  float plane2 = max(abs(geodesicPlaneHSDF(samplePoint, dualPoint2, 0.0))-offsets.z,0.0);
+  return sqrt(plane0*plane0+plane1*plane1+plane2*plane2) - 0.01; 
+} //make sure to comment this

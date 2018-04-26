@@ -189,7 +189,7 @@ function norm( v ){
 	return Math.sqrt(Math.abs(lorentzDot(v,v)));
 }
 
-function v_from_vprime(u, vprime){
+function v_from_vprime(u, vprime){ //NOTE: CHANGE TO DIRECTIONFROM2POINTS
   var out = vprime - lorentzDot(u,vprime)*u;
   return (1.0/norm(out)*out);
 }

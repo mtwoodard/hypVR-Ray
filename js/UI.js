@@ -83,10 +83,11 @@ function updateUniformsFromUI()
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	planeOffset = distToMidEdge;
 
-	gens = createGenerators();
-	invGens = invGenerators(gens);
+  initValues();
+  console.log(hCDP);
 	material.uniforms.generators.value = gens;
-	material.uniforms.invGenerators.value = invGens;
+  material.uniforms.invGenerators.value = invGens;
+  material.uniforms.halfCubeDualPoints.value = hCDP;
 	material.uniforms.halfCubeWidthKlein.value = hCWK;
 	material.uniforms.cut4.value = cut4;
 	material.uniforms.sphereRad.value = sphereRad;

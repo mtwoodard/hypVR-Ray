@@ -7,9 +7,14 @@ float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
     float objDist;
     if(length(lightIntensities[i]) == 0.0)
       objDist = MAX_DIST;
-    else
-      //objDist = geodesicCubeHSDF(samplePoint, lightPositions[i]*translateByVector(vec3(1.0,0.0,0.0)), lightPositions[i]*translateByVector(vec3(0.0,1.0,0.0)), lightPositions[i]*translateByVector(vec3(0.0,0.0,1.0)), 0.0);
-      objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
+    else{
+      vec3 offsets = vec3(0.02,0.04,0.06);
+      vec4 dual0 = directionFrom2Points(lightPositions[i], lightPositions[i]*translateByVector(vec3(0.1,0.0,0.0)));
+      vec4 dual1 = directionFrom2Points(lightPositions[i], lightPositions[i]*translateByVector(vec3(0.0,0.1,0.0)));
+      vec4 dual2 = directionFrom2Points(lightPositions[i], lightPositions[i]*translateByVector(vec3(0.0,0.0,0.1)));
+      objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, offsets);
+      //objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
+    }
     if(distance > objDist){
       distance = objDist;
       lightIntensity = lightIntensities[i];

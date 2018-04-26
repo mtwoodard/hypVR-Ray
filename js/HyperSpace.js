@@ -98,9 +98,9 @@ var hCDP = [];
 
 var initValues = function(){
 	var invHCWK = 1.0/hCWK;
-	hCDP.push(lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0)));
-	hCDP.push(lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0)));
-	hCDP.push(lorentzNormalizeTHREE(new THREE.Vector4(0.0,0.0,invHCWK,1.0)));
+	hCDP[0] = lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0));
+	hCDP[1] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0));
+	hCDP[2] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,0.0,invHCWK,1.0));
 	gens = createGenerators();
 	invGens = invGenerators(gens);
 }

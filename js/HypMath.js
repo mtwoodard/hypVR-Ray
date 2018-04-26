@@ -4,16 +4,6 @@ THREE.Matrix4.prototype.add = function (m) {
   this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
-// function areSameMatrix(mat1, mat2) {
-// 	var delta = 0.0001;
-// 	for (var coord=0; coord<16; coord++) {
-// 		if (Math.abs(mat1.elements[coord] - mat2.elements[coord]) > delta) {
-// 			return false;
-// 		}
-// 	}
-// 	return true;
-// }
-
 function areSameMatrix(mat1, mat2) {  //look only at last column - center of cell
 	var delta = 0.01;
 	for (var coord=3; coord<16; coord+=4) {
@@ -21,9 +11,6 @@ function areSameMatrix(mat1, mat2) {  //look only at last column - center of cel
 			return false;
 		}
 	}
-	// console.log('same matrix')
-	// console.log(mat1.elements)
-	// console.log(mat2.elements)
 	return true;
 }
 
@@ -36,12 +23,6 @@ function isMatrixInArray(mat, matArray) {
 	}
 	return false;
 }
-
-// function hypDistFromOrigin(v) {
-// // put the point onto Klein model
-// // hyp dist is arctanh(euclidean dist)
-// 	return Math.atanh(Math.sqrt((v.x*v.x + v.y*v.y + v.z*v.z) / (v.w*v.w)));
-// }  //dont need this for calculating nearest point to origin - atanh is increasing function
 
 function digitsDepth( digits ) {
 	numZeros = 0;
@@ -180,6 +161,11 @@ function fastGramSchmidt( m )
 		}
 	}
 	return m;
+}
+
+function clamp(input, min, max)
+{
+	return Math.max(Math.min(input, max), min);
 }
 
 function lerp(a, b, t){

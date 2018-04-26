@@ -115,3 +115,38 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   }
   return false;
 }
+
+//Raymarch Primitives
+float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
+  return hypDistance(samplePoint, center) - radius;
+}
+
+// A horosphere can be constructed by offseting from a standard horosphere.
+// Our standard horosphere will have a center in the direction of lightPoint
+// and go through the origin. Negative offsets will "shrink" it.
+float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){
+  return log(-lorentzDot(samplePoint, lightPoint)) - offset;
+}
+
+float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
+  return asinh(-lorentzDot(samplePoint, dualPoint)) - offset;
+}
+
+float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
+  // defined by two perpendicular geodesic planes
+  float dot1 = -lorentzDot(samplePoint, dualPoint1);
+  float dot2 = -lorentzDot(samplePoint, dualPoint2);
+  return asinh(sqrt(dot1*dot1 + dot2*dot2)) - radius;
+}
+
+float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoint2, float radius){
+  // defined by two light points (at ends of the geodesic) whose lorentzDot is 1
+  return acosh(sqrt(2.0*-lorentzDot(lightPoint1, samplePoint)*-lorentzDot(lightPoint2, samplePoint))) - radius;
+}
+
+float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 dualPoint2, float offset){
+  float xyPlane = geodesicPlaneHSDF(samplePoint, dualPoint0, offset); //side plane
+  float yzPlane = geodesicPlaneHSDF(samplePoint, dualPoint1, offset); //front plane
+  float xzPlane = geodesicPlaneHSDF(samplePoint, dualPoint2, offset); //bottom plane
+  return min(xzPlane, min(xyPlane, yzPlane));
+}

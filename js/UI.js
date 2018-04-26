@@ -1,7 +1,3 @@
-var gens;
-var invGens;
-var hCWH = 0.6584789485;
-var hCWK = 0.5773502692;
 var cut4 = 2;
 var sphereRad = 0.996216;
 var tubeRad = 0.15;
@@ -9,9 +5,10 @@ var horosphereSize = -0.951621;
 var planeOffset = 0.75;
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
+  sceneIndex: 0,
+  toggleUI: false,
   edgeCase:2,
   edgeThickness:1.5,
-  lightingModel:1,
   eToHScale:1.0,
   toggleStereo:false,
   rotateEyes:false,
@@ -19,20 +16,6 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   maxSteps: 31,
   halfIpDistance: 0.03200000151991844
 };
-
-var createGenerators = function(){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
-  return [gen0, gen1, gen2, gen3, gen4, gen5];
-}
-
-var invGenerators = function(genArr){
-  return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
-}
 
 function updateEyes(){
   effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
@@ -110,24 +93,31 @@ function updateUniformsFromUI()
 	material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
 	material.uniforms.planeOffset.value = planeOffset;
-	material.uniforms.lightingModel.value = guiInfo.lightingModel;
 }
 
 //What we need to init our dat GUI
 var initGui = function(){
   var gui = new dat.GUI();
-  gui.add(material.uniforms.sceneIndex, 'value',{Simplex_cuts: 1, Edge_tubes: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
-  var lightingController = gui.add(guiInfo, 'lightingModel', {"Standard":0, "Foo": 1}).name("Lighting Model");
+  gui.close();
+  //scene settings ---------------------------------
+  var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
+  //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
-  var pupilDistanceController = debugFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
-  debugFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
-  var rotateController = debugFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
+  var stereoFolder = debugFolder.addFolder('Stereo');
+  var debugUIController = debugFolder.add(guiInfo, 'toggleUI').name("Toggle Debug UI");
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
   debugFolder.add(targetFPS, 'value', 15, 90).name("Target FPS");
+  stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
+  var rotateController = stereoFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
+  var pupilDistanceController = stereoFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
+
+  // ------------------------------
+  // UI Controllers
+  // ------------------------------
 
   edgeController.onFinishChange(function(value) {
 	  updateUniformsFromUI();
@@ -137,12 +127,21 @@ var initGui = function(){
 	  updateUniformsFromUI();
   });
 
-  lightingController.onFinishChange(function(value){
-    updateUniformsFromUI();
-  });
-
   scaleController.onFinishChange(function(value) {
     updateEyes();
+  });
+
+  debugUIController.onFinishChange(function(value){
+    var crosshair = document.getElementById("crosshair");
+    var fps = document.getElementById("fps");
+    if(value){
+      fps.style.visibility = 'visible';
+      crosshair.style.visibility = 'visible';
+    }
+    else{
+      fps.style.visibility = 'hidden';
+      crosshair.style.visibility = "hidden"
+    }
   });
 
   pupilDistanceController.onFinishChange(function(value){
@@ -154,5 +153,10 @@ var initGui = function(){
     material.uniforms.leftEyeRotation.value = leftEyeRotation;
     material.uniforms.rightEyeRotation.value = rightEyeRotation;
     updateUniformsFromUI();
+  });
+
+  sceneController.onFinishChange(function(index){
+    material.needsUpdate = true;
+    material.fragmentShader = globalsFrag.concat(mathFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

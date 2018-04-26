@@ -163,19 +163,38 @@ var init = function(){
   loadShaders();
 }
 
+var globalsFrag;
+var mathFrag;
+var mainFrag;
+var scenesFrag = [];
+
 var loadShaders = function(){ //Since our shader is made up of strings we can construct it from parts
   var loader = new THREE.FileLoader();
-  loader.setResponseType('text')
+  loader.setResponseType('text');
   loader.load('shaders/fragment.glsl',function(main){
-    loader.load('shaders/hyperbolicScene.glsl', function(scene){
+    loader.load('shaders/simplexCuts.glsl', function(scene){
       loader.load('shaders/hyperbolicMath.glsl', function(math){
         loader.load('shaders/globalsInclude.glsl', function(globals){
-            //pass full shader string to finish our init
+          //pass full shader string to finish our init
+          globalsFrag = globals;
+          mathFrag = math;
+          mainFrag = main;
+          scenesFrag.push(scene);
           finishInit(globals.concat(math).concat(scene).concat(main));
+          loader.load('shaders/edgeTubes.glsl', function(tubes){
+            loader.load('shaders/medialSurfaces.glsl', function(medial){
+              loader.load('shaders/cubeSides.glsl', function(cubes){
+                scenesFrag.push(tubes);
+                scenesFrag.push(medial);
+                scenesFrag.push(cubes);
+              });
+            });
+          });
         });
       });
     });
   });
+  
 }
 
 var finishInit = function(fShader){
@@ -200,7 +219,6 @@ var finishInit = function(fShader){
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
 			lightIntensities:{type:"v3v", value:lightIntensities},
-      sceneIndex:{type:"i", value: 1},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
 	  	cut4:{type:"i", value:cut4},

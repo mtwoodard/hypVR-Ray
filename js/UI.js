@@ -5,6 +5,7 @@ var horosphereSize = -0.951621;
 var planeOffset = 0.75;
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
+  sceneIndex: 0,
   toggleUI: false,
   edgeCase:2,
   edgeThickness:1.5,
@@ -99,7 +100,7 @@ var initGui = function(){
   var gui = new dat.GUI();
   gui.close();
   //scene settings ---------------------------------
-  gui.add(material.uniforms.sceneIndex, 'value',{Simplex_cuts: 1, Edge_tubes: 2, Medial_surface: 3, Cube_planes: 4}).name("Scene");
+  var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
@@ -152,5 +153,10 @@ var initGui = function(){
     material.uniforms.leftEyeRotation.value = leftEyeRotation;
     material.uniforms.rightEyeRotation.value = rightEyeRotation;
     updateUniformsFromUI();
+  });
+
+  sceneController.onFinishChange(function(index){
+    material.needsUpdate = true;
+    material.fragmentShader = globalsFrag.concat(mathFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

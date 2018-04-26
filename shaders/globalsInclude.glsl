@@ -37,7 +37,6 @@ uniform vec3 lightIntensities[8];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------
-uniform int sceneIndex;
 uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;

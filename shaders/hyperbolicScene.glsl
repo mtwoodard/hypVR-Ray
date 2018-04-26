@@ -119,7 +119,8 @@ float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
   }
   return distance;
 }
-/*float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
+/*
+float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
   lightIntensity = lightIntensities[0];
   vec4 absoluteSamplePoint = samplePoint * cellBoost;
   return sphereHSDF(absoluteSamplePoint, lightPositions[0], 0.1);

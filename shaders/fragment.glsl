@@ -1,3 +1,23 @@
+
+//GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
+float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
+  vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
+  float distance = MAX_DIST;
+  for(int i=0; i<8; i++){
+    float objDist;
+    if(length(lightIntensities[i]) == 0.0)
+      objDist = MAX_DIST;
+    else
+      //objDist = geodesicCubeHSDF(samplePoint, lightPositions[i]*translateByVector(vec3(1.0,0.0,0.0)), lightPositions[i]*translateByVector(vec3(0.0,1.0,0.0)), lightPositions[i]*translateByVector(vec3(0.0,0.0,1.0)), 0.0);
+      objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
+    if(distance > objDist){
+      distance = objDist;
+      lightIntensity = lightIntensities[i];
+    }
+  }
+  return distance;
+}
+
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
 vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plane to hyperboloid at p
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane

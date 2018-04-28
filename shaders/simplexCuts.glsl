@@ -1,3 +1,4 @@
+
 float localSceneHSDF(vec4 samplePoint){
     float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
     float vertexSphere = 0.0;

@@ -225,7 +225,7 @@ function onkey(event) {
 
   if (event.keyCode == 90) { // z
     controls.zeroSensor(); //zero rotation
-  } else if (event.keyCode == 70 || event.keyCode == 13) { //f
+  } else if (event.keyCode == 70) { //f
     effect.setFullScreen(true); //fullscreen
   } else if (event.keyCode == 86 || event.keyCode == 13 || event.keyCode == 32 ) { // v or 'enter' or 'space' for VR mode
     effect.toggleVRMode();

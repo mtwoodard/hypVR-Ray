@@ -6,7 +6,7 @@ var planeOffset = 0.75;
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
   sceneIndex: 0,
-  toggleUI: false,
+  toggleUI: true,
   edgeCase:2,
   edgeThickness:1.5,
   eToHScale:1.0,
@@ -135,11 +135,14 @@ var initGui = function(){
   debugUIController.onFinishChange(function(value){
     var crosshair = document.getElementById("crosshair");
     var fps = document.getElementById("fps");
+    var about = document.getElementById("about");
     if(value){
+      about.style.visibility = 'visible';
       fps.style.visibility = 'visible';
       crosshair.style.visibility = 'visible';
     }
     else{
+      about.style.visibility = 'hidden';
       fps.style.visibility = 'hidden';
       crosshair.style.visibility = "hidden"
     }

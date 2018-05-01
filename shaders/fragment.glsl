@@ -20,6 +20,10 @@ float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
       lightIntensity = lightIntensities[i];
     }
   }
+  /*float objDist = sphereHSDF(absoluteSamplePoint, vec4(0.0,0.0,0.0,1.0), 0.1);
+  if(distance > objDist){
+    distance = objDist;
+  }*/
   return distance;
 }
 
@@ -137,6 +141,27 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   return MAX_DIST;
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+vec3 phongShading(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
+    vec3 color = vec3(0.1); //Setup up color with ambient component
+    for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
+      if(lightIntensities[i] != vec3(0.0)){
+        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
+        vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);
+        vec4 R = 2.0*lorentzDot(L, N)*N - L;
+        //Calculate Diffuse Component
+        float nDotL = max(-lorentzDot(N, L),0.0);
+        vec3 diffuse = lightIntensities[i] * nDotL;
+        //Calculate Specular Component
+        float rDotT = max(lorentzDot(R, T),0.0);
+        vec3 specular = lightIntensities[i] * pow(rDotT,10.0);
+        //Compute final color
+        color += (diffuse + specular);
+      }
+    }
+    return color;
+}
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void main(){
@@ -178,27 +203,12 @@ void main(){
   else if(hitWhich == 1){ // global
     vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    gl_FragColor = vec4(globalLightColor,1.0);
+    gl_FragColor = vec4(globalLightColor*cameraLightMatteShade,1.0);
     return;
   }
   else if(hitWhich == 2){ // local
     vec4 N = estimateNormal(localEndPoint, hitWhich);
-    vec3 color = vec3(0.1); //Setup up color with ambient component
-    for(int i = 0; i<8; i++){ //8 is the size of the lightSourcePosition array
-      if(lightIntensities[i] != vec3(0.0)){
-        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
-        vec4 L = -directionFrom2Points(localEndPoint, translatedLightPosition);
-        vec4 R = 2.0*lorentzDot(L, N)*N - L;
-        //Calculate Diffuse Component
-        float nDotL = max(-lorentzDot(N, L),0.0);
-        vec3 diffuse = lightIntensities[i] * nDotL;
-        //Calculate Specular Component
-        float rDotTV = max(lorentzDot(R, localEndTangentVector),0.0);
-        vec3 specular = lightIntensities[i] * pow(rDotTV,10.0);
-        //Compute final color
-        color += (diffuse + specular);
-      }
-    }
+    vec3 color = phongShading(localEndPoint, localEndTangentVector, N, totalFixMatrix);
     gl_FragColor = vec4(color, 1.0);
   }
 }

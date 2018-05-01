@@ -137,6 +137,30 @@ var initLights = function(){
 }
 
 //-------------------------------------------------------
+// Sets up global objects
+//-------------------------------------------------------
+var globalObjectBoosts = [];
+var globalObjectRadii = [];
+var globalObjectTypes = [];
+var initObjects = function(){
+  var objMat = new THREE.Matrix4();
+  objMat.set(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+  );
+  globalObjectBoosts.push()
+  globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
+  globalObjectTypes.push(0);
+  globalObjectBoosts.push()
+  for(var i = 1; i<8; i++){
+    globalObjectBoosts.push(new THREE.Matrix4());
+    globalObjectRadii.push(new THREE.Vector3(0,0,0));
+    globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
+  }
+}
+//-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
 var init = function(){
@@ -218,7 +242,10 @@ var finishInit = function(fShader){
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
-			lightIntensities:{type:"v3v", value:lightIntensities},
+      lightIntensities:{type:"v3v", value:lightIntensities},
+      globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
+      globalObjectRadii:{type:"v3v", value:globalObjectRadii},
+      globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
 	  	cut4:{type:"i", value:cut4},

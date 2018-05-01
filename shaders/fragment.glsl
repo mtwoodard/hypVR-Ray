@@ -20,10 +20,7 @@ float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
       lightIntensity = lightIntensities[i];
     }
   }
-  /*float objDist = sphereHSDF(absoluteSamplePoint, vec4(0.0,0.0,0.0,1.0), 0.1);
-  if(distance > objDist){
-    distance = objDist;
-  }*/
+  
   return distance;
 }
 
@@ -142,7 +139,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-vec3 phongShading(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
+vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
     vec3 color = vec3(0.1); //Setup up color with ambient component
     for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
       if(lightIntensities[i] != vec3(0.0)){
@@ -208,7 +205,7 @@ void main(){
   }
   else if(hitWhich == 2){ // local
     vec4 N = estimateNormal(localEndPoint, hitWhich);
-    vec3 color = phongShading(localEndPoint, localEndTangentVector, N, totalFixMatrix);
+    vec3 color = phongModel(localEndPoint, localEndTangentVector, N, totalFixMatrix);
     gl_FragColor = vec4(color, 1.0);
   }
 }

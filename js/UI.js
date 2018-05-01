@@ -124,7 +124,7 @@ var initGui = function(){
 	  updateUniformsFromUI();
   });
 
-  thicknessController.onFinishChange(function(value) {
+  thicknessController.onChange(function(value) {
 	  updateUniformsFromUI();
   });
 

@@ -143,13 +143,7 @@ var globalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
 var initObjects = function(){
-  var objMat = new THREE.Matrix4();
-  objMat.set(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-  );
+  var objMat = new THREE.Matrix4().multiply(translateByVector(new THREE.Vector3(0.5,0,0)));
   globalObjectBoosts.push(objMat);
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
   globalObjectTypes.push(0);

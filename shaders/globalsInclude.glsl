@@ -30,10 +30,13 @@ uniform mat4 cellBoost;
 uniform mat4 invCellBoost;
 uniform int maxSteps;
 //--------------------------------------------
-//Lighting Variables
+//Lighting Variables & Global Object Variables
 //--------------------------------------------
 uniform vec4 lightPositions[8];
 uniform vec3 lightIntensities[8];
+uniform mat4 globalObjectBoosts[8];
+uniform vec3 globalObjectRadii[8];
+uniform int globalObjectTypes[8];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------

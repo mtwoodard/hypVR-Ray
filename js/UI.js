@@ -10,6 +10,7 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   edgeCase:2,
   edgeThickness:1.5,
   eToHScale:1.0,
+  fov:60,
   toggleStereo:false,
   rotateEyes:false,
   autoSteps:true,
@@ -105,6 +106,7 @@ var initGui = function(){
   var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
+  var fovController = gui.add(guiInfo, 'fov',60,120).name("FOV");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -130,6 +132,14 @@ var initGui = function(){
 
   scaleController.onFinishChange(function(value) {
     updateEyes();
+  });
+
+  fovController.onFinishChange(function(value){
+    virtCamera.fov = value;
+    virtCamera.updateProjectionMatrix();
+    console.log(virtCamera.projectionMatrix);
+    //console.log(effect.FovToProjection(virtCamera.fov, true, virtCamera.near, virtCamera.far));
+    //material.uniforms.cameraProjection = virtCamera.projectionMatrix;
   });
 
   debugUIController.onFinishChange(function(value){

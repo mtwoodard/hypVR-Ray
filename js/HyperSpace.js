@@ -137,6 +137,23 @@ var initLights = function(){
 }
 
 //-------------------------------------------------------
+// Sets up global objects
+//-------------------------------------------------------
+var globalObjectBoosts = [];
+var globalObjectRadii = [];
+var globalObjectTypes = [];
+var initObjects = function(){
+  var objMat = new THREE.Matrix4().multiply(translateByVector(new THREE.Vector3(0.5,0,0)));
+  globalObjectBoosts.push(objMat);
+  globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
+  globalObjectTypes.push(0);
+  for(var i = 1; i<8; i++){
+    globalObjectBoosts.push(new THREE.Matrix4());
+    globalObjectRadii.push(new THREE.Vector3(0,0,0));
+    globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
+  }
+}
+//-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
 var init = function(){
@@ -157,7 +174,8 @@ var init = function(){
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
 	initValues();
-	initLights();
+  initLights();
+  initObjects();
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
   loadShaders();
@@ -202,7 +220,7 @@ var finishInit = function(fShader){
   material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      cameraProjection:{type:"m4", value:new THREE.Matrix4()},
+      cameraProjection:{type:"m4", value:virtCamera.projectionMatrix},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraPos:{type:"v3", value:virtCamera.position},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},
@@ -218,7 +236,10 @@ var finishInit = function(fShader){
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
-			lightIntensities:{type:"v3v", value:lightIntensities},
+      lightIntensities:{type:"v3v", value:lightIntensities},
+      globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
+      globalObjectRadii:{type:"v3v", value:globalObjectRadii},
+      globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
 	  	cut4:{type:"i", value:cut4},

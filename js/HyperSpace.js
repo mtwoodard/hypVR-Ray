@@ -150,10 +150,9 @@ var initObjects = function(){
     0,0,1,0,
     0,0,0,1
   );
-  globalObjectBoosts.push()
+  globalObjectBoosts.push(objMat);
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
   globalObjectTypes.push(0);
-  globalObjectBoosts.push()
   for(var i = 1; i<8; i++){
     globalObjectBoosts.push(new THREE.Matrix4());
     globalObjectRadii.push(new THREE.Vector3(0,0,0));
@@ -181,7 +180,8 @@ var init = function(){
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
 	initValues();
-	initLights();
+  initLights();
+  initObjects();
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
   loadShaders();
@@ -226,7 +226,7 @@ var finishInit = function(fShader){
   material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      cameraProjection:{type:"m4", value:new THREE.Matrix4()},
+      cameraProjection:{type:"m4", value:virtCamera.projectionMatrix},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       cameraPos:{type:"v3", value:virtCamera.position},
       cameraQuat:{type:"v4", value:virtCamera.quaternion},

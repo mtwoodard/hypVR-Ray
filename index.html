@@ -49,6 +49,7 @@
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
 <script type="x-shader/x-vertex" id="vertexShader">
+  uniform mat4 cameraProjection;
   void main()
   {
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);

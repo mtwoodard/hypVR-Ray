@@ -1,6 +1,6 @@
 
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
-float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
+float globalLightSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
   for(int i=0; i<8; i++){
@@ -13,14 +13,40 @@ float globalSceneHSDF(vec4 samplePoint, out vec3 lightIntensity){
       vec4 dual1 = directionFrom2Points(lightPositions[i], lightPositions[i]*translateByVector(vec3(0.0,0.1,0.0)));
       vec4 dual2 = directionFrom2Points(lightPositions[i], lightPositions[i]*translateByVector(vec3(0.0,0.0,0.1)));
       objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, offsets);
-      //objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 0.1);
     }
     if(distance > objDist){
       distance = objDist;
       lightIntensity = lightIntensities[i];
     }
   }
-  
+  return distance;
+}
+
+float globalObjectSceneHSDF(vec4 samplePoint){
+  vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
+  float distance = MAX_DIST;
+  for(int i=0; i<8; i++){
+    float objDist;
+    if(length(globalObjectRadii[i]) == 0.0)
+      objDist = MAX_DIST;
+    else{
+      if(globalObjectTypes[i] == 0){ //sphere
+        objDist = sphereHSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
+      }
+      /*else if(globalObjectTypes[i] == 1){ //cuboid
+        vec4 dual0 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
+        vec4 dual1 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
+        vec4 dual2 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
+        objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, globalObjectRadii[i]);
+      }*/
+      else{ //not an object
+        objDist = MAX_DIST;
+      }
+    }
+    if(distance > objDist){
+      distance = objDist;
+    }
+  }
   return distance;
 }
 
@@ -34,11 +60,18 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plan
     basis_y = lorentzNormalize(basis_y - lorentzDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
     basis_z = lorentzNormalize(basis_z - lorentzDot(basis_z, basis_x)*basis_x - lorentzDot(basis_z, basis_y)*basis_y);
     // float HSDFp = localSceneHSDF(p);
-    if(sceneType == 1){ //global scene
+    if(sceneType == 1){ //global light scene
       return lorentzNormalize(
-          basis_x * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_x), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_x), throwAway)) +
-          basis_y * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_y), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_y), throwAway)) +
-          basis_z * (globalSceneHSDF(lorentzNormalize(p + EPSILON*basis_z), throwAway) - globalSceneHSDF(lorentzNormalize(p - EPSILON*basis_z), throwAway))
+          basis_x * (globalLightSceneHSDF(lorentzNormalize(p + EPSILON*basis_x), throwAway) - globalLightSceneHSDF(lorentzNormalize(p - EPSILON*basis_x), throwAway)) +
+          basis_y * (globalLightSceneHSDF(lorentzNormalize(p + EPSILON*basis_y), throwAway) - globalLightSceneHSDF(lorentzNormalize(p - EPSILON*basis_y), throwAway)) +
+          basis_z * (globalLightSceneHSDF(lorentzNormalize(p + EPSILON*basis_z), throwAway) - globalLightSceneHSDF(lorentzNormalize(p - EPSILON*basis_z), throwAway))
+      );
+    }
+    else if(sceneType == 2){
+      return lorentzNormalize(
+          basis_x * (globalObjectSceneHSDF(lorentzNormalize(p + EPSILON*basis_x)) - globalObjectSceneHSDF(lorentzNormalize(p - EPSILON*basis_x))) +
+          basis_y * (globalObjectSceneHSDF(lorentzNormalize(p + EPSILON*basis_y)) - globalObjectSceneHSDF(lorentzNormalize(p - EPSILON*basis_y))) +
+          basis_z * (globalObjectSceneHSDF(lorentzNormalize(p + EPSILON*basis_z)) - globalObjectSceneHSDF(lorentzNormalize(p - EPSILON*basis_z)))
       );
     }
     else{ //local scene
@@ -74,7 +107,7 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   else{
      pPre = qtransform(cameraQuat, vec3(-xy,z));
   }
-  vec4 p = lorentzNormalize(vec4(pPre, 1.0));
+  vec4 p =  lorentzNormalize(vec4(pPre, 1.0));
   return p;
 }
 
@@ -107,12 +140,14 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     }
     else{
       float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint, lightColor);
-      float dist = min(localDist, globalDist);
+      float globalObjectDist = globalObjectSceneHSDF(globalSamplePoint);
+      float globalLightDist = globalLightSceneHSDF(globalSamplePoint, lightColor);
+      float dist = min(globalLightDist, min(localDist, globalObjectDist));
       // float dist = localDist;
       if(dist < EPSILON){
-        if (localDist < globalDist){hitWhich = 2;}
-        else{hitWhich = 1;}
+        if(localDist < globalLightDist && localDist < globalObjectDist){hitWhich = 3;}
+        else if (globalObjectDist < globalLightDist){hitWhich = 2;}
+        else {hitWhich = 1;}
         localEndPoint = localSamplePoint;
         globalEndPoint = globalSamplePoint;
         localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
@@ -197,13 +232,19 @@ void main(){
     gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
     return;
   }
-  else if(hitWhich == 1){ // global
+  else if(hitWhich == 1){ // global lights
     vec4 surfaceNormal = estimateNormal(globalEndPoint, hitWhich);
     float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
     gl_FragColor = vec4(globalLightColor*cameraLightMatteShade,1.0);
     return;
   }
-  else if(hitWhich == 2){ // local
+  else if(hitWhich == 2){ // global objects
+    vec4 N = estimateNormal(globalEndPoint, hitWhich);
+    vec3 color = phongModel(globalEndPoint, globalEndTangentVector, N, totalFixMatrix);
+    gl_FragColor = vec4(color, 1.0);
+    return;
+  }
+  else if(hitWhich == 3){ // local
     vec4 N = estimateNormal(localEndPoint, hitWhich);
     vec3 color = phongModel(localEndPoint, localEndTangentVector, N, totalFixMatrix);
     gl_FragColor = vec4(color, 1.0);

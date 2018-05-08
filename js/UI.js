@@ -109,7 +109,7 @@ var initGui = function(){
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',60,120).name("FOV");
-  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {Standard:1, Linear: 2, Physical: 3, None:4}).name("Light Falloff");
+  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, None:4}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');

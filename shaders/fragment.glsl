@@ -149,18 +149,18 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
-    vec3 color = vec3(0.0); //Setup up color with ambient component
+    vec3 color = vec3(0.02); //Setup up color with ambient component
     for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
       if(lightIntensities[i] != vec4(0.0)){
         vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
         float distToLight = hypDistance(translatedLightPosition, samplePoint);
         float att;
         if(attnModel == 1) //Inverse Square
-          att  = 1.0/ (1.0+lightIntensities[i].w * distToLight* distToLight);
+          att  = 1.0/ (0.01+lightIntensities[i].w * distToLight* distToLight);
         else if(attnModel == 2) //Linear
-          att  = 0.75/ (1.0+lightIntensities[i].w * distToLight);      
+          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);      
         else if(attnModel == 3) //Physical
-          att  = 1.0/ (cosh(2.0*distToLight)-1.0);
+          att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
         else //None
           att  = 0.25; //if its actually 1 everything gets washed out
         vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);

@@ -125,14 +125,19 @@ var invGenerators = function(genArr){
 //-------------------------------------------------------
 var lightPositions = [];
 var lightIntensities = [];
+var attnModel = 1;
 var initLights = function(){
-	lightPositions.push(new THREE.Vector4(0.0,0.0,0.9801960588,1.400280084));
-	lightIntensities.push(new THREE.Vector3(0.0,1.0,1.0).multiplyScalar(0.4));
-	lightPositions.push(new THREE.Vector4(0.0,0.0,-0.9801960588, 1.400280084));
-	lightIntensities.push(new THREE.Vector3(1.0,0.647,0.0).multiplyScalar(0.8));
-	for(var i = 1; i<7; i++){
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
+  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,-1), 1.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.0));
+  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,-1,0), 1.0));
+	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
+	for(var i = 3; i<8; i++){
 		lightPositions.push(new THREE.Vector4(0,0,0,1));
-		lightIntensities.push(new THREE.Vector3(0,0,0));
+		lightIntensities.push(new THREE.Vector4(0,0,0,0));
 	}
 }
 
@@ -237,6 +242,7 @@ var finishInit = function(fShader){
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
+      attnModel:{type:"i", value:attnModel},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},

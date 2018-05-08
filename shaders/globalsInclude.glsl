@@ -33,7 +33,8 @@ uniform int maxSteps;
 //Lighting Variables & Global Object Variables
 //--------------------------------------------
 uniform vec4 lightPositions[8];
-uniform vec3 lightIntensities[8];
+uniform vec4 lightIntensities[8]; //w component is the light's attenuation
+uniform int attnModel;
 uniform mat4 globalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];
 uniform int globalObjectTypes[8];

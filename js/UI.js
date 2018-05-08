@@ -15,7 +15,8 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   rotateEyes:false,
   autoSteps:true,
   maxSteps: 31,
-  halfIpDistance: 0.03200000151991844
+  halfIpDistance: 0.03200000151991844,
+  falloffModel: 1
 };
 
 function updateEyes(){
@@ -94,7 +95,8 @@ function updateUniformsFromUI()
 	material.uniforms.sphereRad.value = sphereRad;
 	material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
-	material.uniforms.planeOffset.value = planeOffset;
+  material.uniforms.planeOffset.value = planeOffset;
+  material.uniforms.attnModel.value = guiInfo.falloffModel;
 }
 
 //What we need to init our dat GUI
@@ -107,6 +109,7 @@ var initGui = function(){
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',60,120).name("FOV");
+  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, None:4}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -121,6 +124,9 @@ var initGui = function(){
   // ------------------------------
   // UI Controllers
   // ------------------------------
+  lightFalloffController.onFinishChange(function(value){
+    updateUniformsFromUI();
+  })
 
   edgeController.onFinishChange(function(value) {
 	  updateUniformsFromUI();

@@ -101,7 +101,7 @@ THREE.VRControls = function ( camera, done ) {
 		}
 
 		if(offset !== undefined){
-			m = translateByVector(offset);
+			m = translateByVector(geometry, offset);
 			m.multiply(currentBoost);
 			currentBoost.copy(m);
 		}

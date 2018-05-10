@@ -86,36 +86,6 @@ mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
     }
 }
 
-
-bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
-  vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  if(kleinSamplePoint.x > halfCubeWidthKlein){
-    fixMatrix = invGenerators[0];
-    return true;
-  }
-  if(kleinSamplePoint.x < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[1];
-    return true;
-  }
-  if(kleinSamplePoint.y > halfCubeWidthKlein){
-    fixMatrix = invGenerators[2];
-    return true;
-  }
-  if(kleinSamplePoint.y < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[3];
-    return true;
-  }
-  if(kleinSamplePoint.z > halfCubeWidthKlein){
-    fixMatrix = invGenerators[4];
-    return true;
-  }
-  if(kleinSamplePoint.z < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[5];
-    return true;
-  }
-  return false;
-}
-
 //Raymarch Primitives
 float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
   return hypDistance(samplePoint, center) - radius;

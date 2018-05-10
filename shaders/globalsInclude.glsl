@@ -63,10 +63,3 @@ float unionSDF(float d1, float d2){
   return min(d1, d2);
 }
 
-/*float differenceSDF(float d1, float d2){
-  return max(-d1, d2);
-}
-
-float weightedAverageSDF(float d1, float d2, float k){
-  return (1.0-k)*d1 + k*d2;
-}*/

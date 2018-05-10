@@ -95,6 +95,37 @@ vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   return p;
 }
 
+// This function is intended to be geometry-agnostic.
+// We should update some of the variable names.
+bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  if(kleinSamplePoint.x > halfCubeWidthKlein){
+    fixMatrix = invGenerators[0];
+    return true;
+  }
+  if(kleinSamplePoint.x < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[1];
+    return true;
+  }
+  if(kleinSamplePoint.y > halfCubeWidthKlein){
+    fixMatrix = invGenerators[2];
+    return true;
+  }
+  if(kleinSamplePoint.y < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[3];
+    return true;
+  }
+  if(kleinSamplePoint.z > halfCubeWidthKlein){
+    fixMatrix = invGenerators[4];
+    return true;
+  }
+  if(kleinSamplePoint.z < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[5];
+    return true;
+  }
+  return false;
+}
+
 float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
   out mat4 totalFixMatrix, out int hitWhich, out vec4 lightColor){

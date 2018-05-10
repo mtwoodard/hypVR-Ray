@@ -3,6 +3,7 @@ var sphereRad = 0.996216;
 var tubeRad = 0.15;
 var horosphereSize = -0.951621;
 var planeOffset = 0.75;
+var geometry = Geometry.Hyperbolic;
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
   sceneIndex: 0,
@@ -39,7 +40,7 @@ function updateUniformsFromUI()
 	// Get the number of cubes around each edge.
 	var r = 6;
 	switch (guiInfo.edgeCase) {
-		case '0': r = 3; break;
+		case '0': r = 4; break;
 		case '1': r = 5; break;
 		case '2': r = 6; break;
 		case '3': r = 7; break;
@@ -49,10 +50,26 @@ function updateUniformsFromUI()
 		case '7': r = 11; break;
 		case '8': r = 12; break;
 		default: break;
-	}
+  }
+  
+  var p = 4, q = 3;
+  var g = GetGeometry( p, q, r );
+  
+  // Check to see if the geometry has changed.
+  // If so, update the shader.
+  if( g != geometry )
+  {
+    geometry = g;
+    geometryFragIdx = 0;
+    if( g == Geometry.Euclidean )
+      geometryFragIdx = 1;
+    if( g == Geometry.Spherical )
+      geometryFragIdx = 2;
+    material.needsUpdate = true;
+    material.fragmentShader = globalsFrag.concat(geometryFrag[geometryFragIdx]).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+  }
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
-	var p = 4, q = 3;
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
 	hCWH = inrad;
@@ -85,7 +102,7 @@ function updateUniformsFromUI()
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	planeOffset = distToMidEdge;
 
-  initValues();
+  initValues(g);
   console.log(hCDP);
 	material.uniforms.generators.value = gens;
   material.uniforms.invGenerators.value = invGens;
@@ -105,7 +122,7 @@ var initGui = function(){
   gui.close();
   //scene settings ---------------------------------
   var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
-  var edgeController = gui.add(guiInfo, 'edgeCase', {"5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
+  var edgeController = gui.add(guiInfo, 'edgeCase', {"4":0, "5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',60,120).name("FOV");

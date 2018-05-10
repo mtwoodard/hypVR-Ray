@@ -22,14 +22,13 @@ function GetGeometry2D(p,q)
 	return Geometry.Hyperbolic;
 }
 
-// Returns the geometry induced by a {p,q{} polyhedron, r meeting at each edge.
+// Returns the geometry induced by a {p,q} polyhedron, r meeting at each edge.
 function GetGeometry(p, q, r)
 {
 	var t1 = Math.sin(PiOverNSafe(p)) * Math.sin(PiOverNSafe(r));
 	var t2 = Math.cos(PiOverNSafe(q));
 
-	// Might need to make this tolerance-safe.
-	if( t1 == t2 )
+	if( p == 4 && q == 3 && r == 4 )
 		return Geometry.Euclidean;
 
 	if( t1 > t2 )
@@ -66,6 +65,8 @@ function InRadius(p, q, r)
 	{
 		case Geometry.Hyperbolic:
 			return Math.acosh( inRadius );
+		case Geometry.Euclidean:
+			return 1.0;
 		case Geometry.Spherical:
 			return Math.acos( inRadius );
 	}
@@ -83,6 +84,8 @@ function MidRadius(p, q, r)
 	{
 		case Geometry.Hyperbolic:
 			return Math.asinh( midrad );
+		case Geometry.Euclidean:
+			return Math.sqrt( 2 );
 		case Geometry.Spherical:
 			return Math.asin( midrad );
 	}

@@ -68,7 +68,7 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plan
     }
   }
 
-vec4 getRay(vec2 resolution, vec2 fragCoord){
+vec4 getRay(float fov, vec2 resolution, vec2 fragCoord){
   if(isStereo != 0){
     resolution.x = resolution.x/2.0;
   }
@@ -89,7 +89,6 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
      pPre = qtransform(cameraQuat, pPrePre);
   }
   else{
-     z = resolution.y/ tan(radians(fov))/10000.0;
      pPre = qtransform(cameraQuat, vec3(-xy,z));
   }
   vec4 p =  lorentzNormalize(vec4(pPre, 1.0));
@@ -220,7 +219,7 @@ void main(){
   vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   mat4 totalFixMatrix;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
-  vec4 rayDirV = getRay(screenResolution, gl_FragCoord.xy);
+  vec4 rayDirV = getRay(90.0, screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
   if(isStereo != 0){ //move left or right for stereo

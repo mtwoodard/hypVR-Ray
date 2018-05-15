@@ -115,73 +115,6 @@ function getUpVector() {
   return new THREE.Vector3(0,-1,0).applyQuaternion(virtCamera.quaternion);
 }
 
-// fastGramSchmidt from Jeff Week's CurvedSpaces. Causes some wobble when far from the origin...
-
-function fastGramSchmidt( m )
-{
-	//	Numerical errors can accumulate and force aMatrix "out of round",
-	//	in the sense that its rows are no longer orthonormal.
-	//	This effect is small in spherical and flat spaces,
-	//	but can be significant in hyperbolic spaces, especially
-	//	if the camera travels far from the origin.
-
-	//	The Gram-Schmidt process consists of rescaling each row to restore
-	//	unit length, and subtracting small multiples of one row from another
-	//	to restore orthogonality.  Here we carry out a first-order approximation
-	//	to the Gram-Schmidt process.  That is, we normalize each row
-	//	to unit length, but then assume that the subsequent orthogonalization step
-	//	doesn't spoil the unit length.  This assumption will be well satisfied
-	//	because small first order changes orthogonal to a given vector affect
-	//	its length only to second order.
-
-	// var m = mat.elements;
-	var spaceLike = new Float32Array([1,1,1,-1]);
-	var timeLike = new Float32Array([-1,-1,-1,1]);
-
-	//	Normalize each row to unit length.
-	for (var i = 0; i < 4; i++)
-	{
-		var metric;
-		if (i==3){
-			metric = timeLike;
-		}
-		else {
-			metric = spaceLike;
-		}
-
-		var innerProduct = 0.0;
-		for (var j = 0; j < 4; j++)
-			innerProduct += metric[j] * m[4*i + j] * m[4*i + j];
-
-		var factor = 1.0 / Math.sqrt(innerProduct);
-		for (var j = 0; j < 4; j++)
-			m[4*i + j] *= factor;
-	}
-
-	//	Make the rows orthogonal.
-	for (var i = 4; i-- > 0; )	//	leaves the last row untouched
-	{
-		var metric;
-		if (i==3){
-			metric = timeLike;
-		}
-		else {
-			metric = spaceLike;
-		}
-
-		for (var j = i; j-- > 0; )
-		{
-			var innerProduct = 0.0;
-			for (var k = 0; k < 4; k++)
-				innerProduct += metric[k] * m[4*i + k] * m[4*j + k];
-
-			for (var k = 0; k < 4; k++)
-				m[4*j + k] -= innerProduct * m[4*i + k];
-		}
-	}
-	return m;
-}
-
 function clamp(input, min, max)
 {
 	return Math.max(Math.min(input, max), min);
@@ -189,6 +122,17 @@ function clamp(input, min, max)
 
 function lerp(a, b, t){
   return (1-t)*a + t*b;
+}
+
+function dot(g,u,v) { 
+	if( g == Geometry.Euclidean )
+		return euclideanDot( u, v );
+
+	return lorentzDot( u, v );
+}
+
+function euclideanDot( u, v ){
+	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] + u[3]*v[3];
 }
 
 function lorentzDot( u, v ){
@@ -204,8 +148,8 @@ function lorentzNormalizeTHREE(v) {
 	return v.divideScalar( norm );
 }
 
-function norm( v ){
-	return Math.sqrt(Math.abs(lorentzDot(v,v)));
+function norm(g, v){
+	return Math.sqrt(Math.abs(dot(g,v,v)));
 }
 
 function v_from_vprime(u, vprime){ //NOTE: CHANGE TO DIRECTIONFROM2POINTS
@@ -276,16 +220,15 @@ function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
 }
 
 ///// better GramSchmidt...seem more stable out near infinity
-
-function gramSchmidt( m ){
+function gramSchmidt( g, m ){
 	//var m = mat.elements;
 	for (var i = 0; i<4; i++) {  ///normalise row
-		var invRowNorm = 1.0 / norm( m.slice(4*i, 4*i+4) );
+		var invRowNorm = 1.0 / norm( g, m.slice(4*i, 4*i+4) );
 		for (var l = 0; l<4; l++) {
 			m[4*i + l] = m[4*i + l] * invRowNorm;
 		}
 		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-			var component = lorentzDot( m.slice(4*i, 4*i+4), m.slice(4*j, 4*j+4) );
+			var component = dot( g, m.slice(4*i, 4*i+4), m.slice(4*j, 4*j+4) );
 			for (var l = 0; l<4; l++) {
 				m[4*j + l] -= component * m[4*i + l];
 			}

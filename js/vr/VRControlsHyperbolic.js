@@ -106,10 +106,11 @@ THREE.VRControls = function ( camera, done ) {
 			currentBoost.copy(m);
 		}
 		var fixIndex = fixOutsideCentralCell(currentBoost);
-		currentBoost.elements = gramSchmidt(currentBoost.elements);
+		if( geometry == Geometry.Hyperbolic )
+			currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
 		if(fixIndex != -1){
 			cellBoost = cellBoost.premultiply(invGens[fixIndex]);
-			cellBoost.elements = gramSchmidt(cellBoost.elements);
+			cellBoost.elements = gramSchmidt(geometry, cellBoost.elements);
 			invCellBoost.getInverse(cellBoost);
 			// console.log(cellBoost);
 		}

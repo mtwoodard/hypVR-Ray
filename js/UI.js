@@ -24,8 +24,8 @@ function updateEyes(){
   effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
   effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
 
-  leftCurrentBoost = translateByVector(effect.leftEyeTranslation);
-  rightCurrentBoost = translateByVector(effect.rightEyeTranslation);
+  leftCurrentBoost = translateByVector(geometry,effect.leftEyeTranslation);
+  rightCurrentBoost = translateByVector(geometry,effect.rightEyeTranslation);
   effect.getEyeRotation(effect.leftEyeTranslation);
   material.uniforms.leftEyeRotation.value = leftEyeRotation;
   material.uniforms.rightEyeRotation.value = rightEyeRotation;
@@ -50,30 +50,31 @@ function updateUniformsFromUI()
 		case '7': r = 11; break;
 		case '8': r = 12; break;
 		default: break;
-  }
-  
-  var p = 4, q = 3;
-  var g = GetGeometry( p, q, r );
-  
-  // Check to see if the geometry has changed.
-  // If so, update the shader.
-  if( g != geometry )
-  {
-    geometry = g;
-    geometryFragIdx = 0;
-    if( g == Geometry.Euclidean )
-      geometryFragIdx = 1;
-    if( g == Geometry.Spherical )
-      geometryFragIdx = 2;
-    material.needsUpdate = true;
-    material.fragmentShader = globalsFrag.concat(geometryFrag[geometryFragIdx]).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
-  }
+	}
+
+	var p = 4, q = 3;
+	var g = GetGeometry( p, q, r );
+
+	// Check to see if the geometry has changed.
+	// If so, update the shader.
+	if( g != geometry )
+	{
+		geometry = g;
+		geometryFragIdx = 0;
+		if( g == Geometry.Euclidean )
+			geometryFragIdx = 1;
+		if( g == Geometry.Spherical )
+			geometryFragIdx = 2;
+		material.needsUpdate = true;
+		material.fragmentShader = globalsFrag.concat(geometryFrag[geometryFragIdx]).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
-	hCWH = inrad;
-	hCWK = poincareToKlein(hyperbolicToPoincare(inrad));
+	hCWH = hCWK = inrad;
+	if( g == Geometry.Hyperbolic )
+		hCWK = poincareToKlein(hyperbolicToPoincare(inrad));
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//
@@ -102,17 +103,17 @@ function updateUniformsFromUI()
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	planeOffset = distToMidEdge;
 
-  initValues(g);
+	initValues(g);
 	material.uniforms.generators.value = gens;
-  material.uniforms.invGenerators.value = invGens;
-  material.uniforms.halfCubeDualPoints.value = hCDP;
+	material.uniforms.invGenerators.value = invGens;
+	material.uniforms.halfCubeDualPoints.value = hCDP;
 	material.uniforms.halfCubeWidthKlein.value = hCWK;
 	material.uniforms.cut4.value = cut4;
 	material.uniforms.sphereRad.value = sphereRad;
 	material.uniforms.tubeRad.value = tubeRad;
 	material.uniforms.horosphereSize.value = horosphereSize;
-  material.uniforms.planeOffset.value = planeOffset;
-  material.uniforms.attnModel.value = guiInfo.falloffModel;
+	material.uniforms.planeOffset.value = planeOffset;
+	material.uniforms.attnModel.value = guiInfo.falloffModel;
 }
 
 //What we need to init our dat GUI

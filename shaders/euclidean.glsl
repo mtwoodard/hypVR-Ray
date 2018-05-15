@@ -27,28 +27,24 @@ float hypDistance(vec4 u, vec4 v)
 
 vec4 projectToKlein(vec4 v)
 {
-  v.w = 1.0;
+  // We are already effectively Klein (i.e. lines are straight in the model)
   return v;
 }
 
 vec4 directionFrom2Points(vec4 u, vec4 v)
 {
-  vec4 w = v + dot(u, v)*u;
-  return (1.0/length(w)*w);
+  return lorentzNormalize( u - v );
 }
 
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist)
 { 
   // get point at distance dist on the geodesic from u through v
-  // ZZZ - Not worked out yet.
-  return u*(dist) + vPrime*(dist);
+  return u + vPrime*dist;
 }
 
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist)
 {
-  // note that this point has lorentzDot with itself of -1, so it is on other hyperboloid
-  // ZZZ - Not worked out yet.
-  return u*(dist) + vPrime*(dist);
+  return u + vPrime;
 }
 
 vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime)

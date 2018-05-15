@@ -170,7 +170,7 @@ var init = function(){
   effect = new THREE.VREffect(renderer);
   effect.setSize(window.innerWidth, window.innerHeight);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
+  virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
@@ -249,7 +249,7 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
-      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
+      texture:{type:"t", value: new THREE.TextureLoader().load("../images/test.jpeg")},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},

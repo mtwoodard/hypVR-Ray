@@ -46,6 +46,7 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plan
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
     vec4 throwAway = vec4(0.0);
     int throwAlso = 0;
+    float newEp = EPSILON * 10.0;
     vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
@@ -54,19 +55,30 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent plan
     if(sceneType == 1 || sceneType == 2){ //global light scene
       float dist = globalSceneHSDF(p, throwAway, throwAlso);
       return lorentzNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
-          basis_x * (globalSceneHSDF(p + EPSILON*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - EPSILON*basis_x, throwAway, throwAlso)) +
-          basis_y * (globalSceneHSDF(p + EPSILON*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - EPSILON*basis_y, throwAway, throwAlso)) +
-          basis_z * (globalSceneHSDF(p + EPSILON*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - EPSILON*basis_z, throwAway, throwAlso))
+          basis_x * (globalSceneHSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_x, throwAway, throwAlso)) +
+          basis_y * (globalSceneHSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_y, throwAway, throwAlso)) +
+          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso))
       );
     }
     else{ //local scene
       return lorentzNormalize(
-          basis_x * (localSceneHSDF(p + EPSILON*basis_x) - localSceneHSDF(p - EPSILON*basis_x)) +
-          basis_y * (localSceneHSDF(p + EPSILON*basis_y) - localSceneHSDF(p - EPSILON*basis_y)) +
-          basis_z * (localSceneHSDF(p + EPSILON*basis_z) - localSceneHSDF(p - EPSILON*basis_z))
+          basis_x * (localSceneHSDF(p + newEp*basis_x) - localSceneHSDF(p - newEp*basis_x)) +
+          basis_y * (localSceneHSDF(p + newEp*basis_y) - localSceneHSDF(p - newEp*basis_y)) +
+          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z))
       );
     }
   }
+
+vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k){
+  vec3 p = mod(samplePoint.xyz,1.0);
+  vec3 n = normalize(N.xyz); //Very hacky you are warned
+  vec3 m = pow(abs(n), vec3(k));
+  vec4 x = texture2D(tex, p.yz);
+  vec4 y = texture2D(tex, p.zx);
+  vec4 z = texture2D(tex, p.xy);
+  return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
+}
+
 
 vec4 getRay(vec2 resolution, vec2 fragCoord){
   if(isStereo != 0){
@@ -89,7 +101,7 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
      pPre = qtransform(cameraQuat, pPrePre);
   }
   else{
-     z = resolution.x/ tan(radians(fov))/10000.0;
+     z = 0.1/tan(radians(fov*0.5));
      pPre = qtransform(cameraQuat, vec3(-xy,z));
   }
   vec4 p =  lorentzNormalize(vec4(pPre, 1.0));
@@ -182,7 +194,8 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
     float ambient = 0.02;
-    vec3 baseColor = vec3(1.0,1.0,1.0);
+    //vec3 baseColor = vec3(0.0,1.0,1.0);
+    vec3 baseColor = texcube(texture, samplePoint, N, 4.0).xyz;
     vec3 color = baseColor * ambient; //Setup up color with ambient component
    // vec4 tex = texture2D(texture, );
     for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array

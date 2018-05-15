@@ -11,7 +11,7 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   edgeCase:2,
   edgeThickness:1.5,
   eToHScale:1.0,
-  fov:60,
+  fov:90,
   toggleStereo:false,
   rotateEyes:false,
   autoSteps:true,
@@ -131,7 +131,7 @@ var initGui = function(){
   var edgeController = gui.add(guiInfo, 'edgeCase', {"4":0, "5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
-  var fovController = gui.add(guiInfo, 'fov',40,85).name("FOV");
+  var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, None:4}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');

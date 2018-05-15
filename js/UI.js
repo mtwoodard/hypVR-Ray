@@ -33,6 +33,16 @@ function updateEyes(){
   material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
 }
 
+function getGeometryFrag()
+{
+	geometryFragIdx = 0;
+	if( geometry == Geometry.Euclidean )
+		geometryFragIdx = 1;
+	if( geometry == Geometry.Spherical )
+		geometryFragIdx = 2;
+	return geometryFrag[geometryFragIdx];
+}
+
 // Inputs are from the UI parameterizations.
 // gI is the guiInfo object from initGui
 function updateUniformsFromUI()
@@ -60,13 +70,9 @@ function updateUniformsFromUI()
 	if( g != geometry )
 	{
 		geometry = g;
-		geometryFragIdx = 0;
-		if( g == Geometry.Euclidean )
-			geometryFragIdx = 1;
-		if( g == Geometry.Spherical )
-			geometryFragIdx = 2;
+		var geoFrag = getGeometryFrag();
 		material.needsUpdate = true;
-		material.fragmentShader = globalsFrag.concat(geometryFrag[geometryFragIdx]).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+		material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -192,7 +198,8 @@ var initGui = function(){
   });
 
   sceneController.onFinishChange(function(index){
+	var geoFrag = getGeometryFrag();
     material.needsUpdate = true;
-    material.fragmentShader = globalsFrag.concat(mathFrag).concat(scenesFrag[index]).concat(mainFrag);
+    material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

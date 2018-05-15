@@ -103,7 +103,6 @@ function updateUniformsFromUI()
 	planeOffset = distToMidEdge;
 
   initValues(g);
-  console.log(hCDP);
 	material.uniforms.generators.value = gens;
   material.uniforms.invGenerators.value = invGens;
   material.uniforms.halfCubeDualPoints.value = hCDP;
@@ -125,7 +124,7 @@ var initGui = function(){
   var edgeController = gui.add(guiInfo, 'edgeCase', {"4":0, "5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
-  var fovController = gui.add(guiInfo, 'fov',60,120).name("FOV");
+  var fovController = gui.add(guiInfo, 'fov',40,85).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, None:4}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
@@ -157,12 +156,11 @@ var initGui = function(){
     updateEyes();
   });
 
-  fovController.onFinishChange(function(value){
+  fovController.onChange(function(value){
     virtCamera.fov = value;
-    virtCamera.updateProjectionMatrix();
-    console.log(virtCamera.projectionMatrix);
+    //console.log(virtCamera.projectionMatrix);
     //console.log(effect.FovToProjection(virtCamera.fov, true, virtCamera.near, virtCamera.far));
-    //material.uniforms.cameraProjection = virtCamera.projectionMatrix;
+    material.uniforms.fov.value = value;
   });
 
   debugUIController.onFinishChange(function(value){

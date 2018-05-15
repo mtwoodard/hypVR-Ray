@@ -4,7 +4,7 @@
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 10.0;
-const float EPSILON = 0.001;
+const float EPSILON = 0.0001;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Generated Constants

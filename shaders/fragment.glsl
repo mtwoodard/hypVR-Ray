@@ -89,7 +89,7 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
      pPre = qtransform(cameraQuat, pPrePre);
   }
   else{
-     z = resolution.y/ tan(radians(fov))/10000.0;
+     z = resolution.x/ tan(radians(fov))/10000.0;
      pPre = qtransform(cameraQuat, vec3(-xy,z));
   }
   vec4 p =  lorentzNormalize(vec4(pPre, 1.0));

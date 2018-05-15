@@ -249,6 +249,7 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
+      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},

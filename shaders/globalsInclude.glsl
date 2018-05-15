@@ -4,7 +4,7 @@
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 10.0;
-const float EPSILON = 0.0001;
+const float EPSILON = 0.001;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Generated Constants
@@ -35,6 +35,7 @@ uniform int maxSteps;
 uniform vec4 lightPositions[8];
 uniform vec4 lightIntensities[8]; //w component is the light's attenuation
 uniform int attnModel;
+uniform sampler2D texture;
 uniform mat4 globalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];
 uniform int globalObjectTypes[8];

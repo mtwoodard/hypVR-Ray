@@ -181,7 +181,10 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
-    vec3 color = vec3(0.02); //Setup up color with ambient component
+    float ambient = 0.02;
+    vec3 baseColor = vec3(1.0,1.0,1.0);
+    vec3 color = baseColor * ambient; //Setup up color with ambient component
+   // vec4 tex = texture2D(texture, );
     for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
       if(lightIntensities[i] != vec4(0.0)){
         vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
@@ -204,7 +207,7 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix){
         float rDotT = max(lorentzDot(R, T),0.0);
         vec3 specular = lightIntensities[i].rgb * pow(rDotT,10.0);
         //Compute final color
-        color += att*(diffuse + specular);
+        color += att*((diffuse*baseColor) + specular);
       }
     }
     return color;

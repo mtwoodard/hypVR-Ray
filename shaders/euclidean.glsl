@@ -64,7 +64,7 @@ float sphereHSDF(vec4 samplePoint, vec4 center, float radius)
 
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset)
 {
-  return sphereHSDF(samplePoint, dualPoint, radius);
+  return sphereHSDF(samplePoint, dualPoint, offset);
 }
 
 // Need to remove this, but phong model code in fragment.glsl is using it.

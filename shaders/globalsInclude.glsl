@@ -37,6 +37,7 @@ uniform vec4 lightIntensities[8]; //w component is the light's attenuation
 uniform int attnModel;
 uniform sampler2D texture;
 uniform mat4 globalObjectBoosts[8];
+uniform mat4 invGlobalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];
 uniform int globalObjectTypes[8];
 //--------------------------------------------

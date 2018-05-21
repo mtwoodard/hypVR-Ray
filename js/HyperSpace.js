@@ -127,11 +127,11 @@ var lightIntensities = [];
 var attnModel = 1;
 var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
-  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,10.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.98,0.847,10.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,-1), 1.2));
-  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.937,0.847,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
-  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.988,0.757,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,-1,0), 3.0));
 	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
 	for(var i = 3; i<8; i++){
@@ -144,15 +144,18 @@ var initLights = function(){
 // Sets up global objects
 //-------------------------------------------------------
 var globalObjectBoosts = [];
+var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
 var initObjects = function(g){
   var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(0.5,0,0)));
   globalObjectBoosts.push(objMat);
+  invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
   globalObjectTypes.push(0);
   for(var i = 1; i<8; i++){
     globalObjectBoosts.push(new THREE.Matrix4());
+    invGlobalObjectBoosts.push(new THREE.Matrix4());
     globalObjectRadii.push(new THREE.Vector3(0,0,0));
     globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
   }
@@ -249,8 +252,9 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
-      texture:{type:"t", value: new THREE.TextureLoader().load("../images/test.jpeg")},
+      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
+      invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},

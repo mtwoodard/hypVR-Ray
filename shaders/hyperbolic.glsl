@@ -86,7 +86,10 @@ mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
     }
 }
 
+//---------------------------------------------------------------------
 //Raymarch Primitives
+//---------------------------------------------------------------------
+
 float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
   return hypDistance(samplePoint, center) - radius;
 }

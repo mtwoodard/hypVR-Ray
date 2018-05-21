@@ -42,7 +42,7 @@ float hypDistance(vec4 u, vec4 v){
 }
 
 vec4 directionFrom2Points(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
-  // the "direction" (velocity vector) vPrime for use in parametrising the geodesic from u through v
+  // the "direction" (velocity vector) vPrime for use in parameterizing the geodesic from u through v
   vec4 w = v + lorentzDot(u, v)*u;
   return lorentzNormalize(w);
 }

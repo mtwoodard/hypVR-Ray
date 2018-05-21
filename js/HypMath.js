@@ -49,8 +49,8 @@ function translateByVectorEuclidean(v) {
 	  1.0, 0, 0, dx,
 	  0, 1.0, 0, dy,
 	  0, 0, 1.0, dz,
-	  0, 0, 0, 1.0 );
-	  return m;
+	  dx, dy, dz, 1.0 );
+	return m;
 }
 
 function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
@@ -132,7 +132,7 @@ function dot(g,u,v) {
 }
 
 function euclideanDot( u, v ){
-	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] + u[3]*v[3];
+	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
 }
 
 function lorentzDot( u, v ){

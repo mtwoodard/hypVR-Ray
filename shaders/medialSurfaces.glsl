@@ -10,15 +10,13 @@ float localSceneHSDF(vec4 samplePoint){
     if(samplePoint.x < samplePoint.y){
       samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
     }
-    // should precompute these orthonomal calculations
-    //vec4 dualPoint2 = vec4(0.0,1.0/halfCubeWidthKlein,0.0,1.0);
     vec4 dualPoint1 = lorentzNormalize(halfCubeDualPoints[1] - lorentzDot(halfCubeDualPoints[1], halfCubeDualPoints[0]) * halfCubeDualPoints[0]);
     float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, halfCubeDualPoints[0], dualPoint1, 0.0);
 
     vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);
     vec4 lightPoint2 = (1.0/sqrt(2.0))*vec4(-1.0,0.0,0.0,1.0);
     float dualEdgesDistance = geodesicCylinderHSDFends(samplePoint, lightPoint1, lightPoint2, 0.0);
-
-    float final = 0.5*edgesDistance - 0.5*dualEdgesDistance;
+    float ratio = (tubeRad * 10.0)/5.1;
+    float final = (1.0-ratio)*edgesDistance - ratio*dualEdgesDistance;
     return final;
 }

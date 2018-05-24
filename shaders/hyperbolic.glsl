@@ -42,9 +42,9 @@ float hypDistance(vec4 u, vec4 v){
 }
 
 vec4 directionFrom2Points(vec4 u, vec4 v){  // given points u and v on hyperboloid, make
-  // the "direction" (velocity vector) vPrime for use in parametrising the geodesic from u through v
+  // the "direction" (velocity vector) vPrime for use in parameterizing the geodesic from u through v
   vec4 w = v + lorentzDot(u, v)*u;
-  return (1.0/hypNorm(w)*w);
+  return lorentzNormalize(w);
 }
 
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point on
@@ -86,37 +86,10 @@ mat4 translateByVector(vec3 v) { // trickery from Jeff Weeks' Curved Spaces app
     }
 }
 
-
-bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
-  vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  if(kleinSamplePoint.x > halfCubeWidthKlein){
-    fixMatrix = invGenerators[0];
-    return true;
-  }
-  if(kleinSamplePoint.x < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[1];
-    return true;
-  }
-  if(kleinSamplePoint.y > halfCubeWidthKlein){
-    fixMatrix = invGenerators[2];
-    return true;
-  }
-  if(kleinSamplePoint.y < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[3];
-    return true;
-  }
-  if(kleinSamplePoint.z > halfCubeWidthKlein){
-    fixMatrix = invGenerators[4];
-    return true;
-  }
-  if(kleinSamplePoint.z < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[5];
-    return true;
-  }
-  return false;
-}
-
+//---------------------------------------------------------------------
 //Raymarch Primitives
+//---------------------------------------------------------------------
+
 float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
   return hypDistance(samplePoint, center) - radius;
 }

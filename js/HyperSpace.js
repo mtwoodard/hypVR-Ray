@@ -7,10 +7,8 @@ var mesh;
 var geom;
 var material;
 var controls;
-var currentBoost;
-var leftCurrentBoost;
-var rightCurrentBoost;
 var maxSteps = 50;
+var geometry;
 var leftEyeRotation;
 var rightEyeRotation;
 var currentBoost;
@@ -96,22 +94,23 @@ var gens;
 var invGens;
 var hCDP = [];
 
-var initValues = function(){
+var initValues = function(g){
+	geometry = g;
 	var invHCWK = 1.0/hCWK;
 	hCDP[0] = lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0));
 	hCDP[1] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0));
 	hCDP[2] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,0.0,invHCWK,1.0));
-	gens = createGenerators();
+	gens = createGenerators(g);
 	invGens = invGenerators(gens);
 }
 
-var createGenerators = function(){
-  var gen0 = translateByVector(new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
-  var gen1 = translateByVector(new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
-  var gen2 = translateByVector(new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
-  var gen3 = translateByVector(new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
-  var gen4 = translateByVector(new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
-  var gen5 = translateByVector(new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
+var createGenerators = function(g){
+  var gen0 = translateByVector(g,new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
+  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
+  var gen2 = translateByVector(g,new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
+  var gen3 = translateByVector(g,new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
+  var gen4 = translateByVector(g,new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
+  var gen5 = translateByVector(g,new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
@@ -128,11 +127,11 @@ var lightIntensities = [];
 var attnModel = 1;
 var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
-  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,10.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.98,0.847,10.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,-1), 1.2));
-  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.937,0.847,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
-  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
+  lightIntensities.push(new THREE.Vector4(1.0,0.988,0.757,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,-1,0), 3.0));
 	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
 	for(var i = 3; i<8; i++){
@@ -145,15 +144,18 @@ var initLights = function(){
 // Sets up global objects
 //-------------------------------------------------------
 var globalObjectBoosts = [];
+var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
-var initObjects = function(){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(new THREE.Vector3(0.5,0,0)));
+var initObjects = function(g){
+  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(0.5,0,0)));
   globalObjectBoosts.push(objMat);
+  invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
   globalObjectTypes.push(0);
   for(var i = 1; i<8; i++){
     globalObjectBoosts.push(new THREE.Matrix4());
+    invGlobalObjectBoosts.push(new THREE.Matrix4());
     globalObjectRadii.push(new THREE.Vector3(0,0,0));
     globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
   }
@@ -171,23 +173,24 @@ var init = function(){
   effect = new THREE.VREffect(renderer);
   effect.setSize(window.innerWidth, window.innerHeight);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  virtCamera = new THREE.PerspectiveCamera(60,1,0.1,1);
+  virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
   currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
-	initValues();
+  geometry = Geometry.Hyperbolic; // we start off hyperbolic
+	initValues(geometry);
   initLights();
-  initObjects();
+  initObjects(geometry);
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
   loadShaders();
 }
 
 var globalsFrag;
-var mathFrag;
+var geometryFrag = [];
 var mainFrag;
 var scenesFrag = [];
 
@@ -196,14 +199,14 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   loader.setResponseType('text');
   loader.load('shaders/fragment.glsl',function(main){
     loader.load('shaders/simplexCuts.glsl', function(scene){
-      loader.load('shaders/hyperbolicMath.glsl', function(math){
+      loader.load('shaders/hyperbolic.glsl', function(hyperbolic){
         loader.load('shaders/globalsInclude.glsl', function(globals){
           //pass full shader string to finish our init
           globalsFrag = globals;
-          mathFrag = math;
-          mainFrag = main;
+          geometryFrag.push(hyperbolic);
           scenesFrag.push(scene);
-          finishInit(globals.concat(math).concat(scene).concat(main));
+          mainFrag = main;
+          finishInit(globals.concat(hyperbolic).concat(scene).concat(main));
           loader.load('shaders/edgeTubes.glsl', function(tubes){
             loader.load('shaders/medialSurfaces.glsl', function(medial){
               loader.load('shaders/cubeSides.glsl', function(cubes){
@@ -211,6 +214,12 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
                 scenesFrag.push(medial);
                 scenesFrag.push(cubes);
               });
+            });
+          });
+          loader.load('shaders/euclidean.glsl', function(euclidean){
+            loader.load('shaders/spherical.glsl', function(spherical){
+              geometryFrag.push(euclidean);
+              geometryFrag.push(spherical);
             });
           });
         });
@@ -243,7 +252,9 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
+      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
+      invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},

@@ -35,7 +35,9 @@ uniform int maxSteps;
 uniform vec4 lightPositions[8];
 uniform vec4 lightIntensities[8]; //w component is the light's attenuation
 uniform int attnModel;
+uniform sampler2D texture;
 uniform mat4 globalObjectBoosts[8];
+uniform mat4 invGlobalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];
 uniform int globalObjectTypes[8];
 //--------------------------------------------
@@ -63,10 +65,3 @@ float unionSDF(float d1, float d2){
   return min(d1, d2);
 }
 
-/*float differenceSDF(float d1, float d2){
-  return max(-d1, d2);
-}
-
-float weightedAverageSDF(float d1, float d2, float k){
-  return (1.0-k)*d1 + k*d2;
-}*/

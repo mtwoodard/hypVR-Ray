@@ -101,15 +101,15 @@ THREE.VRControls = function ( camera, done ) {
 		}
 
 		if(offset !== undefined){
-			m = translateByVector(offset);
+			m = translateByVector(geometry, offset);
 			m.multiply(currentBoost);
 			currentBoost.copy(m);
 		}
 		var fixIndex = fixOutsideCentralCell(currentBoost);
-		currentBoost.elements = gramSchmidt(currentBoost.elements);
+		currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
 		if(fixIndex != -1){
 			cellBoost = cellBoost.premultiply(invGens[fixIndex]);
-			cellBoost.elements = gramSchmidt(cellBoost.elements);
+			cellBoost.elements = gramSchmidt(geometry, cellBoost.elements);
 			invCellBoost.getInverse(cellBoost);
 			// console.log(cellBoost);
 		}

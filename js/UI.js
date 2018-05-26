@@ -26,7 +26,7 @@ function updateEyes(){
 
   leftCurrentBoost = translateByVector(geometry,effect.leftEyeTranslation);
   rightCurrentBoost = translateByVector(geometry,effect.rightEyeTranslation);
-  effect.getEyeRotation(effect.leftEyeTranslation);
+  effect.getEyeRotation(effect.leftEyeTranslation.x);
   material.uniforms.leftEyeRotation.value = leftEyeRotation;
   material.uniforms.rightEyeRotation.value = rightEyeRotation;
   material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
@@ -165,8 +165,6 @@ var initGui = function(){
 
   fovController.onChange(function(value){
     virtCamera.fov = value;
-    //console.log(virtCamera.projectionMatrix);
-    //console.log(effect.FovToProjection(virtCamera.fov, true, virtCamera.near, virtCamera.far));
     material.uniforms.fov.value = value;
   });
 

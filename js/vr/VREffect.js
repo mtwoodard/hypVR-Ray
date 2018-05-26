@@ -32,7 +32,6 @@ THREE.VREffect = function ( renderer, done ) {
 
 		self.getEyeRotation = function(translationDistance){
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
-			console.log(turningAngle);
 			leftEyeRotation = new THREE.Quaternion();
 			rightEyeRotation = new THREE.Quaternion();
 			if(guiInfo.rotateEyes){

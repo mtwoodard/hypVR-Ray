@@ -88,13 +88,13 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
     fragCoord.x = fragCoord.x - resolution.x;
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
-  float z = 0.1;
-  vec3 pPre;
+  float z = 0.1/tan(radians(fov*0.5));
+  /*vec3 pPre;
   vec3 pPrePre;
   if(isStereo != 0){
     if(isStereo == -1){
       z = z/tan(radians(fov*0.5));
-      pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+      pPrePre = qtransform(leftEyeRotation, vec3(-xy,z)); 
     }
     else{
       z = z/tan(radians(fov*0.5));
@@ -105,8 +105,8 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   else{
      z = 0.1/tan(radians(fov*0.5));
      pPre = qtransform(cameraQuat, vec3(-xy,z));
-  }
-  vec4 p =  lorentzNormalize(vec4(pPre, 1.0));
+  }*/
+  vec4 p =  lorentzNormalize(vec4(-xy,z,1.0));
   return p;
 }
 

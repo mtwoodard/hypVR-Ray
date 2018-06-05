@@ -9,6 +9,9 @@ var material;
 var controls;
 var maxSteps = 50;
 var geometry;
+var position;
+var cellPos;
+var rotation;
 var leftEyeRotation;
 var rightEyeRotation;
 var currentBoost;
@@ -92,6 +95,7 @@ var hCWH = 0.6584789485;
 var hCWK = 0.5773502692;
 var gens;
 var invGens;
+var CellPos = [];
 var hCDP = [];
 
 var initValues = function(g){
@@ -105,12 +109,19 @@ var initValues = function(g){
 }
 
 var createGenerators = function(g){
-  var gen0 = translateByVector(g,new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
-  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
-  var gen2 = translateByVector(g,new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
-  var gen3 = translateByVector(g,new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
-  var gen4 = translateByVector(g,new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
-  var gen5 = translateByVector(g,new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
+  CellPos.push(new THREE.Vector3(2.0*hCWH,0.0,0.0));
+  CellPos.push(new THREE.Vector3(-2.0*hCWH,0.0,0.0));
+  CellPos.push(new THREE.Vector3(0.0,2.0*hCWH,0.0));
+  CellPos.push(new THREE.Vector3(0.0,-2.0*hCWH,0.0));
+  CellPos.push(new THREE.Vector3(0.0,0.0,2.0*hCWH));
+  CellPos.push(new THREE.Vector3(0.0,0.0,-2.0*hCWH));
+
+  var gen0 = translateByVector(g,CellPos[0]);
+  var gen1 = translateByVector(g,CellPos[1]);
+  var gen2 = translateByVector(g,CellPos[2]);
+  var gen3 = translateByVector(g,CellPos[3]);
+  var gen4 = translateByVector(g,CellPos[4]);
+  var gen5 = translateByVector(g,CellPos[5]);
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
@@ -127,12 +138,12 @@ var lightIntensities = [];
 var attnModel = 1;
 var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
-  lightIntensities.push(new THREE.Vector4(1.0,0.98,0.847,10.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,-1), 1.2));
-  lightIntensities.push(new THREE.Vector4(1.0,0.937,0.847,1.0));
+  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(1,0,0), 1.2));
+  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
-  lightIntensities.push(new THREE.Vector4(1.0,0.988,0.757,1.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,-1,0), 3.0));
+  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(-1,-1,-1), 1.0));
 	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
 	for(var i = 3; i<8; i++){
 		lightPositions.push(new THREE.Vector4(0,0,0,1));
@@ -176,7 +187,10 @@ var init = function(){
   virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
+  position = new THREE.Vector3();
+  cellPos = new THREE.Vector3();
   controls = new THREE.VRControls(virtCamera);
+  rotation = new THREE.Quaternion();
   currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();

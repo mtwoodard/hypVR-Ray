@@ -13,6 +13,7 @@ THREE.VRControls = function ( camera, done ) {
 
 	this._init = function () {
 		var self = this;
+		self._oldVRState = undefined;
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
 			return;
 		}
@@ -47,9 +48,8 @@ THREE.VRControls = function ( camera, done ) {
 				}
 			}
 		}
+		
 	};
-
-	this._init();
 
 	this.manualRotation = new THREE.Quaternion();
 
@@ -76,9 +76,7 @@ THREE.VRControls = function ( camera, done ) {
 	this.manualMoveRate = new Float32Array([0.0, 0.0, 0.0]);
 	this.manualParabolicRate = new Float32Array([0.0, 0.0]);
 	this.updateTime = 0;
-
 	this.update = function() {
-
 		var camera = this._camera;
 		var vrState = this.getVRState();
 		var manualRotation = this.manualRotation;
@@ -86,57 +84,60 @@ THREE.VRControls = function ( camera, done ) {
 		var newTime = Date.now();
 		this.updateTime = newTime;
 
+		//Relevant transform variables
 		var interval = (newTime - oldTime) * 0.001;
-		///do translation
 		var m;
 		var offset = new THREE.Vector3();
+
+		//Get position info from hmd
 		if (vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0) {
-			offset.x = guiInfo.eToHScale*(vrState.hmd.lastPosition[0] - vrState.hmd.position[0]);
-			offset.y = guiInfo.eToHScale*(vrState.hmd.lastPosition[1] - vrState.hmd.position[1]);
-			offset.z = guiInfo.eToHScale*(vrState.hmd.lastPosition[2] - vrState.hmd.position[2]);
+			position.x = -vrState.hmd.position[0];
+			position.y = -vrState.hmd.position[1];
+			position.z = -vrState.hmd.position[2];
+			position.add(offset); //we'll be able to add in controller support here
 		}
+
+		//Otherwise allow manual control via arrow keys
 		else if (this.manualMoveRate[0] != 0 || this.manualMoveRate[1] != 0 || this.manualMoveRate[2] != 0) {
 		    offset = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[0]).add(
 		      		   getRightVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[1])).add(
-		      		   getUpVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[2]));
+						 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * interval * this.manualMoveRate[2]));
+			position.add(offset);
 		}
 
-		if(offset !== undefined){
-			m = translateByVector(geometry, offset);
-			m.multiply(currentBoost);
-			currentBoost.copy(m);
-		}
-		var fixIndex = fixOutsideCentralCell(currentBoost);
-		currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
+		//we need to add position to a cumulative cellPos since our vr headset will reset any changes made to position.
+		var p = new THREE.Vector3().addVectors(position, cellPos); // since position.add permanently changes the position we need to make a temp vec3
+		m = translateByVector(geometry, p);
+		currentBoost.copy(m);
+		//console.log(position);
+
+		//Check if we have moved outside of the cell
+		var fixIndex = fixOutsideCentralCell(currentBoost, cellPos);
 		if(fixIndex != -1){
 			cellBoost = cellBoost.premultiply(invGens[fixIndex]);
 			cellBoost.elements = gramSchmidt(geometry, cellBoost.elements);
 			invCellBoost.getInverse(cellBoost);
-			// console.log(cellBoost);
 		}
 
+		//Do manual rotation from keys
 		var update = new THREE.Quaternion(this.manualRotateRate[0] * 0.2 * interval,
 	                               			this.manualRotateRate[1] * 0.2 * interval,
 	                               			this.manualRotateRate[2] * 0.2 * interval, 1.0);
 		update.normalize();
-		manualRotation.multiplyQuaternions(manualRotation, update);
-		//console.log(manualRotation);
-		//if ( camera ) {
-
-			// Applies head rotation from sensors data.
-		var totalRotation = new THREE.Quaternion();
-		var vrStateRotation = new THREE.Quaternion();			
-		if (vrState !== null) { //mobile devices/vr headsets
-			vrStateRotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
+		if(update !== undefined){
+			//rotation.multiply(update);
+			//m = new THREE.Matrix4().makeRotationFromQuaternion(rotation);			
+			//currentBoost.premultiply(m.getInverse(m)); //sets m to the inverse of m
 		}
-		totalRotation.multiplyQuaternions(manualRotation, vrStateRotation);
-		//camera.quaternion.copy(totalRotation);
-		//}
-		var changeInRotation = totalRotation.multiply(this._lastTotalRotation.inverse());
-		console.log(changeInRotation);
-		currentBoost = currentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(changeInRotation));
-		this._lastTotalRotation.copy(totalRotation);
+		
+		// Applies head rotation from sensors data.	
+		if (vrState !== null && vrState.hmd.lastRotation !== undefined) { //mobile devices/vr headsets			
+			rotation = new THREE.Quaternion(vrState.hmd.rotation[0], vrState.hmd.rotation[1], vrState.hmd.rotation[2], vrState.hmd.rotation[3]);
+			m = new THREE.Matrix4().makeRotationFromQuaternion(rotation);
+			currentBoost.premultiply(m.getInverse(m)); //sets m to the inverse of m
+		}
 
+		currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
 	};
 
 	this.zeroSensor = function() {
@@ -153,6 +154,9 @@ THREE.VRControls = function ( camera, done ) {
 		var orientation;
 		var position;
 		var vrState;
+		var orientation;
+		var position;
+		var vrState;
 
 		if ( vrInput ) {
 			if (vrInput.getState !== undefined) {
@@ -163,7 +167,7 @@ THREE.VRControls = function ( camera, done ) {
 			}
 			else {
 				orientation = vrInput.getPose().orientation;
-                position = vrInput.getPose().position;
+				position = vrInput.getPose().position;
 			}
 		}
 		else if (this.phoneVR.rotationQuat()) {
@@ -196,12 +200,14 @@ THREE.VRControls = function ( camera, done ) {
 
 		if (oldVRState !== undefined) {
 			vrState.hmd.lastPosition = oldVRState.hmd.position;
+			vrState.hmd.lastRotation = oldVRState.hmd.rotation;
 		}
 
 		this._oldVRState = vrState;
 
 		return vrState;
 	};
+	this._init();
 };
 
 //Listen for double click event to enter full-screen VR mode

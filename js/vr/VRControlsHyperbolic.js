@@ -166,8 +166,16 @@ THREE.VRControls = function ( camera, done ) {
 				position = [position.x, position.y, position.z];
 			}
 			else {
-				orientation = vrInput.getPose().orientation;
-				position = vrInput.getPose().position;
+				var framedata = new VRFrameData();
+				vrInput.getFrameData(framedata);
+				if(framedata.pose.orientation !== null  && framedata.pose.position !== null){
+					var o = new THREE.Quaternion(framedata.pose.orientation[0], framedata.pose.orientation[1], framedata.pose.orientation[2], framedata.pose.orientation[3]);
+					var v = new THREE.Vector3(framedata.pose.position[0], framedata.pose.position[1], framedata.pose.position[2]);
+					v.applyQuaternion(o);
+					console.log(v);
+					orientation = framedata.pose.orientation;
+					position = framedata.pose.position;
+				}
 			}
 		}
 		else if (this.phoneVR.rotationQuat()) {

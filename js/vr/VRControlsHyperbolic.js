@@ -112,8 +112,7 @@ THREE.VRControls = function(camera, done){
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
             rotation = vrState.hmd.rotation;
-            deltaRotation.multiply(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
+            m = new THREE.Matrix4().makeRotationFromQuaternion(rotation);
             currentBoost.copy(m.getInverse(m));
         }
 

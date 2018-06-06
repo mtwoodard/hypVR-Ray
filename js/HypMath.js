@@ -90,13 +90,13 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1).applyQuaternion(rotation);
+  return new THREE.Vector3(0,0,1);//.applyQuaternion(rotation);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0).applyQuaternion(rotation);
+  return new THREE.Vector3(-1,0,0);//.applyQuaternion(rotation);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0).applyQuaternion(rotation);
+  return new THREE.Vector3(0,-1,0);//.applyQuaternion(rotation);
 }
 
 function clamp(input, min, max)
@@ -227,7 +227,7 @@ function fakeDist( v ){  //good enough for comparison of distances on the hyperb
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-function fixOutsideCentralCell( mat, invPos) { 
+function fixOutsideCentralCell( mat ) { 
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
 	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
 	var bestDist = fakeDist(cPos);
@@ -240,12 +240,9 @@ function fixOutsideCentralCell( mat, invPos) {
 		}
 	}
 	if (bestIndex != -1){
-		invPos.add(CellPos[bestIndex]);
-		var p = new THREE.Vector3().addVectors(position, invPos);
-		var m = translateByVector(geometry, p);
-		mat.copy(m);
+		mat = mat.multiply(gens[bestIndex]);
     	return bestIndex;
 	}
     else
-    	return -1;
+		return -1;
 }

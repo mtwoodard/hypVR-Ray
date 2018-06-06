@@ -26,14 +26,14 @@ THREE.VRControls = function(camera, done){
     
     this._init = function(){
         this._oldVRState = undefined;
-        if(!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) return;
+        if(!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) 
+            return;
         if(navigator.getVRDisplays)
             navigator.getVRDisplays().then(gotVRDisplay);
         else if(navigator.getVRDevices)
-            navigator.getVRDisplays().then(gotVRDevices);
+            navigator.getVRDevices().then(gotVRDevices);
         else
             navigator.mozGetVRDevices(gotVRDevices);
-        
 
         function gotVRDisplay(devices){
             var vrInput;
@@ -58,7 +58,9 @@ THREE.VRControls = function(camera, done){
                 }
             }
         }
-    }
+    };
+
+    this._init();
 
     this.update = function(){
         var camera = this._camera;
@@ -74,17 +76,18 @@ THREE.VRControls = function(camera, done){
         var deltaTime = (newTime - oldTime) * 0.001; 
         var m;
         var deltaPosition = new THREE.Vector3();
-        if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0)
-            deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(guiInfo.eToHScale);
-        else if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
+       // if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
+            //var position = vrState.hmd.lastPosition.applyQuaternion
+         //   deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(guiInfo.eToHScale);
+        //}
+        if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
             deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
                 getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
                 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
             m = translateByVector(geometry, deltaPosition);
-            m.multiply(currentBoost);
-            currentBoost.copy(m);
+            currentBoost.premultiply(m);
         }
         var fixIndex = fixOutsideCentralCell(currentBoost); //moves camera back to main cell
         currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
@@ -102,19 +105,19 @@ THREE.VRControls = function(camera, done){
                                                     this.manualRotateRate[2] * speed * deltaTime, 1.0);
         deltaRotation.normalize();
         if(deltaRotation !== undefined){
-            rotation.multiply(deltaRotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(rotation);
-            currentBoost.premultiply(m.getInverse(m));
+            rotation.multiply(deltaRotation.inverse());
+            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
+            currentBoost.premultiply(m);
         }
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
             rotation = vrState.hmd.rotation;
             m = new THREE.Matrix4().makeRotationFromQuaternion(rotation);
-            currentBoost.premultiply(m.getInverse(m));
+            currentBoost.copy(m.getInverse(m));
         }
 
-        currentBoost.elements(geometry, currentBoost.elements);
-    }
+        currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
+    };
 
     this.zeroSensor = function(){
         if(!this._vrInput) return null;
@@ -123,26 +126,27 @@ THREE.VRControls = function(camera, done){
 
     this.getVRState = function(){
         var vrInput = this._vrInput;
+        //console.log(this._vrInput);
         var oldVRState = this._oldVRState;
         var orientation;
         var pos;
         var vrState;
 
         if(vrInput){
-            if(vrInput.getState !== undefined){
+            if(vrInput.getState !== undefined){ 
                 orientation = vrInput.getState().orientation;
                 orientation = new THREE.Quaternion(orientation.x, orientation.y, orientation.z, orientation.w);
 				pos = vrInput.getState().position;
 				pos = new THREE.Vector3(pos.x, pos.y, pos.z);
-				pos.applyQuaternion(orientation);
+				//pos.applyQuaternion(orientation);
             }
             else{
                 var framedata = new VRFrameData();
 				vrInput.getFrameData(framedata);
 				if(framedata.pose.orientation !== null  && framedata.pose.position !== null){
 					orientation = new THREE.Quaternion(framedata.pose.orientation[0], framedata.pose.orientation[1], framedata.pose.orientation[2], framedata.pose.orientation[3]);
-					pos = new THREE.Vector3(framedata.pose.position[0], framedata.pose.position[1], framedata.pose.position[2]);
-					pos.applyQuaternion(orientation);
+                    pos = new THREE.Vector3(framedata.pose.position[0], framedata.pose.position[1], framedata.pose.position[2]);
+					//pos.applyQuaternion(orientation);
 				}
             }
         }
@@ -171,7 +175,6 @@ THREE.VRControls = function(camera, done){
         return vrState;
     };
 
-    this._init();
 };
 
 //--------------------------------------------------------------------

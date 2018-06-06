@@ -25,6 +25,7 @@ THREE.VRControls = function(camera, done){
     };
     
     this._init = function(){
+        var self = this;
         this._oldVRState = undefined;
         if(!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) 
             return;
@@ -41,7 +42,7 @@ THREE.VRControls = function(camera, done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof VRDisplay){
                     vrInput = devices[i];
-                    this._vrInput = vrInput;
+                    self._vrInput = vrInput;
                     break;
                 }
             }
@@ -53,7 +54,7 @@ THREE.VRControls = function(camera, done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof PositionSensorVRDevice){
                     vrInput = devices[i];
-                    this._vrInput = vrInput;
+                    self._vrInput = vrInput;
                     break;
                 }
             }
@@ -77,9 +78,10 @@ THREE.VRControls = function(camera, done){
         var m;
         var deltaPosition = new THREE.Vector3();
        // if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
-            //var position = vrState.hmd.lastPosition.applyQuaternion
-         //   deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(guiInfo.eToHScale);
-        //}
+           //var pos1 = new THREE.Vector3().clone(vrState.hmd.position).applyQuaternion(vrState.hmd.rotation);
+         //   var pos2 = new THREE.Vector3().clone(vrState.hmd.lastPosition).applyQuaternion(vrState.hmd.lastRotation);
+          //  deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(-guiInfo.eToHScale);
+       // }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
             deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
                 getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
@@ -112,9 +114,9 @@ THREE.VRControls = function(camera, done){
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
             rotation = vrState.hmd.rotation;
-            deltaRotation.multiply(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
-            currentBoost.copy(m.getInverse(m));
+            deltaRotation.multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
+            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
+            currentBoost.premultiply(m);
         }
 
         currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
@@ -127,7 +129,6 @@ THREE.VRControls = function(camera, done){
 
     this.getVRState = function(){
         var vrInput = this._vrInput;
-        //console.log(this._vrInput);
         var oldVRState = this._oldVRState;
         var orientation;
         var pos;

@@ -1,7 +1,6 @@
-THREE.VRControls = function(camera, done){
+THREE.VRControls = function(done){
     this.phoneVR = new PhoneVR();
     var speed = 0.2;
-    this._camera = camera;
     this._oldVRState;
     this.defaultPosition = new THREE.Vector3();
     this.manualRotation = new THREE.Quaternion();
@@ -63,7 +62,6 @@ THREE.VRControls = function(camera, done){
     this._init();
 
     this.update = function(){
-        var camera = this._camera;
         var vrState = this.getVRState();
         var manualRotation = this.manualRotation;
         var oldTime = this.updateTime;
@@ -86,14 +84,14 @@ THREE.VRControls = function(camera, done){
                 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
-            m = translateByVector(geometry, deltaPosition);
-            currentBoost.premultiply(m);
+            m = translateByVector(g_geometry, deltaPosition);
+            g_currentBoost.premultiply(m);
         }
-        var fixIndex = fixOutsideCentralCell(currentBoost); //moves camera back to main cell
-        currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
+        var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell
+        g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
         if(fixIndex !== -1){
             cellBoost = cellBoost.premultiply(invGens[fixIndex]); //keeps track of how many cells we've moved 
-            cellBoost.elements = gramSchmidt(geometry, cellBoost.elements);
+            cellBoost.elements = gramSchmidt(g_geometry, cellBoost.elements);
             invCellBoost.getInverse(cellBoost);
         }
 
@@ -105,19 +103,19 @@ THREE.VRControls = function(camera, done){
                                                     this.manualRotateRate[2] * speed * deltaTime, 1.0);
         deltaRotation.normalize();
         if(deltaRotation !== undefined){
-            rotation.multiply(deltaRotation.inverse());
+            g_rotation.multiply(deltaRotation.inverse());
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
-            currentBoost.premultiply(m);
+            g_currentBoost.premultiply(m);
         }
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
-            rotation = vrState.hmd.rotation;
+            g_rotation = vrState.hmd.rotation;
             deltaRotation.multiply(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
-            currentBoost.copy(m.getInverse(m));
+            g_currentBoost.copy(m.getInverse(m));
         }
 
-        currentBoost.elements = gramSchmidt(geometry, currentBoost.elements);
+        g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
     };
 
     this.zeroSensor = function(){
@@ -184,10 +182,10 @@ THREE.VRControls = function(camera, done){
 document.body.addEventListener('click', function(event){
     if(event.target.id === "vr-icon"){
         event.target.style.display = "none";
-        effect.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
+        g_effect.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
     }
-    if(effect.phoneVR.orientationIsAvailable()){
-        effect.setFullScreen(true);
+    if(g_effect.phoneVR.orientationIsAvailable()){
+        g_effect.setFullScreen(true);
         if(typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function')
             window.screen.orientation.lock('landscape-primary');
     }
@@ -200,11 +198,11 @@ function onkey(event){
     event.preventDefault();
 
     if(event.keyCode == 90) // z
-        controls.zeroSensor();
+        g_controls.zeroSensor();
     else if(event.keyCode == 70) // f
-        effect.setFullScreen(true);
+        g_effect.setFullScreen(true);
     else if(event.keyCode == 86 || event.keyCode == 13 || event.keyCode == 32)
-        effect.toggleVRMode();
+        g_effect.toggleVRMode();
 }
 
 window.addEventListener("keydown", onkey, false);
@@ -213,14 +211,14 @@ window.addEventListener("keydown", onkey, false);
 // Listen for keys for movement/rotation
 //--------------------------------------------------------------------
 function key(event, sign){
-    var control = controls.manualControls[event.keyCode];
+    var control = g_controls.manualControls[event.keyCode];
     if(control == undefined || sign === 1 && control.active || sign == -1 && !control.active) return;
 
     control.active = (sign === 1);
     if (control.index <= 2)
-        controls.manualRotateRate[control.index] += sign * control.sign;
+        g_controls.manualRotateRate[control.index] += sign * control.sign;
     else if (control.index <= 5)
-        controls.manualMoveRate[control.index - 3] += sign * control.sign;
+        g_controls.manualMoveRate[control.index - 3] += sign * control.sign;
 }
 
 document.addEventListener('keydown', function(event){key(event, 1);}, false);
@@ -230,7 +228,7 @@ document.addEventListener('keyup', function(event){key(event, -1);}, false);
 // Phone screen tap for movement
 //--------------------------------------------------------------------
 function tap(event, sign){
-    controls.manualMoveRate[0] += sign;
+    g_controls.manualMoveRate[0] += sign;
 }
 
 document.addEventListener('touchstart', function(event){tap(event, 1);}, false);

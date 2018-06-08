@@ -90,13 +90,13 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1);//.applyQuaternion(rotation);
+  return new THREE.Vector3(0,0,1);//.applyQuaternion(g_rotation);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0);//.applyQuaternion(rotation);
+  return new THREE.Vector3(-1,0,0);//.applyQuaternion(g_rotation);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0);//.applyQuaternion(rotation);
+  return new THREE.Vector3(0,-1,0);//.applyQuaternion(g_rotation);
 }
 
 function clamp(input, min, max)

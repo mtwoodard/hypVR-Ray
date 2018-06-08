@@ -24,6 +24,7 @@ THREE.VRControls = function(done){
     };
     
     this._init = function(){
+        var self = this;
         this._oldVRState = undefined;
         if(!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) 
             return;
@@ -40,6 +41,7 @@ THREE.VRControls = function(done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof VRDisplay){
                     vrInput = devices[i];
+                    self._vrInput = vrInput;
                     break;
                 }
             }
@@ -51,6 +53,7 @@ THREE.VRControls = function(done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof PositionSensorVRDevice){
                     vrInput = devices[i];
+                    self._vrInput = vrInput;
                     break;
                 }
             }
@@ -73,9 +76,6 @@ THREE.VRControls = function(done){
         var m;
         var deltaPosition = new THREE.Vector3();
        // if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
-            //var position = vrState.hmd.lastPosition.applyQuaternion
-         //   deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(guiInfo.eToHScale);
-        //}
            //var pos1 = new THREE.Vector3().clone(vrState.hmd.position).applyQuaternion(vrState.hmd.rotation);
          //   var pos2 = new THREE.Vector3().clone(vrState.hmd.lastPosition).applyQuaternion(vrState.hmd.lastRotation);
           //  deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(-guiInfo.eToHScale);
@@ -117,6 +117,10 @@ THREE.VRControls = function(done){
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
             g_currentBoost.copy(m.getInverse(m));
 =======
+            rotation = vrState.hmd.rotation;
+            deltaRotation.multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
+            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
+            currentBoost.premultiply(m);
 >>>>>>> 3553e1ba6ed8d999a695dfa16d0d67057a847698
         }
 
@@ -130,7 +134,6 @@ THREE.VRControls = function(done){
 
     this.getVRState = function(){
         var vrInput = this._vrInput;
-        //console.log(this._vrInput);
         var oldVRState = this._oldVRState;
         var orientation;
         var pos;

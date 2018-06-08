@@ -40,7 +40,6 @@ THREE.VRControls = function(done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof VRDisplay){
                     vrInput = devices[i];
-                    this._vrInput = vrInput;
                     break;
                 }
             }
@@ -52,7 +51,6 @@ THREE.VRControls = function(done){
             for(var i = 0; i < devices.length; i++){
                 if(devices[i] instanceof PositionSensorVRDevice){
                     vrInput = devices[i];
-                    this._vrInput = vrInput;
                     break;
                 }
             }
@@ -78,6 +76,10 @@ THREE.VRControls = function(done){
             //var position = vrState.hmd.lastPosition.applyQuaternion
          //   deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(guiInfo.eToHScale);
         //}
+           //var pos1 = new THREE.Vector3().clone(vrState.hmd.position).applyQuaternion(vrState.hmd.rotation);
+         //   var pos2 = new THREE.Vector3().clone(vrState.hmd.lastPosition).applyQuaternion(vrState.hmd.lastRotation);
+          //  deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(-guiInfo.eToHScale);
+       // }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
             deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
                 getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
@@ -109,10 +111,13 @@ THREE.VRControls = function(done){
         }
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
+<<<<<<< HEAD
             g_rotation = vrState.hmd.rotation;
             deltaRotation.multiply(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
             g_currentBoost.copy(m.getInverse(m));
+=======
+>>>>>>> 3553e1ba6ed8d999a695dfa16d0d67057a847698
         }
 
         g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);

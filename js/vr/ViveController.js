@@ -5,7 +5,7 @@
 
 THREE.ViveController = function ( id ) {
 
-	THREE.Object3D.call( this );
+	//THREE.Object3D.call( this );
 
 	var scope = this;
 	var gamepad;
@@ -71,9 +71,9 @@ THREE.ViveController = function ( id ) {
 
 			if ( pose.position !== null ) scope.position.fromArray( pose.position );
 			if ( pose.orientation !== null ) scope.quaternion.fromArray( pose.orientation );
-			scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
-			scope.matrix.premultiply( scope.standingMatrix );	
-			scope.matrixWorldNeedsUpdate = true;
+			//scope.matrix.compose( scope.position, scope.quaternion, scope.scale );
+			//scope.matrix.premultiply( scope.standingMatrix );	
+			//scope.matrixWorldNeedsUpdate = true;
 			scope.visible = true;
 
 			//  Thumbpad and Buttons.
@@ -124,5 +124,5 @@ THREE.ViveController = function ( id ) {
 
 };
 
-THREE.ViveController.prototype = Object.create( THREE.Object3D.prototype );
-THREE.ViveController.prototype.constructor = THREE.ViveController;
+//THREE.ViveController.prototype = Object.create( THREE.Object3D.prototype );
+//THREE.ViveController.prototype.constructor = THREE.ViveController;

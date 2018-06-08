@@ -134,31 +134,28 @@ THREE.VRControls = function(done){
     this.getVRState = function(){
         var vrInput = this._vrInput;
         var oldVRState = this._oldVRState;
-        var orientation;
-        var pos;
+        var orientation = new THREE.Quaternion();
+        var pos = new THREE.Vector3();
         var vrState;
 
         if(vrInput){
             if(vrInput.getState !== undefined){ 
-                orientation = vrInput.getState().orientation;
-                orientation = new THREE.Quaternion(orientation.x, orientation.y, orientation.z, orientation.w);
-				pos = vrInput.getState().position;
-				pos = new THREE.Vector3(pos.x, pos.y, pos.z);
+                orientation.fromArray(vrInput.getState().orientation);
+				pos.fromArray(vrInput.getState().position);
 				//pos.applyQuaternion(orientation);
             }
             else{
                 var framedata = new VRFrameData();
 				vrInput.getFrameData(framedata);
 				if(framedata.pose.orientation !== null  && framedata.pose.position !== null){
-					orientation = new THREE.Quaternion(framedata.pose.orientation[0], framedata.pose.orientation[1], framedata.pose.orientation[2], framedata.pose.orientation[3]);
-                    pos = new THREE.Vector3(framedata.pose.position[0], framedata.pose.position[1], framedata.pose.position[2]);
+					orientation.fromArray(framedata.pose.orientation);
+                    pos.fromArray(framedata.pose.position);
 					//pos.applyQuaternion(orientation);
 				}
             }
         }
         else if(this.phoneVR.rotationQuat()){
-            orientation = this.phoneVR.rotationQuat();
-            orientation = new THREE.Quaternion(orientation.x, orientation.y, orientation.z, orientation.w);
+            orientation.fromArray(this.phoneVR.rotationQuat());
 			pos = this._defaultPosition;
         }
 

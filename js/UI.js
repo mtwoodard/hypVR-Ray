@@ -96,7 +96,7 @@ function updateUniformsFromUI()
 	// We want them to be slightly bigger than that so that they intersect.
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
-	var cut4 = GetGeometry2D( q, r );
+	g_cut4 = GetGeometry2D( q, r );
 	var hOffset = guiInfo.edgeThickness / 10;
 
 	//Tube Radius
@@ -121,7 +121,7 @@ function updateUniformsFromUI()
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
 	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
-	g_material.uniforms.cut4.value = cut4;
+	g_material.uniforms.cut4.value = g_cut4;
 	g_material.uniforms.sphereRad.value = g_sphereRad;
 	g_material.uniforms.tubeRad.value = g_tubeRad;
 	g_material.uniforms.horosphereSize.value = g_horospherSize;

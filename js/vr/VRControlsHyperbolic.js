@@ -111,17 +111,10 @@ THREE.VRControls = function(done){
         }
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
-<<<<<<< HEAD
-            g_rotation = vrState.hmd.rotation;
-            deltaRotation.multiply(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
-            g_currentBoost.copy(m.getInverse(m));
-=======
             rotation = vrState.hmd.rotation;
             deltaRotation.multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
             currentBoost.premultiply(m);
->>>>>>> 3553e1ba6ed8d999a695dfa16d0d67057a847698
         }
 
         g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);

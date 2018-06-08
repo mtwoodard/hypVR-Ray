@@ -1,3 +1,9 @@
+/**
+ * Based off code created by:
+ * dmarcos / https://github.com/dmarcos
+ * hawksley / https://github.com/hawksley 
+ */
+
 THREE.VRControls = function(done){
     this.phoneVR = new PhoneVR();
     var speed = 0.2;

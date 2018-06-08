@@ -1,10 +1,16 @@
-var cut4 = 2;
-var sphereRad = 0.996216;
-var tubeRad = 0.15;
-var horosphereSize = -0.951621;
-var planeOffset = 0.75;
+//-------------------------------------------------------
+// Global Variables
+//-------------------------------------------------------
+var g_cut4 = 2;
+var g_sphereRad = 0.996216;
+var g_tubeRad = 0.15;
+var g_horospherSize = -0.951621;
+var g_planeOffset = 0.75;
 var g_targetFPS = {value:27.5};
 
+//-------------------------------------------------------
+// UI Variables
+//-------------------------------------------------------
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
   sceneIndex: 0,
@@ -94,21 +100,21 @@ function updateUniformsFromUI()
 	var hOffset = guiInfo.edgeThickness / 10;
 
 	//Tube Radius
-	tubeRad = guiInfo.edgeThickness/10;
+	g_tubeRad = guiInfo.edgeThickness/10;
 
 	// sphereRad
-	sphereRad = midrad - hOffset;
+	g_sphereRad = midrad - hOffset;
 
 	// horosphereSize
 	var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-	var midEdge = constructHyperboloidPoint(midEdgeDir, sphereRad);
-	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -sphereRad);
-	horosphereSize = -(sphereRad - distToMidEdge);
+	var midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
+	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
+	g_horospherSize = -(g_sphereRad - distToMidEdge);
 
 	// planeOffset
 	var dualPoint = lorentzNormalizeTHREE(new THREE.Vector4(hCWK, hCWK, hCWK, 1.0));
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
-	planeOffset = distToMidEdge;
+	g_planeOffset = distToMidEdge;
 
 	initValues(g);
 	g_material.uniforms.generators.value = gens;
@@ -116,10 +122,10 @@ function updateUniformsFromUI()
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
 	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
 	g_material.uniforms.cut4.value = cut4;
-	g_material.uniforms.sphereRad.value = sphereRad;
-	g_material.uniforms.tubeRad.value = tubeRad;
-	g_material.uniforms.horosphereSize.value = horosphereSize;
-	g_material.uniforms.planeOffset.value = planeOffset;
+	g_material.uniforms.sphereRad.value = g_sphereRad;
+	g_material.uniforms.tubeRad.value = g_tubeRad;
+	g_material.uniforms.horosphereSize.value = g_horospherSize;
+	g_material.uniforms.planeOffset.value = g_planeOffset;
 	g_material.uniforms.attnModel.value = guiInfo.falloffModel;
 }
 

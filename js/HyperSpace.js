@@ -267,11 +267,11 @@ var finishInit = function(fShader){
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
-	  	cut4:{type:"i", value:cut4},
-      sphereRad:{type:"f", value:sphereRad},
-      tubeRad:{type:"f", value:tubeRad},
-      horosphereSize:{type:"f", value:horosphereSize},
-      planeOffset:{type:"f", value:planeOffset}
+	  	cut4:{type:"i", value:g_cut4},
+      sphereRad:{type:"f", value:g_sphereRad},
+      tubeRad:{type:"f", value:g_tubeRad},
+      horosphereSize:{type:"f", value:g_horospherSize},
+      planeOffset:{type:"f", value:g_planeOffset}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

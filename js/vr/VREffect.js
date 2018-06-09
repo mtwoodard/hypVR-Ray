@@ -46,8 +46,8 @@ THREE.VREffect = function ( renderer, done ) {
 
 		// default some stuff for mobile VR
 		self.phoneVR = new PhoneVR();
-		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
-		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.leftEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		//self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
@@ -90,7 +90,7 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					guiInfo.rotateEyes = true;
+					//guiInfo.rotateEyes = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;

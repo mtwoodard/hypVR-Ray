@@ -81,15 +81,15 @@ THREE.VRControls = function(done){
         var deltaTime = (newTime - oldTime) * 0.001; 
         var m;
         var deltaPosition = new THREE.Vector3();
-       // if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
-           //var pos1 = new THREE.Vector3().clone(vrState.hmd.position).applyQuaternion(vrState.hmd.rotation);
-         //   var pos2 = new THREE.Vector3().clone(vrState.hmd.lastPosition).applyQuaternion(vrState.hmd.lastRotation);
-          //  deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).multiplyScalar(-guiInfo.eToHScale);
-       // }
+        if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
+            var quat = new THREE.Quaternion().copy(vrState.hmd.rotation).inverse();
+            deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat).multiplyScalar(-1);
+        }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
             deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
                 getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
                 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
+            console.log(deltaPosition);
         }
         if(deltaPosition !== undefined){
             m = translateByVector(g_geometry, deltaPosition);
@@ -120,7 +120,7 @@ THREE.VRControls = function(done){
             rotation = vrState.hmd.rotation;
             deltaRotation.multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
             m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
-            currentBoost.premultiply(m);
+            g_currentBoost.premultiply(m);
         }
 
         g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
@@ -148,7 +148,9 @@ THREE.VRControls = function(done){
                 var framedata = new VRFrameData();
 				vrInput.getFrameData(framedata);
 				if(framedata.pose.orientation !== null  && framedata.pose.position !== null){
-					orientation.fromArray(framedata.pose.orientation);
+                    //console.log(framedata.pose.orientation);
+                    orientation.fromArray(framedata.pose.orientation);
+                    //console.log(orientation);
                     pos.fromArray(framedata.pose.position);
 					//pos.applyQuaternion(orientation);
 				}
@@ -223,6 +225,8 @@ function key(event, sign){
         g_controls.manualRotateRate[control.index] += sign * control.sign;
     else if (control.index <= 5)
         g_controls.manualMoveRate[control.index - 3] += sign * control.sign;
+
+    
 }
 
 document.addEventListener('keydown', function(event){key(event, 1);}, false);

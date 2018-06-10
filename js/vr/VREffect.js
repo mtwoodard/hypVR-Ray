@@ -32,26 +32,26 @@ THREE.VREffect = function ( renderer, done ) {
 
 		self.getEyeRotation = function(translationDistance){
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
-			leftEyeRotation = new THREE.Quaternion();
-			rightEyeRotation = new THREE.Quaternion();
+			g_leftEyeRotation = new THREE.Quaternion();
+			g_rightEyeRotation = new THREE.Quaternion();
 			if(guiInfo.rotateEyes){
-				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
-				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
+				g_rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
 			}
 			else {
-				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
-				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+				g_rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
 			}
 		}
 
 		// default some stuff for mobile VR
 		self.phoneVR = new PhoneVR();
-		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
-		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.leftEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		//self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
-		leftCurrentBoost = translateByVector(geometry, self.leftEyeTranslation);
-		rightCurrentBoost = translateByVector(geometry, self.rightEyeTranslation);
+		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
+		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
 		self.getEyeRotation(self.leftEyeTranslation.x);
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
@@ -74,8 +74,8 @@ THREE.VREffect = function ( renderer, done ) {
 			//we need these to be objects instead of arrays in order to process the information correctly
 			self.leftEyeTranslation = {x: self.leftEyeTranslation[0], y:self.leftEyeTranslation[1], z:self.leftEyeTranslation[2], w:0 };
 			self.rightEyeTranslation = {x: self.rightEyeTranslation[0], y:self.rightEyeTranslation[1], z:self.rightEyeTranslation[2], w:0}
-			leftCurrentBoost = translateByVector(geometry, self.leftEyeTranslation);
-			rightCurrentBoost = translateByVector(geometry, self.rightEyeTranslation);
+			g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
+			g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
 			self.getEyeRotation(self.leftEyeTranslation.x);
 		}
 
@@ -90,7 +90,7 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					guiInfo.rotateEyes = true;
+					//guiInfo.rotateEyes = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;
@@ -184,7 +184,7 @@ THREE.VREffect = function ( renderer, done ) {
 
 
 		// Regular render mode if not HMD
-		material.uniforms.isStereo.value = 0;
+		g_material.uniforms.isStereo.value = 0;
 		renderer.render.apply( this._renderer, [scene, camera]  );
 	};
 
@@ -205,13 +205,13 @@ THREE.VREffect = function ( renderer, done ) {
 		}
 
 		// render left eye
-		material.uniforms.isStereo.value = -1;
+		g_material.uniforms.isStereo.value = -1;
 		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, camera );
 
 		//render right eye
-		material.uniforms.isStereo.value = 1;
+		g_material.uniforms.isStereo.value = 1;
 		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
 		renderer.render( scene, camera );

@@ -1,9 +1,16 @@
-var cut4 = 2;
-var sphereRad = 0.996216;
-var tubeRad = 0.15;
-var horosphereSize = -0.951621;
-var planeOffset = 0.75;
-var geometry = Geometry.Hyperbolic;
+//-------------------------------------------------------
+// Global Variables
+//-------------------------------------------------------
+var g_cut4 = 2;
+var g_sphereRad = 0.996216;
+var g_tubeRad = 0.15;
+var g_horospherSize = -0.951621;
+var g_planeOffset = 0.75;
+var g_targetFPS = {value:27.5};
+
+//-------------------------------------------------------
+// UI Variables
+//-------------------------------------------------------
 
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
   sceneIndex: 0,
@@ -21,24 +28,24 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
 };
 
 function updateEyes(){
-  effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
-  effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
+  g_effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
+  g_effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
 
-  leftCurrentBoost = translateByVector(geometry,effect.leftEyeTranslation);
-  rightCurrentBoost = translateByVector(geometry,effect.rightEyeTranslation);
-  effect.getEyeRotation(effect.leftEyeTranslation.x);
-  material.uniforms.leftEyeRotation.value = leftEyeRotation;
-  material.uniforms.rightEyeRotation.value = rightEyeRotation;
-  material.uniforms.leftCurrentBoost.value = leftCurrentBoost;
-  material.uniforms.rightCurrentBoost.value = rightCurrentBoost;
+  g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
+  g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
+  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
+  g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
+  g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
+  g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
+  g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
 }
 
 function getGeometryFrag()
 {
 	geometryFragIdx = 0;
-	if( geometry == Geometry.Euclidean )
+	if( g_geometry == Geometry.Euclidean )
 		geometryFragIdx = 1;
-	if( geometry == Geometry.Spherical )
+	if( g_geometry == Geometry.Spherical )
 		geometryFragIdx = 2;
 	return geometryFrag[geometryFragIdx];
 }
@@ -67,12 +74,12 @@ function updateUniformsFromUI()
 
 	// Check to see if the geometry has changed.
 	// If so, update the shader.
-	if( g != geometry )
+	if( g != g_geometry )
 	{
-		geometry = g;
+		g_geometry = g;
 		var geoFrag = getGeometryFrag();
-		material.needsUpdate = true;
-		material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+		g_material.needsUpdate = true;
+		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -89,37 +96,37 @@ function updateUniformsFromUI()
 	// We want them to be slightly bigger than that so that they intersect.
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
-	var cut4 = GetGeometry2D( q, r );
+	g_cut4 = GetGeometry2D( q, r );
 	var hOffset = guiInfo.edgeThickness / 10;
 
 	//Tube Radius
-	tubeRad = guiInfo.edgeThickness/10;
+	g_tubeRad = guiInfo.edgeThickness/10;
 
 	// sphereRad
-	sphereRad = midrad - hOffset;
+	g_sphereRad = midrad - hOffset;
 
 	// horosphereSize
 	var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-	var midEdge = constructHyperboloidPoint(midEdgeDir, sphereRad);
-	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -sphereRad);
-	horosphereSize = -(sphereRad - distToMidEdge);
+	var midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
+	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
+	g_horospherSize = -(g_sphereRad - distToMidEdge);
 
 	// planeOffset
 	var dualPoint = lorentzNormalizeTHREE(new THREE.Vector4(hCWK, hCWK, hCWK, 1.0));
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
-	planeOffset = distToMidEdge;
+	g_planeOffset = distToMidEdge;
 
 	initValues(g);
-	material.uniforms.generators.value = gens;
-	material.uniforms.invGenerators.value = invGens;
-	material.uniforms.halfCubeDualPoints.value = hCDP;
-	material.uniforms.halfCubeWidthKlein.value = hCWK;
-	material.uniforms.cut4.value = cut4;
-	material.uniforms.sphereRad.value = sphereRad;
-	material.uniforms.tubeRad.value = tubeRad;
-	material.uniforms.horosphereSize.value = horosphereSize;
-	material.uniforms.planeOffset.value = planeOffset;
-	material.uniforms.attnModel.value = guiInfo.falloffModel;
+	g_material.uniforms.generators.value = gens;
+	g_material.uniforms.invGenerators.value = invGens;
+	g_material.uniforms.halfCubeDualPoints.value = hCDP;
+	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
+	g_material.uniforms.cut4.value = g_cut4;
+	g_material.uniforms.sphereRad.value = g_sphereRad;
+	g_material.uniforms.tubeRad.value = g_tubeRad;
+	g_material.uniforms.horosphereSize.value = g_horospherSize;
+	g_material.uniforms.planeOffset.value = g_planeOffset;
+	g_material.uniforms.attnModel.value = guiInfo.falloffModel;
 }
 
 //What we need to init our dat GUI
@@ -139,7 +146,7 @@ var initGui = function(){
   var debugUIController = debugFolder.add(guiInfo, 'toggleUI').name("Toggle Debug UI");
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
-  debugFolder.add(targetFPS, 'value', 15, 90).name("Target FPS");
+  debugFolder.add(g_targetFPS, 'value', 15, 90).name("Target FPS");
   stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
   var rotateController = stereoFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
   var pupilDistanceController = stereoFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
@@ -164,8 +171,8 @@ var initGui = function(){
   });
 
   fovController.onChange(function(value){
-    virtCamera.fov = value;
-    material.uniforms.fov.value = value;
+    g_virtCamera.fov = value;
+    g_material.uniforms.fov.value = value;
   });
 
   debugUIController.onFinishChange(function(value){
@@ -189,15 +196,15 @@ var initGui = function(){
   });
 
   rotateController.onFinishChange(function(value) {
-    effect.getEyeRotation(effect.leftEyeTranslation.x);
-    material.uniforms.leftEyeRotation.value = leftEyeRotation;
-    material.uniforms.rightEyeRotation.value = rightEyeRotation;
+    g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
+    g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
+    g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
     updateUniformsFromUI();
   });
 
   sceneController.onFinishChange(function(index){
 	var geoFrag = getGeometryFrag();
-    material.needsUpdate = true;
-    material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
+    g_material.needsUpdate = true;
+    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

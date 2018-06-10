@@ -1,20 +1,28 @@
+//-------------------------------------------------------
+// Global Variables
+//-------------------------------------------------------
+var g_effect;
+var g_virtCamera;
+var g_material;
+var g_controls;
+var g_geometry;
+var g_rotation;
+var g_leftEyeRotation;
+var g_rightEyeRotation;
+var g_currentBoost;
+var g_leftCurrentBoost;
+var g_rightCurrentBoost;
+var g_controllers = [];
+
+//-------------------------------------------------------
+// Scene Variables
+//-------------------------------------------------------
 var scene;
 var renderer;
-var effect;
 var camera;
-var virtCamera;
 var mesh;
 var geom;
-var material;
-var controls;
 var maxSteps = 50;
-var geometry;
-var leftEyeRotation;
-var rightEyeRotation;
-var currentBoost;
-var leftCurrentBoost;
-var rightCurrentBoost;
-var targetFPS = {value:27.5};
 var textFPS;
 var time;
 
@@ -37,7 +45,7 @@ var fps = {
 	}
 }
 var fpsLog = new Array(10);
-fpsLog.fill(targetFPS.value);
+fpsLog.fill(g_targetFPS.value);
 
 function average(input)
 {
@@ -64,7 +72,7 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 
 	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
 	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	 var newVal = Math.pow((averageFPS / targetFPS.value), (1 / 20)) * lastMaxSteps;
+	 var newVal = Math.pow((averageFPS / g_targetFPS.value), (1 / 20)) * lastMaxSteps;
 	 var diff = newVal - lastMaxSteps;
 	 if(Math.abs( m_stepAccum ) < 1)
 	 {
@@ -95,7 +103,7 @@ var invGens;
 var hCDP = [];
 
 var initValues = function(g){
-	geometry = g;
+	g_geometry = g;
 	var invHCWK = 1.0/hCWK;
 	hCDP[0] = lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0));
 	hCDP[1] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0));
@@ -105,12 +113,12 @@ var initValues = function(g){
 }
 
 var createGenerators = function(g){
-  var gen0 = translateByVector(g,new THREE.Vector3( 2.0*hCWH, 0.0, 0.0));
-  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH, 0.0, 0.0));
-  var gen2 = translateByVector(g,new THREE.Vector3(0.0,  2.0*hCWH, 0.0));
-  var gen3 = translateByVector(g,new THREE.Vector3(0.0, -2.0*hCWH, 0.0));
-  var gen4 = translateByVector(g,new THREE.Vector3(0.0, 0.0,  2.0*hCWH));
-  var gen5 = translateByVector(g,new THREE.Vector3(0.0, 0.0, -2.0*hCWH));
+  var gen0 = translateByVector(g,new THREE.Vector3(2.0*hCWH,0.0,0.0));
+  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH,0.0,0.0));
+  var gen2 = translateByVector(g,new THREE.Vector3(0.0,2.0*hCWH,0.0));
+  var gen3 = translateByVector(g,new THREE.Vector3(0.0,-2.0*hCWH,0.0));
+  var gen4 = translateByVector(g,new THREE.Vector3(0.0,0.0,2.0*hCWH));
+  var gen5 = translateByVector(g,new THREE.Vector3(0.0,0.0,-2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
@@ -127,12 +135,12 @@ var lightIntensities = [];
 var attnModel = 1;
 var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
-  lightIntensities.push(new THREE.Vector4(1.0,0.98,0.847,10.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,-1), 1.2));
-  lightIntensities.push(new THREE.Vector4(1.0,0.937,0.847,1.0));
+  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(1,0,0), 1.2));
+  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
-  lightIntensities.push(new THREE.Vector4(1.0,0.988,0.757,1.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,-1,0), 3.0));
+  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
+  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(-1,-1,-1), 1.0));
 	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
 	for(var i = 3; i<8; i++){
 		lightPositions.push(new THREE.Vector4(0,0,0,1));
@@ -170,20 +178,23 @@ var init = function(){
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
-  effect = new THREE.VREffect(renderer);
-  effect.setSize(window.innerWidth, window.innerHeight);
+  g_effect = new THREE.VREffect(renderer);
+  g_effect.setSize(window.innerWidth, window.innerHeight);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
-  virtCamera.position.z = 0.1;
+  g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
+  g_virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
-  controls = new THREE.VRControls(virtCamera);
-  currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
+  g_controls = new THREE.VRControls();
+  g_controllers.push(new THREE.ViveController(0));
+  g_controllers.push(new THREE.ViveController(1));
+  g_rotation = new THREE.Quaternion();
+  g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
-  geometry = Geometry.Hyperbolic; // we start off hyperbolic
-	initValues(geometry);
+  g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
+	initValues(g_geometry);
   initLights();
-  initObjects(geometry);
+  initObjects(g_geometry);
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
   loadShaders();
@@ -231,21 +242,21 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
 
 var finishInit = function(fShader){
 //  console.log(fShader);
-  material = new THREE.ShaderMaterial({
+  g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      cameraProjection:{type:"m4", value:virtCamera.projectionMatrix},
+      cameraProjection:{type:"m4", value:g_virtCamera.projectionMatrix},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
-      cameraPos:{type:"v3", value:virtCamera.position},
-      cameraQuat:{type:"v4", value:virtCamera.quaternion},
-      fov:{type:"f", value:virtCamera.fov},
+      cameraPos:{type:"v3", value:g_virtCamera.position},
+      cameraQuat:{type:"v4", value:g_virtCamera.quaternion},
+      fov:{type:"f", value:g_virtCamera.fov},
       generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGens},
-      currentBoost:{type:"m4", value:currentBoost},
-      leftCurrentBoost:{type:"m4", value:leftCurrentBoost},
-      rightCurrentBoost:{type:"m4",value:rightCurrentBoost},
-      leftEyeRotation:{type:"v4", value:leftEyeRotation},
-      rightEyeRotation:{type:"v4", value:rightEyeRotation},
+      currentBoost:{type:"m4", value:g_currentBoost},
+      leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
+      rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
+      leftEyeRotation:{type:"v4", value:g_leftEyeRotation},
+      rightEyeRotation:{type:"v4", value:g_rightEyeRotation},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
@@ -259,11 +270,11 @@ var finishInit = function(fShader){
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
-	  	cut4:{type:"i", value:cut4},
-      sphereRad:{type:"f", value:sphereRad},
-      tubeRad:{type:"f", value:tubeRad},
-      horosphereSize:{type:"f", value:horosphereSize},
-      planeOffset:{type:"f", value:planeOffset}
+	  	cut4:{type:"i", value:g_cut4},
+      sphereRad:{type:"f", value:g_sphereRad},
+      tubeRad:{type:"f", value:g_tubeRad},
+      horosphereSize:{type:"f", value:g_horospherSize},
+      planeOffset:{type:"f", value:g_planeOffset}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,
@@ -283,7 +294,7 @@ var finishInit = function(fShader){
     -1.0,  1.0, 0.0
   ]);
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
-  mesh = new THREE.Mesh(geom, material);
+  mesh = new THREE.Mesh(geom, g_material);
   scene.add(mesh);
   animate();
 }
@@ -292,11 +303,11 @@ var finishInit = function(fShader){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  controls.update();
+  g_controls.update();
 	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
-  material.uniforms.maxSteps.value = maxSteps;
-  effect.render(scene, camera, animate);
+  g_material.uniforms.maxSteps.value = maxSteps;
+  g_effect.render(scene, camera, animate);
 }
 
 //-------------------------------------------------------
@@ -308,10 +319,10 @@ init();
 // Event listeners
 //-------------------------------------------------------
 var onResize = function(){
-  effect.setSize(window.innerWidth, window.innerHeight);
-  if(material != null){
-    material.uniforms.screenResolution.value.x = window.innerWidth;
-    material.uniforms.screenResolution.value.y = window.innerHeight;
+  g_effect.setSize(window.innerWidth, window.innerHeight);
+  if(g_material != null){
+    g_material.uniforms.screenResolution.value.x = window.innerWidth;
+    g_material.uniforms.screenResolution.value.y = window.innerHeight;
   }
 }
 window.addEventListener('resize', onResize, false);

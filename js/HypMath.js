@@ -4,6 +4,11 @@ THREE.Matrix4.prototype.add = function (m) {
   this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
+function zeroMatrix4Rotation(mat){
+	var matFinal = new THREE.Matrix4();
+	return matFinal;
+}
+
 function areSameMatrix(mat1, mat2) {  //look only at last column - center of cell
 	var delta = 0.01;
 	for (var coord=3; coord<16; coord+=4) {
@@ -84,35 +89,14 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
     }
 }
 
-function parabolicBy2DVector(v) {  ///  something is wrong here we think...
-  var dx = v.x; /// first make parabolic fixing point at infinity in pos z direction
-  var dy = v.y;
-  var m = new THREE.Matrix4().set(
-    0, 0, -dx, dx,
-    0, 0, -dy, dy,
-    dx, dy, 0, 0,
-    dx, dy, 0, 0);
-  var m2 = new THREE.Matrix4().copy(m).multiply(m);
-  m2.multiplyScalar(0.5);
-  var result = new THREE.Matrix4().identity();
-  result.add(m);
-  result.add(m2);
-  //now conjugate to get based on camera orientation
-  var cameraM = new THREE.Matrix4();
-  cameraM.makeRotationFromQuaternion(virtCamera.quaternion);
-  var cameraMinv = new THREE.Matrix4().getInverse(cameraM);
-
-  return cameraM.multiply(result).multiply(cameraMinv);
-}
-
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1).applyQuaternion(virtCamera.quaternion);
+  return new THREE.Vector3(0,0,1);//.applyQuaternion(g_rotation);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0).applyQuaternion(virtCamera.quaternion);
+  return new THREE.Vector3(-1,0,0);//.applyQuaternion(g_rotation);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0).applyQuaternion(virtCamera.quaternion);
+  return new THREE.Vector3(0,-1,0);//.applyQuaternion(g_rotation);
 }
 
 function clamp(input, min, max)
@@ -243,7 +227,7 @@ function fakeDist( v ){  //good enough for comparison of distances on the hyperb
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-function fixOutsideCentralCell( mat ) {
+function fixOutsideCentralCell( mat ) { 
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
 	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
 	var bestDist = fakeDist(cPos);
@@ -257,9 +241,8 @@ function fixOutsideCentralCell( mat ) {
 	}
 	if (bestIndex != -1){
 		mat = mat.multiply(gens[bestIndex]);
-    return bestIndex;
+    	return bestIndex;
 	}
     else
-    return -1;
-
+		return -1;
 }

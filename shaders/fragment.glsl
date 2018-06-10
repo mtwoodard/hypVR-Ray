@@ -88,23 +88,25 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
     fragCoord.x = fragCoord.x - resolution.x;
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
-  float z = 0.1;
-  vec3 pPre;
+  float z = 0.1/tan(radians(fov*0.5));
+  /*vec3 pPre;
   vec3 pPrePre;
   if(isStereo != 0){
     if(isStereo == -1){
-       pPrePre = qtransform(leftEyeRotation, vec3(-xy,z));
+      z = z/tan(radians(fov*0.5));
+      pPrePre = qtransform(leftEyeRotation, vec3(-xy,z)); 
     }
     else{
-       pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
+      z = z/tan(radians(fov*0.5));
+      pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
     }
      pPre = qtransform(cameraQuat, pPrePre);
   }
   else{
      z = 0.1/tan(radians(fov*0.5));
      pPre = qtransform(cameraQuat, vec3(-xy,z));
-  }
-  vec4 p =  lorentzNormalize(vec4(pPre, 1.0));
+  }*/
+  vec4 p =  lorentzNormalize(vec4(-xy,z,1.0));
   return p;
 }
 
@@ -201,7 +203,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
-    float ambient = 0.02;
+    float ambient = 0.1;
     vec3 baseColor = vec3(0.0,1.0,1.0);
     if(isGlobal)
       baseColor = texcube(texture, samplePoint, N, 4.0, cellBoost * invObjectBoost).xyz;
@@ -221,6 +223,8 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
           att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);      
         else if(attnModel == 3) //Physical
           att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
+        else if(attnModel == 4) // Inverse Cube
+          att = 1.0/ (0.01+lightIntensities[i].w*distToLight*distToLight*distToLight);
         else //None
           att  = 0.25; //if its actually 1 everything gets washed out
         vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);

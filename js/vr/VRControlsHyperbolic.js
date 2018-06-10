@@ -89,7 +89,6 @@ THREE.VRControls = function(done){
             deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
                 getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
                 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
-            console.log(deltaPosition);
         }
         if(deltaPosition !== undefined){
             m = translateByVector(g_geometry, deltaPosition);
@@ -142,17 +141,13 @@ THREE.VRControls = function(done){
             if(vrInput.getState !== undefined){ 
                 orientation.fromArray(vrInput.getState().orientation);
 				pos.fromArray(vrInput.getState().position);
-				//pos.applyQuaternion(orientation);
             }
             else{
                 var framedata = new VRFrameData();
 				vrInput.getFrameData(framedata);
 				if(framedata.pose.orientation !== null  && framedata.pose.position !== null){
-                    //console.log(framedata.pose.orientation);
                     orientation.fromArray(framedata.pose.orientation);
-                    //console.log(orientation);
                     pos.fromArray(framedata.pose.position);
-					//pos.applyQuaternion(orientation);
 				}
             }
         }

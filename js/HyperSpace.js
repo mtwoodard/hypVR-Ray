@@ -78,13 +78,11 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 	 {
 		  m_stepAccum += diff;
 		  m_stepAccum *= m_stepDamping;
-		  //console.log(m_stepAccum);
 		  return lastMaxSteps;
 	 }
 
 	 newVal = lastMaxSteps + m_stepAccum;
 	 newVal = Math.round(clamp(newVal, 31, 127));
-	 //console.log("updating maxSteps to " + newVal);
 	 m_stepAccum = 0;
 	 return newVal;
   }

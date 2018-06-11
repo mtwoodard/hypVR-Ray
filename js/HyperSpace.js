@@ -12,7 +12,6 @@ var g_rightEyeRotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
-var g_controllers = [];
 
 //-------------------------------------------------------
 // Scene Variables
@@ -183,8 +182,6 @@ var init = function(){
   g_virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   g_controls = new THREE.VRControls();
-  g_controllers.push(new THREE.ViveController(0));
-  g_controllers.push(new THREE.ViveController(1));
   g_rotation = new THREE.Quaternion();
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
@@ -300,6 +297,7 @@ var animate = function(){
   g_controls.update();
 	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
+  THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
   g_effect.render(scene, camera, animate);
 }
@@ -320,3 +318,18 @@ var onResize = function(){
   }
 }
 window.addEventListener('resize', onResize, false);
+
+var onControllerConnected = function(event){
+  var controller = event.detail;  
+  controller.addEventListener('primary press began', function(event){
+
+  });
+  controller.addEventListener('primary press ended', function(event){
+
+  });
+  controller.addEventListener('disconnected', function(event){
+    controller.parent.remove(controller);
+  });
+}
+
+window.addEventListener('vr controller connected', onControllerConnected)

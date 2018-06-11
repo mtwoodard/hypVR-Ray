@@ -78,8 +78,7 @@ THREE.VRControls = function(done){
         //--------------------------------------------------------------------
         // Translation
         //--------------------------------------------------------------------
-        var deltaTime = (newTime - oldTime) * 0.001; 
-        var m;
+        var deltaTime = (newTime - oldTime) * 0.001;
         var deltaPosition = new THREE.Vector3();
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
             var quat = new THREE.Quaternion().copy(vrState.hmd.rotation).inverse();
@@ -91,7 +90,7 @@ THREE.VRControls = function(done){
                 getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
-            m = translateByVector(g_geometry, deltaPosition);
+            var m = translateByVector(g_geometry, deltaPosition);
             g_currentBoost.premultiply(m);
         }
         var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell

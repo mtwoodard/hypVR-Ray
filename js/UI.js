@@ -76,10 +76,11 @@ function updateUniformsFromUI()
 	// If so, update the shader.
 	if( g != g_geometry )
 	{
-    g_geometry = g;
+		g_geometry = g;
 		var geoFrag = getGeometryFrag();
 		g_material.needsUpdate = true;
 		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+		g_currentBoost = new THREE.Matrix4();
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.

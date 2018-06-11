@@ -79,7 +79,6 @@ vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
   return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
 }
 
-
 vec4 getRay(vec2 resolution, vec2 fragCoord){
   if(isStereo != 0){
     resolution.x = resolution.x/2.0;
@@ -89,23 +88,6 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
-  /*vec3 pPre;
-  vec3 pPrePre;
-  if(isStereo != 0){
-    if(isStereo == -1){
-      z = z/tan(radians(fov*0.5));
-      pPrePre = qtransform(leftEyeRotation, vec3(-xy,z)); 
-    }
-    else{
-      z = z/tan(radians(fov*0.5));
-      pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
-    }
-     pPre = qtransform(cameraQuat, pPrePre);
-  }
-  else{
-     z = 0.1/tan(radians(fov*0.5));
-     pPre = qtransform(cameraQuat, vec3(-xy,z));
-  }*/
   vec4 p =  lorentzNormalize(vec4(-xy,z,1.0));
   return p;
 }
@@ -217,14 +199,14 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
         vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
         float distToLight = hypDistance(translatedLightPosition, samplePoint);
         float att;
-        if(attnModel == 1) //Inverse Square
+        if(attnModel == 1) //Inverse Linear
+          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);  
+        else if(attnModel == 2) //Inverse Square
           att  = 1.0/ (0.01+lightIntensities[i].w * distToLight* distToLight);
-        else if(attnModel == 2) //Linear
-          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);      
-        else if(attnModel == 3) //Physical
-          att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
         else if(attnModel == 4) // Inverse Cube
           att = 1.0/ (0.01+lightIntensities[i].w*distToLight*distToLight*distToLight);
+        else if(attnModel == 3) //Physical
+          att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
         else //None
           att  = 0.25; //if its actually 1 everything gets washed out
         vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);
@@ -276,24 +258,16 @@ void main(){
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    //vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
-    //gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
-    gl_FragColor = vec4(0.0); //better shows off lighting effects
+    gl_FragColor = vec4(0.0);
     return;
   }
   else if(hitWhich == 1){ // global lights
-    //vec4 N = estimateNormal(globalEndPoint, hitWhich);
     gl_FragColor = vec4(globalLightColor.rgb, 1.0);
-    //float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    //gl_FragColor = vec4(globalLightColor*cameraLightMatteShade,1.0);
     return;
   }
   else if(hitWhich == 2){ // global objects
     vec4 N = estimateNormal(globalEndPoint, hitWhich);
     vec3 color = phongModel(globalEndPoint, globalEndTangentVector, N,  mat4(1.0), invGlobalObjectBoosts[0], true);
-    //color = (globalEndPoint*cellBoost).rgb;
-    //color = N.rgb;
-    //color = texcube(texture, globalEndPoint, N, 4.0, cellBoost * invGlobalObjectBoosts[0]).xyz;
     gl_FragColor = vec4(color, 1.0);
     return;
   }

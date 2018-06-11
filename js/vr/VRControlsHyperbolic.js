@@ -97,9 +97,9 @@ THREE.VRControls = function(done){
         var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell
         g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
         if(fixIndex !== -1){
-            cellBoost = cellBoost.premultiply(invGens[fixIndex]); //keeps track of how many cells we've moved 
-            cellBoost.elements = gramSchmidt(g_geometry, cellBoost.elements);
-            invCellBoost.getInverse(cellBoost);
+           cellBoost = cellBoost.premultiply(invGens[fixIndex]); //keeps track of how many cells we've moved 
+           cellBoost.elements = gramSchmidt(g_geometry, cellBoost.elements);
+           invCellBoost.getInverse(cellBoost);
         }
 
         //--------------------------------------------------------------------

@@ -76,7 +76,7 @@ function updateUniformsFromUI()
 	// If so, update the shader.
 	if( g != g_geometry )
 	{
-		g_geometry = g;
+    g_geometry = g;
 		var geoFrag = getGeometryFrag();
 		g_material.needsUpdate = true;
 		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
@@ -139,7 +139,7 @@ var initGui = function(){
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
-  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, InverseCube:4, None:5}).name("Light Falloff");
+  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -203,7 +203,7 @@ var initGui = function(){
   });
 
   sceneController.onFinishChange(function(index){
-	var geoFrag = getGeometryFrag();
+	  var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });

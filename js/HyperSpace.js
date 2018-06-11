@@ -243,12 +243,8 @@ var finishInit = function(fShader){
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      cameraProjection:{type:"m4", value:g_virtCamera.projectionMatrix},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
-      cameraPos:{type:"v3", value:g_virtCamera.position},
-      cameraQuat:{type:"v4", value:g_virtCamera.quaternion},
       fov:{type:"f", value:g_virtCamera.fov},
-      generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
       leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},

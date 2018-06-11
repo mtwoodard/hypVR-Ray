@@ -15,18 +15,15 @@ const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWid
 //Global Constants
 //--------------------------------------------
 uniform int isStereo;
-uniform mat4 cameraProjection;
 uniform vec2 screenResolution;
-uniform vec4 cameraQuat;
 uniform float fov;
-uniform mat4 generators[6];
 uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
 uniform mat4 leftCurrentBoost;
 uniform mat4 rightCurrentBoost;
-uniform vec4 leftEyeRotation;
-uniform vec4 rightEyeRotation;
-uniform mat4 cellBoost;
+uniform vec4 leftEyeRotation; //May be removed in the near future
+uniform vec4 rightEyeRotation; //May be removed in the near future
+uniform mat4 cellBoost; 
 uniform mat4 invCellBoost;
 uniform int maxSteps;
 //--------------------------------------------
@@ -64,4 +61,3 @@ vec3 qtransform( vec4 q, vec3 v ){
 float unionSDF(float d1, float d2){
   return min(d1, d2);
 }
-

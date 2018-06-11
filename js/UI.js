@@ -117,7 +117,6 @@ function updateUniformsFromUI()
 	g_planeOffset = distToMidEdge;
 
 	initValues(g);
-	g_material.uniforms.generators.value = gens;
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
 	g_material.uniforms.halfCubeWidthKlein.value = hCWK;

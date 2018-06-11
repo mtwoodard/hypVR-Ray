@@ -122,4 +122,55 @@ float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 
   float plane1 = max(abs(geodesicPlaneHSDF(samplePoint, dualPoint1, 0.0))-offsets.y,0.0); 
   float plane2 = max(abs(geodesicPlaneHSDF(samplePoint, dualPoint2, 0.0))-offsets.z,0.0);
   return sqrt(plane0*plane0+plane1*plane1+plane2*plane2) - 0.01; 
-} //make sure to comment this
+} 
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
+  vec4 newSP = samplePoint * toOrigin;
+  vec3 p = mod(newSP.xyz,1.0);
+  vec3 n = lorentzNormalize(N*toOrigin).xyz; //Very hacky you are warned
+  vec3 m = pow(abs(n), vec3(k));
+  vec4 x = texture2D(tex, p.yz);
+  vec4 y = texture2D(tex, p.zx);
+  vec4 z = texture2D(tex, p.xy);
+  return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
+}
+
+vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
+    float ambient = 0.1;
+    vec3 baseColor = vec3(0.0,1.0,1.0);
+    if(isGlobal)
+      baseColor = texcube(texture, samplePoint, N, 4.0, cellBoost * invObjectBoost).xyz;
+    else
+      baseColor = texcube(texture, samplePoint, N, 4.0, mat4(1.0)).xyz;
+    vec3 color = baseColor * ambient; //Setup up color with ambient component
+    for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
+      if(lightIntensities[i] != vec4(0.0)){
+        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
+        float distToLight = hypDistance(translatedLightPosition, samplePoint);
+        float att;
+        if(attnModel == 1) //Inverse Linear
+          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);  
+        else if(attnModel == 2) //Inverse Square
+          att  = 1.0/ (0.01+lightIntensities[i].w * distToLight* distToLight);
+        else if(attnModel == 4) // Inverse Cube
+          att = 1.0/ (0.01+lightIntensities[i].w*distToLight*distToLight*distToLight);
+        else if(attnModel == 3) //Physical
+          att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
+        else //None
+          att  = 0.25; //if its actually 1 everything gets washed out
+        vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);
+        vec4 R = 2.0*lorentzDot(L, N)*N - L;
+        //Calculate Diffuse Component
+        float nDotL = max(-lorentzDot(N, L),0.0);
+        vec3 diffuse = lightIntensities[i].rgb * nDotL;
+        //Calculate Specular Component
+        float rDotT = max(lorentzDot(R, T),0.0);
+        vec3 specular = lightIntensities[i].rgb * pow(rDotT,10.0);
+        //Compute final color
+        color += att*((diffuse*baseColor) + specular);
+      }
+    }
+    return color;
+}

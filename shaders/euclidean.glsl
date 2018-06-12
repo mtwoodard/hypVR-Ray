@@ -98,9 +98,9 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
     vec3 color = baseColor * ambient; //Setup up color with ambient component
     for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
       if(lightIntensities[i] != vec4(0.0)){
-        //vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
+        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
 
-        float distToLight = distance(lightPositions[i], samplePoint);
+        float distToLight = distance(translatedLightPosition, samplePoint);
         float att;
         if(attnModel == 1) //Inverse Linear
           att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);  

@@ -54,7 +54,7 @@ function translateByVectorEuclidean(v) {
 	  1.0, 0, 0, 0,
 	  0, 1.0, 0, 0,
 	  0, 0, 1.0, 0,
-	  dx, dy, dz, 1.0 );
+	  dx, dy, dz, 1.0 );	
 	return m;
 }
 

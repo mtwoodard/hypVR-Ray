@@ -37,6 +37,8 @@ THREE.VREffect = function ( renderer, done ) {
 			if(guiInfo.rotateEyes){
 				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
 				g_rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(g_leftEyeRotation));
+				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(g_rightEyeRotation));
 			}
 			else {
 				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);

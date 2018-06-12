@@ -74,13 +74,13 @@ function updateUniformsFromUI()
 
 	// Check to see if the geometry has changed.
 	// If so, update the shader.
-	if( g != g_geometry )
+	if( g !== g_geometry )
 	{
 		g_geometry = g;
 		var geoFrag = getGeometryFrag();
 		g_material.needsUpdate = true;
 		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
-		g_currentBoost = new THREE.Matrix4();
+    g_currentBoost.identity();
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -196,10 +196,7 @@ var initGui = function(){
   });
 
   rotateController.onFinishChange(function(value) {
-    g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-    g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
-    g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
-    updateUniformsFromUI();
+    updateEyes();
   });
 
   sceneController.onFinishChange(function(index){

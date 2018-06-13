@@ -147,7 +147,7 @@ var initGui = function(){
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
   debugFolder.add(g_targetFPS, 'value', 15, 90).name("Target FPS");
-  stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
+  var switchToStereo = stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
   var rotateController = stereoFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
   var pupilDistanceController = stereoFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
 
@@ -177,17 +177,44 @@ var initGui = function(){
 
   debugUIController.onFinishChange(function(value){
     var crosshair = document.getElementById("crosshair");
+    var crosshairLeft = document.getElementById("crosshairLeft");
+    var crosshairRight = document.getElementById("crosshairRight");
     var fps = document.getElementById("fps");
     var about = document.getElementById("about");
     if(value){
       about.style.visibility = 'visible';
       fps.style.visibility = 'visible';
-      crosshair.style.visibility = 'visible';
+      if(guiInfo.toggleStereo){
+        crosshairLeft.style.visibility = 'visible';
+        crosshairRight.style.visibility = 'visible';
+      }
+      else
+        crosshair.style.visibility = 'visible';
     }
     else{
       about.style.visibility = 'hidden';
       fps.style.visibility = 'hidden';
-      crosshair.style.visibility = "hidden"
+      crosshair.style.visibility = 'hidden';
+      crosshairLeft.style.visibility = 'hidden';
+      crosshairRight.style.visibility = 'hidden';
+    }
+  });
+
+  switchToStereo.onFinishChange(function(value){
+    var crosshair = document.getElementById("crosshair");
+    var crosshairLeft = document.getElementById("crosshairLeft");
+    var crosshairRight = document.getElementById("crosshairRight");
+    if(guiInfo.toggleUI){
+      if(value){
+        crosshairLeft.style.visibility = 'visible';
+        crosshairRight.style.visibility = 'visible';
+        crosshair.style.visibility = 'hidden';
+      }
+      else{
+        crosshairLeft.style.visibility = 'hidden';
+        crosshairRight.style.visibility = 'hidden';
+        crosshair.style.visibility = 'visible';
+      }
     }
   });
 

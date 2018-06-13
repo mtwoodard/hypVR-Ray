@@ -93,6 +93,7 @@ THREE.VREffect = function ( renderer, done ) {
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
 					//guiInfo.rotateEyes = true;
+					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;
@@ -121,7 +122,8 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					guiInfo.rotateEyes = true;
+					//guiInfo.rotateEyes = true;
+					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
 					self.rightEyeFOV = parametersRight.recommendedFieldOfView;

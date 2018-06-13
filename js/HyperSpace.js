@@ -153,7 +153,7 @@ var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
 var initObjects = function(g){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(0.5,0,0)));
+  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(-0.5,0,0)));
   globalObjectBoosts.push(objMat);
   invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));

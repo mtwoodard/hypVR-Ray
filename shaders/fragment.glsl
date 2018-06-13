@@ -77,7 +77,7 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
-  vec4 p =  lorentzNormalize(vec4(-xy,z,1.0));
+  vec4 p =  lorentzNormalize(vec4(xy,z,1.0));
   return p;
 }
 

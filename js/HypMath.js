@@ -93,10 +93,10 @@ function getFwdVector() {
   return new THREE.Vector3(0,0,1);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0);
+  return new THREE.Vector3(1,0,0);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0);
+  return new THREE.Vector3(0,1,0);
 }
 
 function clamp(input, min, max)

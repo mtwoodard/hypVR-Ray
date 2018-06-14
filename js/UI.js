@@ -78,7 +78,8 @@ function updateUniformsFromUI()
 	{
 		g_geometry = g;
 		var geoFrag = getGeometryFrag();
-		g_material.needsUpdate = true;
+    g_material.needsUpdate = true;
+    g_material.uniforms.geometry.value = g;
 		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
     g_currentBoost.identity();
 	}

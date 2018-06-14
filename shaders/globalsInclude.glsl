@@ -15,6 +15,7 @@ const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWid
 //Global Constants
 //--------------------------------------------
 uniform int isStereo;
+uniform int geometry;
 uniform vec2 screenResolution;
 uniform float fov;
 uniform mat4 invGenerators[6];

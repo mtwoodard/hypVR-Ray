@@ -240,6 +240,7 @@ var finishInit = function(fShader){
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
+      geometry:{type: "i", value: 3},
       screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
       fov:{type:"f", value:g_virtCamera.fov},
       invGenerators:{type:"m4v", value:invGens},

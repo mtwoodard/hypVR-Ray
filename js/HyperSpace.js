@@ -308,30 +308,3 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 init();
-
-//-------------------------------------------------------
-// Event listeners
-//-------------------------------------------------------
-var onResize = function(){
-  g_effect.setSize(window.innerWidth, window.innerHeight);
-  if(g_material != null){
-    g_material.uniforms.screenResolution.value.x = window.innerWidth;
-    g_material.uniforms.screenResolution.value.y = window.innerHeight;
-  }
-}
-window.addEventListener('resize', onResize, false);
-
-var onControllerConnected = function(event){
-  var controller = event.detail;  
-  controller.addEventListener('primary press began', function(event){
-
-  });
-  controller.addEventListener('primary press ended', function(event){
-
-  });
-  controller.addEventListener('disconnected', function(event){
-    controller.parent.remove(controller);
-  });
-}
-
-window.addEventListener('vr controller connected', onControllerConnected)

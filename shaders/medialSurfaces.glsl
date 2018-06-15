@@ -10,7 +10,7 @@ float localSceneHSDF(vec4 samplePoint){
     if(samplePoint.x < samplePoint.y){
       samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
     }
-    vec4 dualPoint1 = lorentzNormalize(halfCubeDualPoints[1] - lorentzDot(halfCubeDualPoints[1], halfCubeDualPoints[0]) * halfCubeDualPoints[0]);
+    vec4 dualPoint1 = geometryNormalize(halfCubeDualPoints[1] - geometryDot(halfCubeDualPoints[1], halfCubeDualPoints[0]) * halfCubeDualPoints[0]);
     float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, halfCubeDualPoints[0], dualPoint1, 0.0);
 
     vec4 lightPoint1 = (1.0/sqrt(2.0))*vec4(1.0,0.0,0.0,1.0);

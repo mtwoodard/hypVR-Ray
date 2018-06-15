@@ -24,9 +24,9 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
         objDist = sphereHSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
       }
       /*else if(globalObjectTypes[i] == 1){ //cuboid
-        vec4 dual0 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
-        vec4 dual1 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
-        vec4 dual2 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
+        vec4 dual0 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
+        vec4 dual1 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
+        vec4 dual2 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
         objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, globalObjectRadii[i]);
       }*/
       else{ //not an object
@@ -47,20 +47,20 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
     vec4 throwAway = vec4(0.0);
     int throwAlso = 0;
     float newEp = EPSILON * 10.0;
-    vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
+    vec4 basis_x = geometryNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
-    basis_y = lorentzNormalize(basis_y - lorentzDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
-    basis_z = lorentzNormalize(basis_z - lorentzDot(basis_z, basis_x)*basis_x - lorentzDot(basis_z, basis_y)*basis_y);
+    basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
+    basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y);
     if(sceneType == 1 || sceneType == 2){ //global light scene
-      return lorentzNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
+      return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
           basis_x * (globalSceneHSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_x, throwAway, throwAlso)) +
           basis_y * (globalSceneHSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_y, throwAway, throwAlso)) +
           basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso))
       );
     }
     else{ //local scene
-      return lorentzNormalize(
+      return geometryNormalize(
           basis_x * (localSceneHSDF(p + newEp*basis_x) - localSceneHSDF(p - newEp*basis_x)) +
           basis_y * (localSceneHSDF(p + newEp*basis_y) - localSceneHSDF(p - newEp*basis_y)) +
           basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z))
@@ -77,7 +77,7 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
-  vec4 p =  lorentzNormalize(vec4(xy,z,1.0));
+  vec4 p =  geometryNormalize(vec4(xy,z,1.0));
   return p;
 }
 
@@ -134,9 +134,9 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     if(isOutsideCell(localSamplePoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
       vec4 newDirection = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
-      localrO = lorentzNormalize(localSamplePoint*fixMatrix);
-      newDirection = lorentzNormalize(newDirection*fixMatrix);
-      localrD = directionFrom2Points(localrO,newDirection);
+      localrO = geometryNormalize(localSamplePoint*fixMatrix);
+      newDirection = geometryNormalize(newDirection*fixMatrix);
+      localrD = geometryDirection(localrO,newDirection);
       localDepth = MIN_DIST;
     }
     else{
@@ -187,7 +187,7 @@ void main(){
   rayOrigin *= currentBoost;
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
-  vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
+  vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint,
     globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,

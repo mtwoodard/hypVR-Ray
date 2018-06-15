@@ -92,6 +92,9 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
+					var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
+					var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
+					renderer.setSize(w,h);
 					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
@@ -122,6 +125,9 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
+					var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
+					var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
+					renderer.setSize(w,h);
 					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
@@ -169,8 +175,6 @@ THREE.VREffect = function ( renderer, done ) {
 			this.renderStereo.apply( this, [scene, camera] );
 			return;
 		}
-
-
 
 		if ( guiInfo.toggleStereo ) { //change this to true to debug stereo render
 			fixLeaveStereo = true;

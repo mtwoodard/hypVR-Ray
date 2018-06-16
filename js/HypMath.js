@@ -90,7 +90,7 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1);
+  return new THREE.Vector3(0,0,-1);
 }
 function getRightVector() {
   return new THREE.Vector3(1,0,0);

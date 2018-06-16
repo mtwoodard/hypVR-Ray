@@ -81,7 +81,7 @@ THREE.VRControls = function(done){
         var deltaTime = (newTime - oldTime) * 0.001;
         var deltaPosition = new THREE.Vector3();
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
-            var quat = new THREE.Quaternion().copy(vrState.hmd.rotation).inverse();
+            var quat = vrState.hmd.rotation.clone().inverse();
             deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat);
         }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
@@ -110,14 +110,14 @@ THREE.VRControls = function(done){
         deltaRotation.normalize();
         if(deltaRotation !== undefined){
             g_rotation.multiply(deltaRotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
+            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
             g_currentBoost.premultiply(m);
         }
 
         if(vrState !== null && vrState.hmd.lastRotation !== undefined){
             rotation = vrState.hmd.rotation;
             deltaRotation.multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
-            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation);
+            m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
             g_currentBoost.premultiply(m);
         }
 

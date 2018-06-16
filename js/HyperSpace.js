@@ -12,6 +12,7 @@ var g_rightEyeRotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
+var g_screenResolution;
 
 //-------------------------------------------------------
 // Scene Variables
@@ -175,8 +176,8 @@ var init = function(){
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
+  g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
   g_effect = new THREE.VREffect(renderer);
-  g_effect.setSize(window.innerWidth, window.innerHeight);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   g_virtCamera.position.z = 0.1;
@@ -241,7 +242,7 @@ var finishInit = function(fShader){
     uniforms:{
       isStereo:{type: "i", value: 0},
       geometry:{type: "i", value: 3},
-      screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
+      screenResolution:{type:"v2", value:g_screenResolution},
       fov:{type:"f", value:g_virtCamera.fov},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
@@ -272,6 +273,7 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
+  g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
   //Setup a "quad" to render on-------------------------

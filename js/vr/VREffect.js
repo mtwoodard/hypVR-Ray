@@ -48,8 +48,8 @@ THREE.VREffect = function ( renderer, done ) {
 
 		// default some stuff for mobile VR
 		self.phoneVR = new PhoneVR();
-		self.leftEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
-		self.rightEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
+		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
 		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		//self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
@@ -92,9 +92,11 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
-					var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
-					renderer.setSize(w,h);
+					// var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
+					// var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
+					// var w = 2160;
+					// var h = 1200;
+					// g_screenResolution.x = w; g_screenResolution.y = h;
 					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
@@ -125,9 +127,9 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
-					var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
-					renderer.setSize(w,h);
+					//var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
+					//var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
+					//renderer.setSize(w,h);
 					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);

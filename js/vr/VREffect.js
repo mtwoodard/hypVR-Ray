@@ -92,6 +92,9 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
+					document.getElementById("crosshairLeft").style.visibility = 'visible';
+        			document.getElementById("crosshairRight").style.visibility = 'visible';
+        			document.getElementById("crosshair").style.visibility = 'hidden';
 					// var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
 					// var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
 					// var w = 2160;
@@ -127,9 +130,14 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					//var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
-					//var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
-					//renderer.setSize(w,h);
+					document.getElementById("crosshairLeft").style.visibility = 'visible';
+        			document.getElementById("crosshairRight").style.visibility = 'visible';
+        			document.getElementById("crosshair").style.visibility = 'hidden';
+					// var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
+					// var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
+					// var w = 2160;
+					// var h = 1200;
+					// g_screenResolution.x = w; g_screenResolution.y = h;
 					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);

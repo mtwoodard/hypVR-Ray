@@ -50,7 +50,8 @@ vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist)
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist)
 {
   // the negative here is to match what we do in hyperbolic.glsl
-  return -projectToKlein( u + vPrime*dist );
+  //return -projectToKlein( u + vPrime*dist );
+  return vPrime;
 }
 
 vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime)
@@ -90,6 +91,7 @@ float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset)
 
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
+    vec4 V = -T; //Viewer is in the direction of the negative ray tangent vector
     float ambient = 0.1;
     vec3 baseColor = vec3(0.0,1.0,1.0);
     if(isGlobal)
@@ -114,14 +116,14 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
         else //None
           att  = 0.25; //if its actually 1 everything gets washed out
 
-        vec4 L = geometryDirection(samplePoint, lightPositions[i]);
+        vec4 L = geometryDirection(samplePoint, translatedLightPosition);
         vec4 R = 2.0*dot(L, N)*N - L;
         //Calculate Diffuse Component
         float nDotL = max(dot(N, L),0.0);
         vec3 diffuse = lightIntensities[i].rgb * nDotL;
         //Calculate Specular Component
-        float rDotT = max(dot(R, T),0.0);
-        vec3 specular = lightIntensities[i].rgb * pow(rDotT,10.0);
+        float rDotV = max(dot(R, V),0.0);
+        vec3 specular = lightIntensities[i].rgb * pow(rDotV,10.0);
         //Compute final color
         color += att*((diffuse*baseColor) + specular);
       }

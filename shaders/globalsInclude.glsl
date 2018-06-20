@@ -133,16 +133,6 @@ float geometryDistance(vec4 u, vec4 v){
 // Lighting Functions
 //--------------------------------------------------------------------
 vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
-  //Euclidean
-  if(geometry == 2){
-    vec3 m = pow(abs(N.xyz), vec3(k));
-    vec4 x = texture2D(tex, samplePoint.yz);
-    vec4 y = texture2D(tex, samplePoint.zx);
-    vec4 z = texture2D(tex, samplePoint.xy);
-    return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
-  }
-  //Hyperbolic
-  else{
     vec4 newSP = samplePoint * toOrigin;
     vec3 p = mod(newSP.xyz,1.0);
     vec3 n = geometryNormalize(N*toOrigin).xyz; //Very hacky you are warned
@@ -151,7 +141,6 @@ vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
     vec4 y = texture2D(tex, p.zx);
     vec4 z = texture2D(tex, p.xy);
     return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
-  }
 }
 
 vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){

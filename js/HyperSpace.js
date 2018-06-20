@@ -273,6 +273,7 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
+  renderer.setPixelRatio(window.devicePixelRatio);
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();

@@ -110,7 +110,7 @@ vec4 geometryDirection(vec4 u, vec4 v){
 float geometryDot(vec4 u, vec4 v){
   //Euclidean
   if(geometry == 2){
-    return dot(u.xyz, v.xyz);
+    return dot(u, v);
   }
   //Hyperbolic
   else{
@@ -130,6 +130,9 @@ float geometryDistance(vec4 u, vec4 v){
   }
 }
 
+//--------------------------------------------------------------------
+// Lighting Functions
+//--------------------------------------------------------------------
 vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
   //Euclidean
   if(geometry == 2){
@@ -152,14 +155,43 @@ vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
   }
 }
 
-/*
-vec4 geometryNormalize(vec4 v){
-  //Euclidean
-  if(geometry == 2){
+vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
+    vec4 V = -T; //Viewer is in the direction of the negative ray tangent vector
+    float ambient = 0.1;
+    vec3 baseColor = vec3(0.0,1.0,1.0);
+    if(isGlobal)
+      baseColor = texcube(texture, samplePoint, N, 4.0, cellBoost * invObjectBoost).xyz; 
+    else
+      baseColor = texcube(texture, samplePoint, N, 4.0, mat4(1.0)).xyz; 
+    vec3 color = baseColor * ambient; //Setup up color with ambient component
+    for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
+      if(lightIntensities[i] != vec4(0.0)){
+        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
 
-  }
-  //Hyperbolic
-  else{
-    
-  }
-}*/
+        float distToLight = geometryDistance(translatedLightPosition, samplePoint);
+        float att;
+        if(attnModel == 1) //Inverse Linear
+          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);  
+        else if(attnModel == 2) //Inverse Square
+          att  = 1.0/ (0.01+lightIntensities[i].w * distToLight* distToLight);
+        else if(attnModel == 4) // Inverse Cube
+          att = 1.0/ (0.01+lightIntensities[i].w*distToLight*distToLight*distToLight);
+        else if(attnModel == 3) //Physical
+          att  = 1.0/ (0.01+lightIntensities[i].w*cos(2.0*distToLight)-1.0);
+        else //None
+          att  = 0.25; //if its actually 1 everything gets washed out
+
+        vec4 L = geometryDirection(samplePoint, translatedLightPosition);
+        vec4 R = 2.0*geometryDot(L, N)*N - L;
+        //Calculate Diffuse Component
+        float nDotL = max(geometryDot(N, L),0.0);
+        vec3 diffuse = lightIntensities[i].rgb * nDotL;
+        //Calculate Specular Component
+        float rDotV = max(geometryDot(R, V),0.0);
+        vec3 specular = lightIntensities[i].rgb * pow(rDotV,10.0);
+        //Compute final color
+        color += att*((diffuse*baseColor) + specular);
+      }
+    }
+    return color;
+}

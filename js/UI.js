@@ -34,8 +34,6 @@ function updateEyes(){
   g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
   g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
   g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-  g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
-  g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
   g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
   g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
 }

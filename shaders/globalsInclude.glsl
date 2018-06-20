@@ -22,8 +22,6 @@ uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
 uniform mat4 leftCurrentBoost;
 uniform mat4 rightCurrentBoost;
-uniform vec4 leftEyeRotation; //May be removed in the near future
-uniform vec4 rightEyeRotation; //May be removed in the near future
 uniform mat4 cellBoost; 
 uniform mat4 invCellBoost;
 uniform int maxSteps;
@@ -34,6 +32,7 @@ uniform vec4 lightPositions[8];
 uniform vec4 lightIntensities[8]; //w component is the light's attenuation
 uniform int attnModel;
 uniform sampler2D texture;
+uniform mat4 controllerBoosts[2];
 uniform mat4 globalObjectBoosts[8];
 uniform mat4 invGlobalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];

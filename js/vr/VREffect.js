@@ -32,17 +32,13 @@ THREE.VREffect = function ( renderer, done ) {
 
 		self.getEyeRotation = function(translationDistance){
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
-			g_leftEyeRotation = new THREE.Quaternion();
-			g_rightEyeRotation = new THREE.Quaternion();
+			var leftEyeRotation = new THREE.Quaternion();
+			var rightEyeRotation = new THREE.Quaternion();
 			if(guiInfo.rotateEyes){
-				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
-				g_rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
-				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(g_leftEyeRotation));
-				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(g_rightEyeRotation));
-			}
-			else {
-				g_leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
-				g_rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), 0.0);
+				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
+				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
+				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
+				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
 			}
 		}
 

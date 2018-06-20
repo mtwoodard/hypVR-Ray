@@ -7,12 +7,11 @@ var g_material;
 var g_controls;
 var g_geometry;
 var g_rotation;
-var g_leftEyeRotation;
-var g_rightEyeRotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
 var g_screenResolution;
+var g_controllerBoosts = [];
 
 //-------------------------------------------------------
 // Scene Variables
@@ -184,6 +183,8 @@ var init = function(){
   cameraOffset = new THREE.Vector3();
   g_controls = new THREE.VRControls();
   g_rotation = new THREE.Quaternion();
+  g_controllerBoosts.push(new THREE.Matrix4());
+  g_controllerBoosts.push(new THREE.Matrix4());
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
@@ -248,8 +249,6 @@ var finishInit = function(fShader){
       currentBoost:{type:"m4", value:g_currentBoost},
       leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
       rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
-      leftEyeRotation:{type:"v4", value:g_leftEyeRotation},
-      rightEyeRotation:{type:"v4", value:g_rightEyeRotation},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
@@ -257,6 +256,7 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
+      controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
@@ -303,6 +303,7 @@ var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
+  g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }
 

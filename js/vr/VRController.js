@@ -413,7 +413,7 @@ THREE.VRController.prototype.update = function(){
 	pose = gamepad.pose
 
 	if(this.lastPosition === undefined) this.lastPosition = new THREE.Vector3()
-
+	if(this.lastQuat === undefined) this.lastQuat = new THREE.Quaternion();
 	//  ORIENTATION.
 	//  Everyone should have this -- this is expected of 3DOF controllers.
 	//  If we don’t have it this could mean we’re in the process of losing tracking.
@@ -421,7 +421,13 @@ THREE.VRController.prototype.update = function(){
 	//  If somehow we never had orientation data it will use the default
 	//  THREE.Quaternion our controller’s Object3D was initialized with.
 
-	if( pose.orientation !== null ) this.quaternion.fromArray( pose.orientation )
+	if( pose.orientation !== null ){
+		if(this.quaternion !== null) this.lastQuat = this.quaternion;
+		this.quaternion.fromArray( pose.orientation )
+		var deltaRotation = new THREE.Quaternion().multiplyQuaternions(this.lastQuat.inverse(), this.quaternion);
+		var m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
+		g_controllerBoosts[gamepad.index].premultiply(m);
+	}
 
 
 	//  POSITION -- EXISTS!
@@ -432,7 +438,10 @@ THREE.VRController.prototype.update = function(){
 	if( pose.position !== null ){
 		if(this.position !== null) this.lastPosition = this.position
 		this.position.fromArray( pose.position )
-		this.matrix.compose( this.position, this.quaternion, this.scale )
+		var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPosition);
+		//this.matrix.compose( this.position, this.quaternion, this.scale )
+		var m = translateByVector(g_geometry, deltaPosition);
+		g_controllerBoosts[gamepad.index].premultiply(m);
 	}
 
 
@@ -463,14 +472,22 @@ THREE.VRController.prototype.update = function(){
 		this.armModel.setHeadOrientation( this.head.quaternion )
 		this.armModel.setControllerOrientation(( new THREE.Quaternion() ).fromArray( pose.orientation ))
 		this.armModel.update()
-		if(this.position !== null) this.lastPosition = this.position
-		this.position = this.armModel.getPose().position
-		this.matrix.compose(
+
+		if(this.quaternion !== null) this.lastQuat = this.quaternion;
+		if(this.position !== null) this.lastPosition = this.position;
+		this.position = this.armModel.getPose().position;
+		this.quaternion = this.armModel.getPose().orientation;
+
+		var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPosition);
+		var m = translateByVector(g_geometry, deltaPosition);
+		g_controllerBoosts[gamepad.index].premultiply(m);
+
+		/*this.matrix.compose(
 
 			this.armModel.getPose().position,
 			this.armModel.getPose().orientation,
 			this.scale
-		)
+		)*/
 
 
 	}

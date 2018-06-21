@@ -24,7 +24,7 @@ var onResize = function(){
   
     });
     controller.addEventListener('disconnected', function(event){
-      controller.parent.remove(controller);
+      //controller.parent.remove(controller);
     });
   }
   

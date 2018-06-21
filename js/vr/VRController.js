@@ -411,7 +411,6 @@ THREE.VRController.prototype.update = function(){
 	var
 	gamepad = this.gamepad,
 	pose = gamepad.pose
-
 	if(this.lastPosition === undefined) this.lastPosition = new THREE.Vector3()
 	if(this.lastQuat === undefined) this.lastQuat = new THREE.Quaternion();
 	//  ORIENTATION.

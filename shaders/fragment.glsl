@@ -2,17 +2,29 @@
 float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
-  for(int i=0; i<4; i++){
+  for(int i=0; i<6; i++){
     float objDist;
-    if(lightIntensities[i].w == 0.0)
-      objDist = MAX_DIST;
-    else{
-      objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+    if(i>3+controllerCount)
+     break;
+    else if(i>3){
+      objDist = sphereHSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[0], 1.0/10.0);
+      if(distance > objDist){
+        hitWhich = 1;
+        distance = objDist;
+        lightIntensity = lightIntensities[i-4];
+      }
     }
-    if(distance > objDist){
-      hitWhich = 1;
-      distance = objDist;
-      lightIntensity = lightIntensities[i];
+    else{
+      if(lightIntensities[i].w == 0.0)
+        objDist = MAX_DIST;
+      else{
+        objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+      }
+      if(distance > objDist){
+        hitWhich = 1;
+        distance = objDist;
+        lightIntensity = lightIntensities[i];
+      }
     }
   }
   for(int i=0; i<4; i++){

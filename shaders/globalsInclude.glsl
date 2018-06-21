@@ -32,6 +32,7 @@ uniform vec4 lightPositions[8];
 uniform vec4 lightIntensities[8]; //w component is the light's attenuation
 uniform int attnModel;
 uniform sampler2D texture;
+uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 uniform mat4 globalObjectBoosts[8];
 uniform mat4 invGlobalObjectBoosts[8];

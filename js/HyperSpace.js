@@ -256,6 +256,7 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
+      controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
@@ -273,7 +274,6 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
-  renderer.setPixelRatio(window.devicePixelRatio);
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
@@ -304,6 +304,7 @@ var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
+  g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
   g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }

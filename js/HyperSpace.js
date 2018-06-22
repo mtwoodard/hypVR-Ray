@@ -304,6 +304,7 @@ var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
+ // console.log(THREE.VRController.controllers.length);
   g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
   g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);

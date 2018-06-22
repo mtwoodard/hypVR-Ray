@@ -53,8 +53,8 @@ THREE.VRController = function( gamepad ){
 	buttonNames = [],
 	buttonNamePrimary
 
-	THREE.Object3D.call( this )
-	this.matrixAutoUpdate = false
+	//THREE.Object3D.call( this )
+	//this.matrixAutoUpdate = false
 
 
 	//  ATTENTION !
@@ -411,6 +411,8 @@ THREE.VRController.prototype.update = function(){
 	var
 	gamepad = this.gamepad,
 	pose = gamepad.pose
+	if(this.quaternion === undefined) this.quaternion = new THREE.Quaternion();
+	if(this.position === undefined) this.position = new THREE.Vector3();
 	if(this.lastPosition === undefined) this.lastPosition = new THREE.Vector3()
 	if(this.lastQuat === undefined) this.lastQuat = new THREE.Quaternion();
 	//  ORIENTATION.
@@ -502,8 +504,8 @@ THREE.VRController.prototype.update = function(){
 	//  Whereas this VRController instance is for the VR controllers that
 	//  you hold in your hands.
 
-	this.matrix.multiplyMatrices( this.standingMatrix, this.matrix )
-	this.matrixWorldNeedsUpdate = true
+	//this.matrix.multiplyMatrices( this.standingMatrix, this.matrix )
+	//this.matrixWorldNeedsUpdate = true
 
 
 	//  Poll for changes in handedness, axes, and button states.

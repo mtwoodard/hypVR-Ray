@@ -59,28 +59,30 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
     vec4 throwAway = vec4(0.0);
     int throwAlso = 0;
     float newEp = EPSILON * 10.0;
-    vec4 basis_x = geometryNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
+    vec4 basis_x = geometryNormalize(vec4(p.w,0.0,0.0,p.x), true);  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
-    basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
-    basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y);
+    basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x, true); // need to Gram Schmidt
+    basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
     if(sceneType == 1 || sceneType == 2){ //global light scene
       return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
           basis_x * (globalSceneHSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_x, throwAway, throwAlso)) +
           basis_y * (globalSceneHSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_y, throwAway, throwAlso)) +
-          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso))
+          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso)),
+          true
       );
     }
     else{ //local scene
       return geometryNormalize(
           basis_x * (localSceneHSDF(p + newEp*basis_x) - localSceneHSDF(p - newEp*basis_x)) +
           basis_y * (localSceneHSDF(p + newEp*basis_y) - localSceneHSDF(p - newEp*basis_y)) +
-          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z))
+          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z)),
+          true
       );
     }
   }
 
-vec4 getRay(vec2 resolution, vec2 fragCoord){
+vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
   if(isStereo != 0){
     resolution.x = resolution.x/2.0;
   }
@@ -89,7 +91,7 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
-  vec4 p =  geometryNormalize(vec4(xy,-z,1.0));
+  vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
   return p;
 }
 
@@ -145,10 +147,10 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     vec4 globalSamplePoint = pointOnGeodesic(rO, rD, globalDepth);
     if(isOutsideCell(localSamplePoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
-      vec4 newDirection = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
-      localrO = geometryNormalize(localSamplePoint*fixMatrix);
-      newDirection = geometryNormalize(newDirection*fixMatrix);
-      localrD = geometryDirection(localrO,newDirection);
+      vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
+      localrO = geometryNormalize(localSamplePoint*fixMatrix, false);
+      newDirectionPoint = geometryNormalize(newDirectionPoint*fixMatrix, false);
+      localrD = geometryDirection(localrO,newDirectionPoint);
       localDepth = MIN_DIST;
     }
     else{
@@ -183,7 +185,7 @@ void main(){
   vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   mat4 totalFixMatrix;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
-  vec4 rayDirV = getRay(screenResolution, gl_FragCoord.xy);
+  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
   if(isStereo != 0){ //move left or right for stereo
@@ -208,6 +210,7 @@ void main(){
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     gl_FragColor = vec4(0.0);
+    gl_FragColor = ORIGIN * controllerBoosts[0];
     return;
   }
   else if(hitWhich == 1){ // global lights

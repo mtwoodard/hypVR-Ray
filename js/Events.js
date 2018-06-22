@@ -16,7 +16,8 @@ var onResize = function(){
 // Handle VR Controllers
 //-------------------------------------------------------------------- 
   var onControllerConnected = function(event){
-    var controller = event.detail;  
+    var controller = event.detail;
+    controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;  
     controller.addEventListener('primary press began', function(event){
   
     });
@@ -28,7 +29,7 @@ var onResize = function(){
     });
   }
   
-  window.addEventListener('vr controller connected', onControllerConnected)
+  window.addEventListener('vr controller connected', onControllerConnected);
 
 //--------------------------------------------------------------------
 // Listens for double click to enter fullscreen VR mode

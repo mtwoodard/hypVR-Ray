@@ -11,7 +11,7 @@ float localSceneHSDF(vec4 samplePoint){
       samplePoint = vec4(samplePoint.y,samplePoint.x,samplePoint.z,samplePoint.w);
     }
     // should precompute these orthonomal calculations
-    vec4 dualPoint1 = geometryNormalize(halfCubeDualPoints[1] - geometryDot(halfCubeDualPoints[1], halfCubeDualPoints[0]) * halfCubeDualPoints[0]);
+    vec4 dualPoint1 = geometryNormalize(halfCubeDualPoints[1] - geometryDot(halfCubeDualPoints[1], halfCubeDualPoints[0]) * halfCubeDualPoints[0], true);
     float edgesDistance = geodesicCylinderHSDFplanes(samplePoint, halfCubeDualPoints[0], dualPoint1, tubeRad);
     float final = edgesDistance;
     return final;

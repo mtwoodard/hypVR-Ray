@@ -81,36 +81,41 @@ float hypNorm(vec4 v){
 //--------------------------------------------------------------------
 // Generalized Functions
 //--------------------------------------------------------------------
-vec4 geometryNormalize(vec4 u){
+vec4 geometryNormalize(vec4 u, bool toTangent){
   //Euclidean
   if(geometry == 2){
-    u.w = 1.0;
-    return u;
+    if(toTangent){ //We want a length 1 tangent vector to the euclidean hyperplane
+      u.xyz = normalize(u.xyz);
+      u.w = 0.0;
+      return u;
+    }
+    else{
+      u.w = 1.0;
+      return u;
+    }
   }
   //Hyperbolic
   else{
-    return u/hypNorm(u);
+    return u/hypNorm(u);  //Same function works for both normalizing as a position and velocity vector
   }
 }
 
 vec4 geometryDirection(vec4 u, vec4 v){
-  //Euclidean
-  if(geometry == 2){
-    vec4 w = v-u;
-    w.xyz = normalize(w.xyz);
-    return geometryNormalize(w);
-  }
-  //Hyperbolic
-  else{
-    vec4 w = v + lorentzDot(u, v)*u;
-    return geometryNormalize(w);
-  }
+  vec4 w;
+  //Euclidean----------------------------
+  if(geometry == 2)
+    w = v-u;
+  //Hyperbolic---------------------------
+  else
+    w = v + lorentzDot(u, v)*u;
+    
+  return geometryNormalize(w, true);
 }
 
 float geometryDot(vec4 u, vec4 v){
   //Euclidean
   if(geometry == 2){
-    return dot(u, v);
+    return dot(u.xyz, v.xyz);
   }
   //Hyperbolic
   else{
@@ -136,7 +141,7 @@ float geometryDistance(vec4 u, vec4 v){
 vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
     vec4 newSP = samplePoint * toOrigin;
     vec3 p = mod(newSP.xyz,1.0);
-    vec3 n = geometryNormalize(N*toOrigin).xyz; //Very hacky you are warned
+    vec3 n = geometryNormalize(N*toOrigin, true).xyz; //Very hacky you are warned
     vec3 m = pow(abs(n), vec3(k));
     vec4 x = texture2D(tex, p.yz);
     vec4 y = texture2D(tex, p.zx);

@@ -35,6 +35,11 @@ float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset)
   return sphereHSDF(samplePoint, vec4(0.0), offset);
 }
 
+float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 direction, vec4 cylinderCorePoint, float radius)
+{
+  vec4 pos = (samplePoint - cylinderCorePoint);
+  return length(pos.xyz - geometryDot(pos, direction) * direction.xyz) - radius;
+}
 //
 // Functions below this don't apply, but we need them included to make the shader compile.
 //

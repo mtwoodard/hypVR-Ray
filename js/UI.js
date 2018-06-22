@@ -34,8 +34,6 @@ function updateEyes(){
   g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
   g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
   g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-  g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
-  g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
   g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
   g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
 }
@@ -74,12 +72,14 @@ function updateUniformsFromUI()
 
 	// Check to see if the geometry has changed.
 	// If so, update the shader.
-	if( g != g_geometry )
+	if( g !== g_geometry )
 	{
 		g_geometry = g;
 		var geoFrag = getGeometryFrag();
-		g_material.needsUpdate = true;
+    g_material.needsUpdate = true;
+    g_material.uniforms.geometry.value = g;
 		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+    g_currentBoost.identity();
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -117,7 +117,6 @@ function updateUniformsFromUI()
 	g_planeOffset = distToMidEdge;
 
 	initValues(g);
-	g_material.uniforms.generators.value = gens;
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
 	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
@@ -139,7 +138,7 @@ var initGui = function(){
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
-  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseSquare:1, InverseLinear: 2, Physical: 3, InverseCube:4, None:5}).name("Light Falloff");
+  var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -147,7 +146,7 @@ var initGui = function(){
   debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
   debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
   debugFolder.add(g_targetFPS, 'value', 15, 90).name("Target FPS");
-  stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
+  var switchToStereo = stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
   var rotateController = stereoFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
   var pupilDistanceController = stereoFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
 
@@ -177,17 +176,44 @@ var initGui = function(){
 
   debugUIController.onFinishChange(function(value){
     var crosshair = document.getElementById("crosshair");
+    var crosshairLeft = document.getElementById("crosshairLeft");
+    var crosshairRight = document.getElementById("crosshairRight");
     var fps = document.getElementById("fps");
     var about = document.getElementById("about");
     if(value){
       about.style.visibility = 'visible';
       fps.style.visibility = 'visible';
-      crosshair.style.visibility = 'visible';
+      if(guiInfo.toggleStereo){
+        crosshairLeft.style.visibility = 'visible';
+        crosshairRight.style.visibility = 'visible';
+      }
+      else
+        crosshair.style.visibility = 'visible';
     }
     else{
       about.style.visibility = 'hidden';
       fps.style.visibility = 'hidden';
-      crosshair.style.visibility = "hidden"
+      crosshair.style.visibility = 'hidden';
+      crosshairLeft.style.visibility = 'hidden';
+      crosshairRight.style.visibility = 'hidden';
+    }
+  });
+
+  switchToStereo.onFinishChange(function(value){
+    var crosshair = document.getElementById("crosshair");
+    var crosshairLeft = document.getElementById("crosshairLeft");
+    var crosshairRight = document.getElementById("crosshairRight");
+    if(guiInfo.toggleUI){
+      if(value){
+        crosshairLeft.style.visibility = 'visible';
+        crosshairRight.style.visibility = 'visible';
+        crosshair.style.visibility = 'hidden';
+      }
+      else{
+        crosshairLeft.style.visibility = 'hidden';
+        crosshairRight.style.visibility = 'hidden';
+        crosshair.style.visibility = 'visible';
+      }
     }
   });
 
@@ -196,14 +222,11 @@ var initGui = function(){
   });
 
   rotateController.onFinishChange(function(value) {
-    g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-    g_material.uniforms.leftEyeRotation.value = g_leftEyeRotation;
-    g_material.uniforms.rightEyeRotation.value = g_rightEyeRotation;
-    updateUniformsFromUI();
+    updateEyes();
   });
 
   sceneController.onFinishChange(function(index){
-	var geoFrag = getGeometryFrag();
+	  var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });

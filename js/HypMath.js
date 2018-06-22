@@ -51,10 +51,10 @@ function translateByVectorEuclidean(v) {
 	var dy = v.y;
 	var dz = v.z;
 	var m = new THREE.Matrix4().set(
-	  1.0, 0, 0, dx,
-	  0, 1.0, 0, dy,
-	  0, 0, 1.0, dz,
-	  dx, dy, dz, 1.0 );
+	  1.0, 0, 0, 0,
+	  0, 1.0, 0, 0,
+	  0, 0, 1.0, 0,
+	  dx, dy, dz, 1.0 );	
 	return m;
 }
 
@@ -90,13 +90,13 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
 }
 
 function getFwdVector() {
-  return new THREE.Vector3(0,0,1);//.applyQuaternion(g_rotation);
+  return new THREE.Vector3(0,0,-1);
 }
 function getRightVector() {
-  return new THREE.Vector3(-1,0,0);//.applyQuaternion(g_rotation);
+  return new THREE.Vector3(1,0,0);
 }
 function getUpVector() {
-  return new THREE.Vector3(0,-1,0);//.applyQuaternion(g_rotation);
+  return new THREE.Vector3(0,1,0);
 }
 
 function clamp(input, min, max)

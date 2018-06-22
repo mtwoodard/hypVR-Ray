@@ -7,12 +7,11 @@ var g_material;
 var g_controls;
 var g_geometry;
 var g_rotation;
-var g_leftEyeRotation;
-var g_rightEyeRotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
-var g_controllers = [];
+var g_screenResolution;
+var g_controllerBoosts = [];
 
 //-------------------------------------------------------
 // Scene Variables
@@ -154,7 +153,7 @@ var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
 var initObjects = function(g){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(0.5,0,0)));
+  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(-0.5,0,0)));
   globalObjectBoosts.push(objMat);
   invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
@@ -176,16 +175,16 @@ var init = function(){
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
+  g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
   g_effect = new THREE.VREffect(renderer);
-  g_effect.setSize(window.innerWidth, window.innerHeight);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   g_virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
   g_controls = new THREE.VRControls();
-  g_controllers.push(new THREE.ViveController(0));
-  g_controllers.push(new THREE.ViveController(1));
   g_rotation = new THREE.Quaternion();
+  g_controllerBoosts.push(new THREE.Matrix4());
+  g_controllerBoosts.push(new THREE.Matrix4());
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   invCellBoost = new THREE.Matrix4();
@@ -243,25 +242,22 @@ var finishInit = function(fShader){
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      cameraProjection:{type:"m4", value:g_virtCamera.projectionMatrix},
-      screenResolution:{type:"v2", value:new THREE.Vector2(window.innerWidth, window.innerHeight)},
-      cameraPos:{type:"v3", value:g_virtCamera.position},
-      cameraQuat:{type:"v4", value:g_virtCamera.quaternion},
+      geometry:{type: "i", value: 3},
+      screenResolution:{type:"v2", value:g_screenResolution},
       fov:{type:"f", value:g_virtCamera.fov},
-      generators:{type:"m4v", value:gens},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
       leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
       rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
-      leftEyeRotation:{type:"v4", value:g_leftEyeRotation},
-      rightEyeRotation:{type:"v4", value:g_rightEyeRotation},
       cellBoost:{type:"m4", value:cellBoost},
       invCellBoost:{type:"m4", value:invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
-      texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete.jpg")},
+      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
+      controllerCount:{type:"i", value: 0},
+      controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
@@ -278,6 +274,7 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
+  g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
   //Setup a "quad" to render on-------------------------
@@ -301,10 +298,15 @@ var finishInit = function(fShader){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
+  //console.log(g_material.uniforms.geometry);
   g_controls.update();
 	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
+  THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
+ // console.log(THREE.VRController.controllers.length);
+  g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
+  g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }
 
@@ -312,15 +314,3 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 init();
-
-//-------------------------------------------------------
-// Event listeners
-//-------------------------------------------------------
-var onResize = function(){
-  g_effect.setSize(window.innerWidth, window.innerHeight);
-  if(g_material != null){
-    g_material.uniforms.screenResolution.value.x = window.innerWidth;
-    g_material.uniforms.screenResolution.value.y = window.innerHeight;
-  }
-}
-window.addEventListener('resize', onResize, false);

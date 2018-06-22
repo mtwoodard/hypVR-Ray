@@ -2,17 +2,29 @@
 float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
-  for(int i=0; i<4; i++){
+  for(int i=0; i<6; i++){
     float objDist;
-    if(lightIntensities[i].w == 0.0)
-      objDist = MAX_DIST;
-    else{
-      objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+    if(i>3+controllerCount)
+     break;
+    else if(i>3){
+      objDist = sphereHSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[0], 1.0/10.0);
+      if(distance > objDist){
+        hitWhich = 1;
+        distance = objDist;
+        lightIntensity = lightIntensities[i-4];
+      }
     }
-    if(distance > objDist){
-      hitWhich = 1;
-      distance = objDist;
-      lightIntensity = lightIntensities[i];
+    else{
+      if(lightIntensities[i].w == 0.0)
+        objDist = MAX_DIST;
+      else{
+        objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+      }
+      if(distance > objDist){
+        hitWhich = 1;
+        distance = objDist;
+        lightIntensity = lightIntensities[i];
+      }
     }
   }
   for(int i=0; i<4; i++){
@@ -24,9 +36,9 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
         objDist = sphereHSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
       }
       /*else if(globalObjectTypes[i] == 1){ //cuboid
-        vec4 dual0 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
-        vec4 dual1 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
-        vec4 dual2 = directionFrom2Points(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
+        vec4 dual0 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
+        vec4 dual1 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
+        vec4 dual2 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
         objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, globalObjectRadii[i]);
       }*/
       else{ //not an object
@@ -47,40 +59,30 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
     vec4 throwAway = vec4(0.0);
     int throwAlso = 0;
     float newEp = EPSILON * 10.0;
-    vec4 basis_x = lorentzNormalize(vec4(p.w,0.0,0.0,p.x));  // dw/dx = x/w on hyperboloid
+    vec4 basis_x = geometryNormalize(vec4(p.w,0.0,0.0,p.x), true);  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
-    basis_y = lorentzNormalize(basis_y - lorentzDot(basis_y, basis_x)*basis_x); // need to Gram Schmidt
-    basis_z = lorentzNormalize(basis_z - lorentzDot(basis_z, basis_x)*basis_x - lorentzDot(basis_z, basis_y)*basis_y);
+    basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x, true); // need to Gram Schmidt
+    basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
     if(sceneType == 1 || sceneType == 2){ //global light scene
-      return lorentzNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
+      return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
           basis_x * (globalSceneHSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_x, throwAway, throwAlso)) +
           basis_y * (globalSceneHSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_y, throwAway, throwAlso)) +
-          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso))
+          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso)),
+          true
       );
     }
     else{ //local scene
-      return lorentzNormalize(
+      return geometryNormalize(
           basis_x * (localSceneHSDF(p + newEp*basis_x) - localSceneHSDF(p - newEp*basis_x)) +
           basis_y * (localSceneHSDF(p + newEp*basis_y) - localSceneHSDF(p - newEp*basis_y)) +
-          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z))
+          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z)),
+          true
       );
     }
   }
 
-vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
-  vec4 newSP = samplePoint * toOrigin;
-  vec3 p = mod(newSP.xyz,1.0);
-  vec3 n = lorentzNormalize(N*toOrigin).xyz; //Very hacky you are warned
-  vec3 m = pow(abs(n), vec3(k));
-  vec4 x = texture2D(tex, p.yz);
-  vec4 y = texture2D(tex, p.zx);
-  vec4 z = texture2D(tex, p.xy);
-  return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
-}
-
-
-vec4 getRay(vec2 resolution, vec2 fragCoord){
+vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
   if(isStereo != 0){
     resolution.x = resolution.x/2.0;
   }
@@ -89,59 +91,36 @@ vec4 getRay(vec2 resolution, vec2 fragCoord){
   }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
-  /*vec3 pPre;
-  vec3 pPrePre;
-  if(isStereo != 0){
-    if(isStereo == -1){
-      z = z/tan(radians(fov*0.5));
-      pPrePre = qtransform(leftEyeRotation, vec3(-xy,z)); 
-    }
-    else{
-      z = z/tan(radians(fov*0.5));
-      pPrePre = qtransform(rightEyeRotation, vec3(-xy,z));
-    }
-     pPre = qtransform(cameraQuat, pPrePre);
-  }
-  else{
-     z = 0.1/tan(radians(fov*0.5));
-     pPre = qtransform(cameraQuat, vec3(-xy,z));
-  }*/
-  vec4 p =  lorentzNormalize(vec4(-xy,z,1.0));
+  vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
   return p;
 }
 
 // This function is intended to be geometry-agnostic.
 // We should update some of the variable names.
-bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out mat4 invFixMatrix){
+bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   if(kleinSamplePoint.x > halfCubeWidthKlein){
     fixMatrix = invGenerators[0];
-    invFixMatrix = generators[0];
     return true;
   }
   if(kleinSamplePoint.x < -halfCubeWidthKlein){
     fixMatrix = invGenerators[1];
-    invFixMatrix = generators[1];
     return true;
   }
   if(kleinSamplePoint.y > halfCubeWidthKlein){
     fixMatrix = invGenerators[2];
-    invFixMatrix = generators[2];
     return true;
   }
   if(kleinSamplePoint.y < -halfCubeWidthKlein){
     fixMatrix = invGenerators[3];
-    invFixMatrix = generators[3];
     return true;
   }
   if(kleinSamplePoint.z > halfCubeWidthKlein){
     fixMatrix = invGenerators[4];
-    invFixMatrix = generators[4];
     return true;
   }
   if(kleinSamplePoint.z < -halfCubeWidthKlein){
     fixMatrix = invGenerators[5];
-    invFixMatrix = generators[5];
     return true;
   }
   return false;
@@ -149,16 +128,15 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix, out mat4 invFixMatrix){
 
 float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out mat4 invTotalFixMatrix, out int hitWhich, out vec4 lightColor){
+  out mat4 totalFixMatrix, out int hitWhich, out vec4 lightColor){
   lightColor = vec4(0.0);
   int fakeI = 0;
   float globalDepth = MIN_DIST;
   float localDepth = globalDepth;
-  mat4 fixMatrix, invFixMatrix;
+  mat4 fixMatrix;
   vec4 localrO = rO;
   vec4 localrD = rD;
   totalFixMatrix = mat4(1.0);  // out variables start undeclared in the function
-  invTotalFixMatrix = mat4(1.0);
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
       //when we break its as if we reached our max marching steps
@@ -167,13 +145,12 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     fakeI++;
     vec4 localSamplePoint = pointOnGeodesic(localrO, localrD, localDepth);
     vec4 globalSamplePoint = pointOnGeodesic(rO, rD, globalDepth);
-    if(isOutsideCell(localSamplePoint, fixMatrix, invFixMatrix)){
+    if(isOutsideCell(localSamplePoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
-      invTotalFixMatrix = invFixMatrix * invTotalFixMatrix;
-      vec4 newDirection = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
-      localrO = lorentzNormalize(localSamplePoint*fixMatrix);
-      newDirection = lorentzNormalize(newDirection*fixMatrix);
-      localrD = directionFrom2Points(localrO,newDirection);
+      vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
+      localrO = geometryNormalize(localSamplePoint*fixMatrix, false);
+      newDirectionPoint = geometryNormalize(newDirectionPoint*fixMatrix, false);
+      localrD = geometryDirection(localrO,newDirectionPoint);
       localDepth = MIN_DIST;
     }
     else{
@@ -200,59 +177,15 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   return MAX_DIST;
 }
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
-    float ambient = 0.1;
-    vec3 baseColor = vec3(0.0,1.0,1.0);
-    if(isGlobal)
-      baseColor = texcube(texture, samplePoint, N, 4.0, cellBoost * invObjectBoost).xyz;
-    else
-      baseColor = texcube(texture, samplePoint, N, 4.0, mat4(1.0)).xyz;
-    //vec3 baseColor = texcube(texture, samplePoint, N, 4.0, invObjectBoost).xyz;
-    vec3 color = baseColor * ambient; //Setup up color with ambient component
-   // vec4 tex = texture2D(texture, );
-    for(int i = 0; i<8; i++){ //8 is the size of the lightPosition array
-      if(lightIntensities[i] != vec4(0.0)){
-        vec4 translatedLightPosition = lightPositions[i] * invCellBoost * totalFixMatrix;
-        float distToLight = hypDistance(translatedLightPosition, samplePoint);
-        float att;
-        if(attnModel == 1) //Inverse Square
-          att  = 1.0/ (0.01+lightIntensities[i].w * distToLight* distToLight);
-        else if(attnModel == 2) //Linear
-          att  = 0.75/ (0.01+lightIntensities[i].w * distToLight);      
-        else if(attnModel == 3) //Physical
-          att  = 1.0/ (0.01+lightIntensities[i].w*cosh(2.0*distToLight)-1.0);
-        else if(attnModel == 4) // Inverse Cube
-          att = 1.0/ (0.01+lightIntensities[i].w*distToLight*distToLight*distToLight);
-        else //None
-          att  = 0.25; //if its actually 1 everything gets washed out
-        vec4 L = -directionFrom2Points(samplePoint, translatedLightPosition);
-        vec4 R = 2.0*lorentzDot(L, N)*N - L;
-        //Calculate Diffuse Component
-        float nDotL = max(-lorentzDot(N, L),0.0);
-        vec3 diffuse = lightIntensities[i].rgb * nDotL;
-        //Calculate Specular Component
-        float rDotT = max(lorentzDot(R, T),0.0);
-        vec3 specular = lightIntensities[i].rgb * pow(rDotT,10.0);
-        //Compute final color
-        color += att*((diffuse*baseColor) + specular);
-      }
-    }
-    return color;
-}
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 void main(){
   vec4 globalLightColor;
   vec4 localEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 globalEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
-  mat4 totalFixMatrix, invTotalFixMatrix;
+  mat4 totalFixMatrix;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
-  vec4 rayDirV = getRay(screenResolution, gl_FragCoord.xy);
+  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
   if(isStereo != 0){ //move left or right for stereo
@@ -268,32 +201,25 @@ void main(){
   rayOrigin *= currentBoost;
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
-  vec4 rayDirVPrime = directionFrom2Points(rayOrigin, rayDirV);
+  vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
   float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint,
-    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix, invTotalFixMatrix,
+    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
     hitWhich, globalLightColor);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    //vec4 pointAtInfinity = pointOnGeodesicAtInfinity(rayOrigin, rayDirVPrime) * cellBoost;  //cellBoost corrects for the fact that we have been moving through cubes
-    //gl_FragColor = vec4(0.5*normalize(pointAtInfinity.xyz)+vec3(0.5,0.5,0.5),1.0);
-    gl_FragColor = vec4(0.0); //better shows off lighting effects
+    gl_FragColor = vec4(0.0);
+    gl_FragColor = ORIGIN * controllerBoosts[0];
     return;
   }
   else if(hitWhich == 1){ // global lights
-    //vec4 N = estimateNormal(globalEndPoint, hitWhich);
     gl_FragColor = vec4(globalLightColor.rgb, 1.0);
-    //float cameraLightMatteShade = -lorentzDot(surfaceNormal, globalEndTangentVector);
-    //gl_FragColor = vec4(globalLightColor*cameraLightMatteShade,1.0);
     return;
   }
   else if(hitWhich == 2){ // global objects
     vec4 N = estimateNormal(globalEndPoint, hitWhich);
     vec3 color = phongModel(globalEndPoint, globalEndTangentVector, N,  mat4(1.0), invGlobalObjectBoosts[0], true);
-    //color = (globalEndPoint*cellBoost).rgb;
-    //color = N.rgb;
-    //color = texcube(texture, globalEndPoint, N, 4.0, cellBoost * invGlobalObjectBoosts[0]).xyz;
     gl_FragColor = vec4(color, 1.0);
     return;
   }

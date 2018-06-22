@@ -31,6 +31,10 @@
 
   <img id="crosshair" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:50%; margin-top:-7.5px; margin-left:-7.5px"/>
 
+  <img id="crosshairLeft" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:25%; margin-top:-7.5px; margin-left:-7.5px; visibility: hidden"/>
+
+  <img id="crosshairRight" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:75%; margin-top:-7.5px; margin-left:-7.5px; visibility: hidden"/>
+
   <div id="about" style="position: absolute; bottom: 30px; left:30px; font-weight: bold; z-index:100">
     <a href="https://github.com/mtwoodard/hypVR-Ray">About</a>
   </div>
@@ -62,9 +66,10 @@
 <script src="js/lib/dat.gui.min.js"></script>
 <script src="js/Honeycomb.js"></script>
 <script src="js/HypMath.js"></script>
+<script src="js/Events.js"></script>
 <script src="js/vr/PhoneVR.js"></script>
 <script src="js/vr/VRControlsHyperbolic.js"></script>
-<script src="js/vr/ViveController.js"></script>
+<script src="js/vr/VRController.js"></script>
 <script src="js/vr/VREffect.js"></script>
 <script src="js/UI.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>

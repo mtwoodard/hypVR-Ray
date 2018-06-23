@@ -15,7 +15,7 @@ var g_targetFPS = {value:27.5};
 var guiInfo = { //Since dat gui can only modify object values we store variables here.
   sceneIndex: 0,
   toggleUI: true,
-  edgeCase:2,
+  edgeCase:6,
   edgeThickness:1.5,
   eToHScale:1.0,
   fov:90,
@@ -53,20 +53,7 @@ function getGeometryFrag()
 function updateUniformsFromUI()
 {
 	// Get the number of cubes around each edge.
-	var r = 6;
-	switch (guiInfo.edgeCase) {
-		case '0': r = 4; break;
-		case '1': r = 5; break;
-		case '2': r = 6; break;
-		case '3': r = 7; break;
-		case '4': r = 8; break;
-		case '5': r = 9; break;
-		case '6': r = 10; break;
-		case '7': r = 11; break;
-		case '8': r = 12; break;
-		default: break;
-	}
-
+	var r = guiInfo.edgeCase;
 	var p = 4, q = 3;
 	var g = GetGeometry( p, q, r );
 
@@ -134,7 +121,7 @@ var initGui = function(){
   gui.close();
   //scene settings ---------------------------------
   var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
-  var edgeController = gui.add(guiInfo, 'edgeCase', {"4":0, "5":1, "6":2, "7":3, "8":4, "9":5, "10":6, "11":7, "12":8}).name("Edge Degree");
+  var edgeController = gui.add(guiInfo, 'edgeCase', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");

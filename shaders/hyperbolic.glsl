@@ -27,7 +27,7 @@ vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point on
 }
 
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist){
-  // note that this point has lorentzDot with itself of -1, so it is on other hyperboloid
+  // note that this point has geometryDot with itself of -1, so it is on other hyperboloid
   return u*sinh(dist) + vPrime*cosh(dist);
 }
 
@@ -49,23 +49,23 @@ float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
 // Our standard horosphere will have a center in the direction of lightPoint
 // and go through the origin. Negative offsets will "shrink" it.
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){
-  return log(-lorentzDot(samplePoint, lightPoint)) - offset;
+  return log(-geometryDot(samplePoint, lightPoint)) - offset;
 }
 
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
-  return asinh(-lorentzDot(samplePoint, dualPoint)) - offset;
+  return asinh(-geometryDot(samplePoint, dualPoint)) - offset;
 }
 
 float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
   // defined by two perpendicular geodesic planes
-  float dot1 = -lorentzDot(samplePoint, dualPoint1);
-  float dot2 = -lorentzDot(samplePoint, dualPoint2);
+  float dot1 = -geometryDot(samplePoint, dualPoint1);
+  float dot2 = -geometryDot(samplePoint, dualPoint2);
   return asinh(sqrt(dot1*dot1 + dot2*dot2)) - radius;
 }
 
 float geodesicCylinderHSDFends(vec4 samplePoint, vec4 lightPoint1, vec4 lightPoint2, float radius){
-  // defined by two light points (at ends of the geodesic) whose lorentzDot is 1
-  return acosh(sqrt(2.0*-lorentzDot(lightPoint1, samplePoint)*-lorentzDot(lightPoint2, samplePoint))) - radius;
+  // defined by two light points (at ends of the geodesic) whose geometryDot is 1
+  return acosh(sqrt(2.0*-geometryDot(lightPoint1, samplePoint)*-geometryDot(lightPoint2, samplePoint))) - radius;
 }
 
 float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 dualPoint2, vec3 offsets){

@@ -109,6 +109,14 @@ Math.lerp = function(a, b, t){
 }
 
 //----------------------------------------------------------------------
+// Spherical Math Functions
+//----------------------------------------------------------------------
+//Array -------------------------------
+function sphericalDot( u, v ){
+	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] + u[3]*v[3];
+}
+
+//----------------------------------------------------------------------
 // Euclidean Math Functions
 //----------------------------------------------------------------------
 //Array -------------------------------
@@ -139,6 +147,8 @@ function lorentzNormalizeTHREE(v) {
 //----------------------------------------------------------------------
 //Array -------------------------------
 function dot(g,u,v) { 
+	if( g == Geometry.Spehrical )
+		return sphericalDot( u, v );
 	if( g == Geometry.Euclidean )
 		return euclideanDot( u, v );
 	return lorentzDot( u, v );
@@ -155,13 +165,13 @@ function normalize(g, v){
 
 //THREE -------------------------------
 function dotTHREE(g,u,v){
-	if( g == Geometry.Euclidean)
+	if( g != Geometry.Hyperbolic )
 		return u.dot(v);
 	return lorentzDotTHREE(u,v);
 }
 
 function normalizeTHREE(g,v){
-	if( g == Geometry.Euclidean)
+	if( g != Geometry.Hyperbolic )
 		return v.normalize();
 	return lorentzNormalizeTHREE(v);
 }

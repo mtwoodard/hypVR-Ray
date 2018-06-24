@@ -70,9 +70,17 @@ float acosh(float x){ //must be more than 1
   return log(x + sqrt(x*x-1.0));
 }
 
+//--------------------------------------------------------------------
+// Generalized Functions
+//--------------------------------------------------------------------
+
 float geometryDot(vec4 u, vec4 v){
+	//Spherical
+	if(geometry == 1){
+		return dot(u,v);
+	}
   //Euclidean
-  if(geometry == 2){
+  else if(geometry == 2){
     return dot(u.xyz, v.xyz);
   }
   //Hyperbolic
@@ -81,16 +89,18 @@ float geometryDot(vec4 u, vec4 v){
   }
 }
 
+// We should rename this to not have hyp in it.
 float hypNorm(vec4 v){
   return sqrt(abs(geometryDot(v,v)));
 }
 
-//--------------------------------------------------------------------
-// Generalized Functions
-//--------------------------------------------------------------------
 vec4 geometryNormalize(vec4 u, bool toTangent){
+	//Spherical
+	if(geometry == 1){
+		return normalize(u);
+	}
   //Euclidean
-  if(geometry == 2){
+  else if(geometry == 2){
     if(toTangent){ //We want a length 1 tangent vector to the euclidean hyperplane
       u.xyz = normalize(u.xyz);
       u.w = 0.0;
@@ -112,7 +122,7 @@ vec4 geometryDirection(vec4 u, vec4 v){
   //Euclidean----------------------------
   if(geometry == 2)
     w = v-u;
-  //Hyperbolic---------------------------
+  //Spherical/Hyperbolic---------------------------
   else
     w = v + geometryDot(u, v)*u;
     
@@ -120,8 +130,11 @@ vec4 geometryDirection(vec4 u, vec4 v){
 }
 
 float geometryDistance(vec4 u, vec4 v){
+	if(geometry==1){
+		return cos(geometryDot(u,v));
+	}
   //Euclidean
-  if(geometry == 2){
+  else if(geometry == 2){
     return distance(u.xyz, v.xyz);
   }
   //Hyperbolic

@@ -255,7 +255,7 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
-      texture:{type:"t", value: new THREE.TextureLoader().load("../images/concrete.jpg")},
+      texture:{type:"t", value: new THREE.TextureLoader().load("/images/concrete.jpg")},
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},

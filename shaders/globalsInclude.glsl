@@ -70,20 +70,37 @@ float acosh(float x){ //must be more than 1
   return log(x + sqrt(x*x-1.0));
 }
 
-float lorentzDot(vec4 u, vec4 v){
-  return  u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w;
-} // on hyperbolold if lorentzDot(u,u) = 1, so w*w = 1 + x*x + y*y + z*z
-
-float hypNorm(vec4 v){
-  return sqrt(abs(lorentzDot(v,v)));
-}
-
 //--------------------------------------------------------------------
 // Generalized Functions
 //--------------------------------------------------------------------
-vec4 geometryNormalize(vec4 u, bool toTangent){
+
+float geometryDot(vec4 u, vec4 v){
+	//Spherical
+	if(geometry == 1){
+		return dot(u,v);
+	}
   //Euclidean
-  if(geometry == 2){
+  else if(geometry == 2){
+    return dot(u.xyz, v.xyz);
+  }
+  //Hyperbolic
+  else{
+    return u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w; //Lorentz Dot
+  }
+}
+
+// We should rename this to not have hyp in it.
+float hypNorm(vec4 v){
+  return sqrt(abs(geometryDot(v,v)));
+}
+
+vec4 geometryNormalize(vec4 u, bool toTangent){
+	//Spherical
+	if(geometry == 1){
+		return normalize(u);
+	}
+  //Euclidean
+  else if(geometry == 2){
     if(toTangent){ //We want a length 1 tangent vector to the euclidean hyperplane
       u.xyz = normalize(u.xyz);
       u.w = 0.0;
@@ -105,32 +122,24 @@ vec4 geometryDirection(vec4 u, vec4 v){
   //Euclidean----------------------------
   if(geometry == 2)
     w = v-u;
-  //Hyperbolic---------------------------
+  //Spherical/Hyperbolic---------------------------
   else
-    w = v + lorentzDot(u, v)*u;
+    w = v + geometryDot(u, v)*u;
     
   return geometryNormalize(w, true);
 }
 
-float geometryDot(vec4 u, vec4 v){
-  //Euclidean
-  if(geometry == 2){
-    return dot(u.xyz, v.xyz);
-  }
-  //Hyperbolic
-  else{
-    return lorentzDot(u,v);
-  }
-}
-
 float geometryDistance(vec4 u, vec4 v){
+	if(geometry==1){
+		return cos(geometryDot(u,v));
+	}
   //Euclidean
-  if(geometry == 2){
+  else if(geometry == 2){
     return distance(u.xyz, v.xyz);
   }
   //Hyperbolic
   else{
-    float bUV = -lorentzDot(u,v);
+    float bUV = -geometryDot(u,v);
     return acosh(bUV);
   }
 }

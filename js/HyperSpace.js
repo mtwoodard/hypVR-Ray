@@ -81,7 +81,7 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 	 }
 
 	 newVal = lastMaxSteps + m_stepAccum;
-	 newVal = Math.round(clamp(newVal, 31, 127));
+	 newVal = Math.round(Math.clamp(newVal, 31, 127));
 	 m_stepAccum = 0;
 	 return newVal;
   }

@@ -99,30 +99,40 @@ function getUpVector() {
   return new THREE.Vector3(0,1,0);
 }
 
-function clamp(input, min, max)
+Math.clamp = function(input, min, max)
 {
 	return Math.max(Math.min(input, max), min);
 }
 
-function lerp(a, b, t){
+Math.lerp = function(a, b, t){
   return (1-t)*a + t*b;
 }
 
-function dot(g,u,v) { 
-	if( g == Geometry.Euclidean )
-		return euclideanDot( u, v );
-
-	return lorentzDot( u, v );
+//----------------------------------------------------------------------
+// Spherical Math Functions
+//----------------------------------------------------------------------
+//Array -------------------------------
+function sphericalDot( u, v ){
+	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] + u[3]*v[3];
 }
 
+//----------------------------------------------------------------------
+// Euclidean Math Functions
+//----------------------------------------------------------------------
+//Array -------------------------------
 function euclideanDot( u, v ){
 	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
 }
 
+//----------------------------------------------------------------------
+// Hyperbolic Math Functions
+//----------------------------------------------------------------------
+//Array -------------------------------
 function lorentzDot( u, v ){
 	return u[0]*v[0] + u[1]*v[1] + u[2]*v[2] - u[3]*v[3];
 }
 
+//THREE -------------------------------
 function lorentzDotTHREE(u, v) {
 	return u.x * v.x + u.y * v.y + u.z * v.z - u.w * v.w;
 }
@@ -132,8 +142,38 @@ function lorentzNormalizeTHREE(v) {
 	return v.divideScalar( norm );
 }
 
+//----------------------------------------------------------------------
+// Generalized Math Function
+//----------------------------------------------------------------------
+//Array -------------------------------
+function dot(g,u,v) { 
+	if( g == Geometry.Spehrical )
+		return sphericalDot( u, v );
+	if( g == Geometry.Euclidean )
+		return euclideanDot( u, v );
+	return lorentzDot( u, v );
+}
+
 function norm(g, v){
 	return Math.sqrt(Math.abs(dot(g,v,v)));
+}
+
+function normalize(g, v){
+	var norm = norm(g,v);
+	return v.map(function(x){x/norm;});
+}
+
+//THREE -------------------------------
+function dotTHREE(g,u,v){
+	if( g != Geometry.Hyperbolic )
+		return u.dot(v);
+	return lorentzDotTHREE(u,v);
+}
+
+function normalizeTHREE(g,v){
+	if( g != Geometry.Hyperbolic )
+		return v.normalize();
+	return lorentzNormalizeTHREE(v);
 }
 
 function v_from_vprime(u, vprime){ //NOTE: CHANGE TO DIRECTIONFROM2POINTS

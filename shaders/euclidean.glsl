@@ -5,7 +5,6 @@ vec4 projectToKlein(vec4 v)
   return v;
 }
 
-
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist)
 { 
   // get point at distance dist on the geodesic from u through v

@@ -94,10 +94,10 @@ THREE.VRControls = function(done){
             g_currentBoost.premultiply(m);
         }
         var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell
-        g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
+        g_currentBoost.gramSchmidt(g_geometry);
         if(fixIndex !== -1){
            cellBoost = cellBoost.premultiply(invGens[fixIndex]); //keeps track of how many cells we've moved 
-           cellBoost.elements = gramSchmidt(g_geometry, cellBoost.elements);
+           cellBoost.gramSchmidt(g_geometry);
            invCellBoost.getInverse(cellBoost);
         }
 
@@ -121,7 +121,7 @@ THREE.VRControls = function(done){
             g_currentBoost.premultiply(m);
         }
 
-        g_currentBoost.elements = gramSchmidt(g_geometry, g_currentBoost.elements);
+        g_currentBoost.gramSchmidt(g_geometry);
     };
 
     this.zeroSensor = function(){

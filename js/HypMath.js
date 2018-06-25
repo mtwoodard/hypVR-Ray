@@ -4,6 +4,35 @@ THREE.Matrix4.prototype.add = function (m) {
   this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
+THREE.Matrix4.prototype.gramSchmidt = function(g){
+	var n = this.elements;
+	var temp = new THREE.Vector4();
+	var temp2 = new THREE.Vector4();
+	for (var i = 0; i<4; i++) {  ///normalise row
+		var invRowNorm = 1.0 / normTHREE( g, temp.fromArray(n.slice(4*i, 4*i+4)));
+		for (var l = 0; l<4; l++) {
+			n[4*i + l] = n[4*i + l] * invRowNorm;
+		}
+		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
+			var component = dotTHREE( g, temp.fromArray(n.slice(4*i, 4*i+4)), temp2.fromArray(n.slice(4*j, 4*j+4)));
+			for (var l = 0; l<4; l++) {
+				n[4*j + l] -= component * n[4*i + l];
+			}
+		}
+	}
+	this.elements = n;
+}
+
+THREE.Vector4.prototype.lorentzDot = function(v){
+	return this.x * v.x + this.y * v.y + this.z * v.z - this.w * v.w;
+}
+
+THREE.Vector4.prototype.lorentzNormalize = function() {
+	var norm = Math.sqrt(Math.abs(this.lorentzDot(this)));
+	this.divideScalar( norm );
+}
+
+
 function zeroMatrix4Rotation(mat){
 	var matFinal = new THREE.Matrix4();
 	return matFinal;
@@ -170,6 +199,12 @@ function dotTHREE(g,u,v){
 	return lorentzDotTHREE(u,v);
 }
 
+function normTHREE(g,v){
+	console.log(v);
+	
+	return Math.sqrt(Math.abs(dotTHREE(g,v,v)));
+}
+
 function normalizeTHREE(g,v){
 	if( g != Geometry.Hyperbolic )
 		return v.normalize();
@@ -260,6 +295,7 @@ function gramSchmidt( g, m ){
 	}
 	return m;
 }
+
 
 ////////check if we are still inside the central fund dom...
 

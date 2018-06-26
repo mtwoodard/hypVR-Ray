@@ -2,12 +2,14 @@
 float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
+  //PASS FOR LIGHT OBJECTS
   for(int i=0; i<6; i++){
     float objDist;
-    if(i>3+controllerCount)
+    if(i>3+controllerCount) //If no controllers are present exit for loop
      break;
     else if(i>3){
-      objDist = sphereHSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[0], 1.0/10.0);
+      //controllerBoost should be an offset value from headset
+      objDist = sphereHSDF(absoluteSamplePoint, ORIGIN*currentBoost*controllerBoosts[0], 1.0/10.0); //origin * currentBoost * controllerBoost
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;

@@ -5,7 +5,6 @@
  * @author Data Arts Team / https://github.com/dataarts
  */
 
-
 THREE.VRController = function( gamepad ){
 
 	var

@@ -200,8 +200,6 @@ function dotTHREE(g,u,v){
 }
 
 function normTHREE(g,v){
-	console.log(v);
-	
 	return Math.sqrt(Math.abs(dotTHREE(g,v,v)));
 }
 

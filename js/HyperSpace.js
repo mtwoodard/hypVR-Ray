@@ -28,8 +28,6 @@ var time;
 //-------------------------------------------------------
 // FPS Manager
 //-------------------------------------------------------
-var m_stepDamping = 0.75;
-var m_stepAccum = 0;
 
 var fps = {
 	lastTime: null,
@@ -38,6 +36,7 @@ var fps = {
 			this.lastTime = new Date();
 			return null;
 		}
+
 		var date = new Date();
 		var currentFps = 1000 / (date - this.lastTime);
 		this.lastTime = date;
@@ -57,6 +56,8 @@ function average(input)
 	return average;
 }
 
+var m_stepDamping = 0.75;
+var m_stepAccum = 0;
 var calcMaxSteps = function(lastFPS, lastMaxSteps)
 {
   if(guiInfo.autoSteps){
@@ -101,20 +102,20 @@ var hCDP = [];
 var initValues = function(g){
 	g_geometry = g;
 	var invHCWK = 1.0/hCWK;
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
+	hCDP[0] = lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0));
+	hCDP[1] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0));
+	hCDP[2] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,0.0,invHCWK,1.0));
 	gens = createGenerators(g);
 	invGens = invGenerators(gens);
 }
 
 var createGenerators = function(g){
-  var gen0 = translateByVector(g, new THREE.Vector3(2.0*hCWH,0.0,0.0));
-  var gen1 = translateByVector(g, new THREE.Vector3(-2.0*hCWH,0.0,0.0));
-  var gen2 = translateByVector(g, new THREE.Vector3(0.0,2.0*hCWH,0.0));
-  var gen3 = translateByVector(g, new THREE.Vector3(0.0,-2.0*hCWH,0.0));
-  var gen4 = translateByVector(g, new THREE.Vector3(0.0,0.0,2.0*hCWH));
-  var gen5 = translateByVector(g, new THREE.Vector3(0.0,0.0,-2.0*hCWH));
+  var gen0 = translateByVector(g,new THREE.Vector3(2.0*hCWH,0.0,0.0));
+  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH,0.0,0.0));
+  var gen2 = translateByVector(g,new THREE.Vector3(0.0,2.0*hCWH,0.0));
+  var gen3 = translateByVector(g,new THREE.Vector3(0.0,-2.0*hCWH,0.0));
+  var gen4 = translateByVector(g,new THREE.Vector3(0.0,0.0,2.0*hCWH));
+  var gen5 = translateByVector(g,new THREE.Vector3(0.0,0.0,-2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 

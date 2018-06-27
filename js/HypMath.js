@@ -1,30 +1,8 @@
-//----------------------------------------------------------------------
-//	Math Extensions
-//----------------------------------------------------------------------
-Math.clamp = function(input, min, max)
-{
-	return Math.max(Math.min(input, max), min);
-}
-
-Math.lerp = function(a, b, t){
-  return (1-t)*a + t*b;
-}
-
-//----------------------------------------------------------------------
-//	Matrix Operations
-//----------------------------------------------------------------------
+//hyperbolic matrix functions
 
 THREE.Matrix4.prototype.add = function (m) {
   this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
-
-THREE.Matrix4.prototype.areSameMatrix = function(m){
-	var delta = 0.01;
-	for(var coord=3; coord<16; coord+=4){
-		if(Math.abs(this.elements[coord] - m.elements[coord]) > delta) return false;
-	}
-	return true;
-}
 
 THREE.Matrix4.prototype.gramSchmidt = function(g){
 	var n = this.elements;
@@ -45,51 +23,51 @@ THREE.Matrix4.prototype.gramSchmidt = function(g){
 	this.elements = n;
 }
 
-//----------------------------------------------------------------------
-//	Dot Product
-//----------------------------------------------------------------------
-THREE.Vector4.prototype.geometryDot = function(g, v){
-	if(g === Geometry.Spehrical) return this.sphericalDot(v);
-	else if(g === Geometry.Hyperbolic) return this.lorentzDot(v);
-	else return this.dot(v);
-}
-
-THREE.Vector4.prototype.sphericalDot = function(v){
-	return this.x*v.x + this.y*v.y + this.z*v.z + this.w *v.w;
-}
-
 THREE.Vector4.prototype.lorentzDot = function(v){
 	return this.x * v.x + this.y * v.y + this.z * v.z - this.w * v.w;
 }
 
-//----------------------------------------------------------------------
-//	Norm & Normalize
-//----------------------------------------------------------------------
-THREE.Vector4.prototype.geometryNorm = function(g){
-	return Math.sqrt(Math.abs(this.geometryDot(g,this)));
+THREE.Vector4.prototype.lorentzNormalize = function() {
+	var norm = Math.sqrt(Math.abs(this.lorentzDot(this)));
+	this.divideScalar( norm );
 }
 
-THREE.Vector4.prototype.geometryNormalize = function(g){
-	var norm = this.geometryNorm(g);
-	this.divideScalar(norm);
+
+function zeroMatrix4Rotation(mat){
+	var matFinal = new THREE.Matrix4();
+	return matFinal;
 }
 
-//----------------------------------------------------------------------
-//	Vector - Generators
-//----------------------------------------------------------------------
-function getFwdVector() {
-	return new THREE.Vector3(0,0,-1);
-  }
-  function getRightVector() {
-	return new THREE.Vector3(1,0,0);
-  }
-  function getUpVector() {
-	return new THREE.Vector3(0,1,0);
-  }
+function areSameMatrix(mat1, mat2) {  //look only at last column - center of cell
+	var delta = 0.01;
+	for (var coord=3; coord<16; coord+=4) {
+		if (Math.abs(mat1.elements[coord] - mat2.elements[coord]) > delta) {
+			return false;
+		}
+	}
+	return true;
+}
 
-//----------------------------------------------------------------------
-//	Matrix - Generators
-//----------------------------------------------------------------------
+function isMatrixInArray(mat, matArray) {
+	for (var i=0; i<matArray.length; i++) {
+		if (areSameMatrix(mat, matArray[i])) {
+		// if (i > 3) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function digitsDepth( digits ) {
+	numZeros = 0;
+	for (var i = 0; i < digits.length; i++) {
+		if ( digits[i] == 0 ) {
+			numZeros += 1;
+		}
+	}
+	return digits.length - numZeros;
+}
+
 function translateByVector(g,v) { 
 	if( g == Geometry.Euclidean )
 		return translateByVectorEuclidean( v );
@@ -110,12 +88,16 @@ function translateByVectorEuclidean(v) {
 }
 
 function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
-  	var dx = v.x;
-  	var dy = v.y;
-  	var dz = v.z;
-  	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
-  	if (len == 0) return new THREE.Matrix4().identity();
-  	else{
+  var dx = v.x;
+  var dy = v.y;
+  var dz = v.z;
+  var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  if (len == 0)
+  {
+    return new THREE.Matrix4().identity();
+  }
+  else
+    {
       dx /= len;
       dy /= len;
       dz /= len;
@@ -136,10 +118,24 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
     }
 }
 
+function getFwdVector() {
+  return new THREE.Vector3(0,0,-1);
+}
+function getRightVector() {
+  return new THREE.Vector3(1,0,0);
+}
+function getUpVector() {
+  return new THREE.Vector3(0,1,0);
+}
 
-//-----------------------------------------------------------------------------------------------------------------------------
-//	Not Refactored Yet
-//-----------------------------------------------------------------------------------------------------------------------------
+Math.clamp = function(input, min, max)
+{
+	return Math.max(Math.min(input, max), min);
+}
+
+Math.lerp = function(a, b, t){
+  return (1-t)*a + t*b;
+}
 
 //----------------------------------------------------------------------
 // Spherical Math Functions
@@ -280,7 +276,7 @@ function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
 	return Math.asinh( dot ) - offset;
 }
 
-/*//// better GramSchmidt...seem more stable out near infinity
+///// better GramSchmidt...seem more stable out near infinity
 function gramSchmidt( g, m ){
 	//var m = mat.elements;
 	for (var i = 0; i<4; i++) {  ///normalise row
@@ -297,7 +293,7 @@ function gramSchmidt( g, m ){
 	}
 	return m;
 }
-*/
+
 
 ////////check if we are still inside the central fund dom...
 

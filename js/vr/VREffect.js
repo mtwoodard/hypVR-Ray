@@ -46,8 +46,6 @@ THREE.VREffect = function ( renderer, done ) {
 		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
-		//self.leftEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
-		//self.rightEyeTranslation = { x: 0.0, y: -0, z: -0, w: 0 };
 		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
 		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
 		self.getEyeRotation(self.leftEyeTranslation.x);
@@ -91,12 +89,6 @@ THREE.VREffect = function ( renderer, done ) {
 					document.getElementById("crosshairLeft").style.visibility = 'visible';
         			document.getElementById("crosshairRight").style.visibility = 'visible';
         			document.getElementById("crosshair").style.visibility = 'hidden';
-					// var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
-					// var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
-					// var w = 2160;
-					// var h = 1200;
-					// g_screenResolution.x = w; g_screenResolution.y = h;
-					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					if (parametersLeft.fieldOfView !== undefined) {
@@ -129,12 +121,6 @@ THREE.VREffect = function ( renderer, done ) {
 					document.getElementById("crosshairLeft").style.visibility = 'visible';
         			document.getElementById("crosshairRight").style.visibility = 'visible';
         			document.getElementById("crosshair").style.visibility = 'hidden';
-					// var w = Math.max(parametersLeft.renderWidth, parametersRight.renderWidth) * 2;
-					// var h = Math.max(parametersLeft.renderHeight, parametersRight.renderHeight);
-					// var w = 2160;
-					// var h = 1200;
-					// g_screenResolution.x = w; g_screenResolution.y = h;
-					//guiInfo.rotateEyes = true;
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
 					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
@@ -196,15 +182,12 @@ THREE.VREffect = function ( renderer, done ) {
 			renderer.setViewport(0,0,size.width, size.height);
 		}
 
-
 		// Regular render mode if not HMD
 		g_material.uniforms.isStereo.value = 0;
 		renderer.render.apply( this._renderer, [scene, camera]  );
 	};
 
 	this.renderStereo = function( scene, camera, renderTarget, forceClear ) {
-		var leftEyeTranslation = this.leftEyeTranslation;
-		var rightEyeTranslation = this.rightEyeTranslation;
 		var renderer = this._renderer;
 		var size = renderer.getSize();
 		var rendererWidth = size.width;
@@ -252,15 +235,7 @@ THREE.VREffect = function ( renderer, done ) {
 			vrHMD.exitPresent();
 		}
 	}
-
-	this.getVRMode = function() {
- 		return this._vrMode;
- 	}
-
- 	this.getVRHMD = function() {
- 		return this._vrHMD;
- 	}
-
+	
 	this.setFullScreen = function( enable ) {
 		var renderer = this._renderer;
 		var vrHMD = this._vrHMD;
@@ -321,70 +296,5 @@ THREE.VREffect = function ( renderer, done ) {
 		} else {
 			canvas.webkitRequestFullscreen( { vrDisplay: vrHMD } );
 		}
-	};
-
-	this.FovToNDCScaleOffset = function( fov ) {
-		var pxscale = 2.0 / (fov.leftTan + fov.rightTan);
-		var pxoffset = (fov.leftTan - fov.rightTan) * pxscale * 0.5;
-		var pyscale = 2.0 / (fov.upTan + fov.downTan);
-		var pyoffset = (fov.upTan - fov.downTan) * pyscale * 0.5;
-		return { scale: [pxscale, pyscale], offset: [pxoffset, pyoffset] };
-	};
-
-	this.FovPortToProjection = function( fov, rightHanded /* = true */, zNear /* = 0.01 */, zFar /* = 10000.0 */ )
-	{
-		rightHanded = rightHanded === undefined ? true : rightHanded;
-		zNear = zNear === undefined ? 0.01 : zNear;
-		zFar = zFar === undefined ? 10000.0 : zFar;
-
-		var handednessScale = rightHanded ? -1.0 : 1.0;
-
-		// start with an identity matrix
-		var mobj = new THREE.Matrix4();
-		var m = mobj.elements;
-
-		// and with scale/offset info for normalized device coords
-		var scaleAndOffset = this.FovToNDCScaleOffset(fov);
-
-		// X result, map clip edges to [-w,+w]
-		m[0*4+0] = scaleAndOffset.scale[0];
-		m[0*4+1] = 0.0;
-		m[0*4+2] = scaleAndOffset.offset[0] * handednessScale;
-		m[0*4+3] = 0.0;
-
-		// Y result, map clip edges to [-w,+w]
-		// Y offset is negated because this proj matrix transforms from world coords with Y=up,
-		// but the NDC scaling has Y=down (thanks D3D?)
-		m[1*4+0] = 0.0;
-		m[1*4+1] = scaleAndOffset.scale[1];
-		m[1*4+2] = -scaleAndOffset.offset[1] * handednessScale;
-		m[1*4+3] = 0.0;
-
-		// Z result (up to the app)
-		m[2*4+0] = 0.0;
-		m[2*4+1] = 0.0;
-		m[2*4+2] = zFar / (zNear - zFar) * -handednessScale;
-		m[2*4+3] = (zFar * zNear) / (zNear - zFar);
-
-		// W result (= Z in)
-		m[3*4+0] = 0.0;
-		m[3*4+1] = 0.0;
-		m[3*4+2] = handednessScale;
-		m[3*4+3] = 0.0;
-
-		mobj.transpose();
-
-		return mobj;
-	};
-
-	this.FovToProjection = function( fov, rightHanded /* = true */, zNear /* = 0.01 */, zFar /* = 10000.0 */ )
-	{
-		var fovPort = {
-			upTan: Math.tan(fov.upDegrees * Math.PI / 180.0),
-			downTan: Math.tan(fov.downDegrees * Math.PI / 180.0),
-			leftTan: Math.tan(fov.leftDegrees * Math.PI / 180.0),
-			rightTan: Math.tan(fov.rightDegrees * Math.PI / 180.0)
-		};
-		return this.FovPortToProjection(fovPort, rightHanded, zNear, zFar);
 	};
 };

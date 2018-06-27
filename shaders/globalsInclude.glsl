@@ -74,74 +74,21 @@ float acosh(float x){ //must be more than 1
 // Generalized Functions
 //--------------------------------------------------------------------
 
-float geometryDot(vec4 u, vec4 v){
-	//Spherical
-	if(geometry == 1){
-		return dot(u,v);
-	}
-  //Euclidean
-  else if(geometry == 2){
-    return dot(u.xyz, v.xyz);
-  }
-  //Hyperbolic
-  else{
-    return u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w; //Lorentz Dot
-  }
-}
+float geometryDot(vec4 u, vec4 v);
+vec4 geometryNormalize(vec4 v, bool toTangent);
+float geometryDistance(vec4 u, vec4 v);
+vec4 geometryDirection(vec4 u, vec4 v);
 
-// We should rename this to not have hyp in it.
-float hypNorm(vec4 v){
+float geometryNorm(vec4 v){
   return sqrt(abs(geometryDot(v,v)));
 }
 
-vec4 geometryNormalize(vec4 u, bool toTangent){
-	//Spherical
-	if(geometry == 1){
-		return normalize(u);
-	}
-  //Euclidean
-  else if(geometry == 2){
-    if(toTangent){ //We want a length 1 tangent vector to the euclidean hyperplane
-      u.xyz = normalize(u.xyz);
-      u.w = 0.0;
-      return u;
-    }
-    else{
-      u.w = 1.0;
-      return u;
-    }
-  }
-  //Hyperbolic
-  else{
-    return u/hypNorm(u);  //Same function works for both normalizing as a position and velocity vector
-  }
-}
+//--------------------------------------------------------------------
+// Generalized SDFs
+//--------------------------------------------------------------------
 
-vec4 geometryDirection(vec4 u, vec4 v){
-  vec4 w;
-  //Euclidean----------------------------
-  if(geometry == 2)
-    w = v-u;
-  //Spherical/Hyperbolic---------------------------
-  else
-    w = v + geometryDot(u, v)*u;
-    
-  return geometryNormalize(w, true);
-}
-
-float geometryDistance(vec4 u, vec4 v){
-	if(geometry==1){
-		return cos(geometryDot(u,v));
-	}
-  //Euclidean
-  else if(geometry == 2){
-    return distance(u.xyz, v.xyz);
-  }
-  //Hyperbolic
-  else{
-    float bUV = -geometryDot(u,v);
-    return acosh(bUV);
-  }
+float sphereSDF(vec4 samplePoint, vec4 center, float radius){
+  return geometryDistance(samplePoint, center) - radius;
 }
 
 //--------------------------------------------------------------------

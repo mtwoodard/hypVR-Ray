@@ -9,6 +9,16 @@ Math.lerp = function(a, b, t){
   	return (1-t)*a + t*b;
 }
 
+//Takes average of a float array
+Math.average = function(arr){
+	var ave = 0.0;
+	for(var i = 0; i < arr.length; i++) {
+		ave += arr[i];
+	}
+	ave /= arr.length;
+	return ave;
+}
+
 //----------------------------------------------------------------------
 //	Dot Product
 //----------------------------------------------------------------------
@@ -34,7 +44,7 @@ THREE.Vector4.prototype.geometryNorm = function(g){
 }
 
 THREE.Vector4.prototype.geometryNormalize = function(g){
-	this.divideScalar(this.geometryNorm(g));
+	return this.divideScalar(this.geometryNorm(g));
 }
 
 //----------------------------------------------------------------------

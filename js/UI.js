@@ -99,7 +99,7 @@ function updateUniformsFromUI()
 	g_horospherSize = -(g_sphereRad - distToMidEdge);
 
 	// planeOffset
-	var dualPoint = lorentzNormalizeTHREE(new THREE.Vector4(hCWK, hCWK, hCWK, 1.0));
+	var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(Geometry.Hyperbolic);
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	g_planeOffset = distToMidEdge;
 

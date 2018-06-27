@@ -9,7 +9,7 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
      break;
     else if(i>3){
       //controllerBoost should be an offset value from headset
-      objDist = sphereHSDF(absoluteSamplePoint, ORIGIN*currentBoost*controllerBoosts[0], 1.0/10.0); //origin * currentBoost * controllerBoost
+      objDist = sphereSDF(absoluteSamplePoint, ORIGIN*currentBoost*controllerBoosts[0], 1.0/10.0); //origin * currentBoost * controllerBoost
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;
@@ -20,7 +20,7 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
       if(lightIntensities[i].w == 0.0)
         objDist = MAX_DIST;
       else{
-        objDist = sphereHSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+        objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
       }
       if(distance > objDist){
         hitWhich = 1;
@@ -35,7 +35,7 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
       objDist = MAX_DIST;
     else{
       if(globalObjectTypes[i] == 0){ //sphere
-        objDist = sphereHSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
+        objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
       }
       /*else if(globalObjectTypes[i] == 1){ //cuboid
         vec4 dual0 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));

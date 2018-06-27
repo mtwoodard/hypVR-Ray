@@ -30,6 +30,8 @@ var time;
 //-------------------------------------------------------
 var m_stepDamping = 0.75;
 var m_stepAccum = 0;
+var fpsLog = new Array(10);
+fpsLog.fill(g_targetFPS.value);
 
 var fps = {
 	lastTime: null,
@@ -44,45 +46,33 @@ var fps = {
 		return currentFps;
 	}
 }
-var fpsLog = new Array(10);
-fpsLog.fill(g_targetFPS.value);
-
-function average(input)
-{
-	var average = 0.0;
-	for(var i = 0; i < input.length; i++) {
-		average += input[i];
-	}
-	average /= input.length;
-	return average;
-}
 
 var calcMaxSteps = function(lastFPS, lastMaxSteps)
 {
   if(guiInfo.autoSteps){
-	   if(!lastFPS)
+	  if(!lastFPS)
 		  return lastMaxSteps;
 
-	 fpsLog.shift();
-	 fpsLog.push(lastFPS);
-	 var averageFPS = average(fpsLog);
-	 textFPS.innerHTML = averageFPS.toPrecision(3);
+	  fpsLog.shift();
+	  fpsLog.push(lastFPS);
+	  var averageFPS = Math.average(fpsLog);
+	  textFPS.innerHTML = averageFPS.toPrecision(3);
 
-	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
-	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	 var newVal = Math.pow((averageFPS / g_targetFPS.value), (1 / 20)) * lastMaxSteps;
-	 var diff = newVal - lastMaxSteps;
-	 if(Math.abs( m_stepAccum ) < 1)
-	 {
+	  // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
+	  // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
+	  var newVal = Math.pow((averageFPS / g_targetFPS.value), (1 / 20)) * lastMaxSteps;
+	  var diff = newVal - lastMaxSteps;
+	  if(Math.abs( m_stepAccum ) < 1)
+	  {
 		  m_stepAccum += diff;
 		  m_stepAccum *= m_stepDamping;
 		  return lastMaxSteps;
-	 }
+	  }
 
-	 newVal = lastMaxSteps + m_stepAccum;
-	 newVal = Math.round(Math.clamp(newVal, 31, 127));
-	 m_stepAccum = 0;
-	 return newVal;
+	  newVal = lastMaxSteps + m_stepAccum;
+	  newVal = Math.round(Math.clamp(newVal, 31, 127));
+	  m_stepAccum = 0;
+	  return newVal;
   }
   else {
     return guiInfo.maxSteps;

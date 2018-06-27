@@ -1,4 +1,22 @@
 //-------------------------------------------------------
+// Generalized Functions
+//-------------------------------------------------------
+float geometryDot(vec4 u, vec4 v){
+  return u.x*v.x + u.y*v.y + u.z*v.z - u.w*v.w; // Lorentz Dot
+}
+vec4 geometryNormalize(vec4 u, bool toTangent){
+  return u/geometryNorm(u);
+}
+float geometryDistance(vec4 u, vec4 v){
+  float bUV = -geometryDot(u,v);
+  return acosh(bUV);
+}
+vec4 geometryDirection(vec4 u, vec4 v){
+  vec4 w = v + geometryDot(u,v)*u;
+  return geometryNormalize(w, true);
+}
+
+//-------------------------------------------------------
 //Hyperbolic Math functions
 //-------------------------------------------------------
 float cosh(float x){
@@ -40,11 +58,6 @@ vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the lig
 //---------------------------------------------------------------------
 //Raymarch Primitives
 //---------------------------------------------------------------------
-
-float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
-  return geometryDistance(samplePoint, center) - radius;
-}
-
 // A horosphere can be constructed by offseting from a standard horosphere.
 // Our standard horosphere will have a center in the direction of lightPoint
 // and go through the origin. Negative offsets will "shrink" it.

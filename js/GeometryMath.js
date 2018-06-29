@@ -39,12 +39,12 @@ THREE.Vector4.prototype.geometryDot = function(g, v){
 //----------------------------------------------------------------------
 //	Norm & Normalize
 //----------------------------------------------------------------------
-THREE.Vector4.prototype.geometryNorm = function(g){
+THREE.Vector4.prototype.geometryLength = function(g){
 	return Math.sqrt(Math.abs(this.geometryDot(g,this)));
 }
 
 THREE.Vector4.prototype.geometryNormalize = function(g){
-	return this.divideScalar(this.geometryNorm(g));
+	return this.divideScalar(this.geometryLength(g));
 }
 
 //----------------------------------------------------------------------
@@ -54,20 +54,12 @@ THREE.Matrix4.prototype.add = function (m) {
   	this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
-THREE.Matrix4.prototype.areSameMatrix = function(m){
-	var delta = 0.01;
-	for(var coord=3; coord<16; coord+=4){
-		if(Math.abs(this.elements[coord] - m.elements[coord]) > delta) return false;
-	}
-	return true;
-}
-
 THREE.Matrix4.prototype.gramSchmidt = function(g){
 	var n = this.elements;
 	var temp = new THREE.Vector4();
 	var temp2 = new THREE.Vector4();
 	for (var i = 0; i<4; i++) {  ///normalise row
-		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryNorm(g);
+		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
 		for (var l = 0; l<4; l++) {
 			n[4*i + l] = n[4*i + l] * invRowNorm;
 		}

@@ -10,6 +10,8 @@ var g_rotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
+var g_cellBoost;
+var g_invCellBoost;
 var g_screenResolution;
 var g_controllerBoosts = [];
 
@@ -94,7 +96,7 @@ var initValues = function(g){
 	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
 	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
 	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
-	gens = createGenerators(g);
+	gens = createGenerators(g_geometry);
 	invGens = invGenerators(gens);
 }
 
@@ -175,8 +177,8 @@ var init = function(){
   g_controllerBoosts.push(new THREE.Matrix4());
   g_controllerBoosts.push(new THREE.Matrix4());
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
-  cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
-  invCellBoost = new THREE.Matrix4();
+  g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
+  g_invCellBoost = new THREE.Matrix4();
   g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
 	initValues(g_geometry);
   initLights();
@@ -238,8 +240,8 @@ var finishInit = function(fShader){
       currentBoost:{type:"m4", value:g_currentBoost},
       leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
       rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
-      cellBoost:{type:"m4", value:cellBoost},
-      invCellBoost:{type:"m4", value:invCellBoost},
+      cellBoost:{type:"m4", value:g_cellBoost},
+      invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},

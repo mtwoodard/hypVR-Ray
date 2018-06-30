@@ -24,7 +24,12 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   autoSteps:true,
   maxSteps: 31,
   halfIpDistance: 0.03200000151991844,
-  falloffModel: 1
+  falloffModel: 1,
+  resetPosition: function(){
+    g_currentBoost.identity();
+    g_cellBoost.identity();
+    g_invCellBoost.identity();
+  }
 };
 
 function updateEyes(){
@@ -65,8 +70,9 @@ function updateUniformsFromUI()
 		var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
     g_material.uniforms.geometry.value = g;
-		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
-    g_currentBoost.identity();
+    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+    initValues(g_geometry);
+    guiInfo.resetPosition();
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -99,7 +105,7 @@ function updateUniformsFromUI()
 	g_horospherSize = -(g_sphereRad - distToMidEdge);
 
 	// planeOffset
-	var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(Geometry.Hyperbolic);
+	var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(g_geometry);
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	g_planeOffset = distToMidEdge;
 
@@ -126,6 +132,7 @@ var initGui = function(){
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
+  gui.add(guiInfo, 'resetPosition').name("Reset Position");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');

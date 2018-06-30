@@ -67,11 +67,13 @@ function updateUniformsFromUI()
 	if( g !== g_geometry )
 	{
 		g_geometry = g;
-		var geoFrag = getGeometryFrag();
+    var geoFrag = getGeometryFrag();
+    initValues(g_geometry);
     g_material.needsUpdate = true;
     g_material.uniforms.geometry.value = g;
+    g_material.uniforms.halfCubeDualPoints.value = hCDP;
+    g_material.uniforms.invGenerators.value = invGens;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
-    initValues(g_geometry);
     guiInfo.resetPosition();
 	}
 
@@ -80,7 +82,7 @@ function updateUniformsFromUI()
 	var midrad = MidRadius(p, q, r);
 	hCWH = hCWK = inrad;
 	if( g == Geometry.Hyperbolic )
-		hCWK = poincareToKlein(hyperbolicToPoincare(inrad));
+		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//

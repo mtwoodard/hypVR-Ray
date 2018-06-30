@@ -19,6 +19,17 @@ Math.average = function(arr){
 	return ave;
 }
 
+// Hyperbolic norm to Poincare norm.
+Math.hyperbolicToPoincare = function(h){
+	return Math.tanh(0.5 * h);
+}
+
+// Poincare norm to klein norm.
+Math.poincareToKlein = function(p){
+	var mag = 2/(1+p*p);
+	return p*mag;
+}
+
 //----------------------------------------------------------------------
 //	Dot Product
 //----------------------------------------------------------------------

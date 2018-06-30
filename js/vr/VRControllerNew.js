@@ -233,11 +233,18 @@ THREE.VRController.prototype.update = function(){
 	gamepad = this.gamepad,
 	pose = gamepad.pose
 
+	//For some reason these values are not declared during initialization
+	//they need to be declared in order to use the fromArray method
+	if(this.quaternion === undefined) this.quaternion = new THREE.Quaternion();
+	if(this.position == undefined) this.position = new THREE.Vector3(); 
+
+	//All devices should have orientation info
 	if( pose.orientation !== null ) this.quaternion.fromArray( pose.orientation )
-	if( pose.position !== null ){
-		this.position.fromArray( pose.position )
-		this.matrix.compose( this.position, this.quaternion, this.scale )
-	}
+
+	//6DOF devices should give position info
+	if( pose.position !== null ) this.position.fromArray( pose.position )
+
+	//3DOF devices need to use an armModel to calculate position info
 	else {
 		if( this.armModel === undefined ){
 			if( THREE.VRController.verbosity >= 0.5 ) console.log( '> #'+ gamepad.index +' '+ gamepad.id +' (Handedness: '+ this.getHandedness() +') adding OrientationArmModel' )
@@ -247,15 +254,7 @@ THREE.VRController.prototype.update = function(){
 		this.armModel.setHeadOrientation( this.head.quaternion )
 		this.armModel.setControllerOrientation(( new THREE.Quaternion() ).fromArray( pose.orientation ))
 		this.armModel.update()
-		this.matrix.compose(
-			this.armModel.getPose().position,
-			this.armModel.getPose().orientation,
-			this.scale
-		)
 	}
-
-	this.matrix.multiplyMatrices( this.standingMatrix, this.matrix )
-	this.matrixWorldNeedsUpdate = true
 	this.pollForChanges()
 	this.applyVibes()
 	if( typeof this.updateCallback === 'function' ) this.updateCallback()

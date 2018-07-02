@@ -17,11 +17,8 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
       }
     }
     else{
-      if(lightIntensities[i].w == 0.0)
-        objDist = MAX_DIST;
-      else{
-        objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
-      }
+      if(lightIntensities[i].w == 0.0) objDist = MAX_DIST;
+      else objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;

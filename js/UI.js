@@ -68,11 +68,7 @@ function updateUniformsFromUI()
 	{
 		g_geometry = g;
     var geoFrag = getGeometryFrag();
-    initValues(g_geometry);
     g_material.needsUpdate = true;
-    g_material.uniforms.geometry.value = g;
-    g_material.uniforms.halfCubeDualPoints.value = hCDP;
-    g_material.uniforms.invGenerators.value = invGens;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
     guiInfo.resetPosition();
 	}
@@ -111,10 +107,11 @@ function updateUniformsFromUI()
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	g_planeOffset = distToMidEdge;
 
-	initValues(g);
+  initValues(g_geometry);
+  g_material.uniforms.geometry.value = g;
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
-	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
+  g_material.uniforms.halfCubeWidthKlein.value = hCWK;
 	g_material.uniforms.cut4.value = g_cut4;
 	g_material.uniforms.sphereRad.value = g_sphereRad;
 	g_material.uniforms.tubeRad.value = g_tubeRad;

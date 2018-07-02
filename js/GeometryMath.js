@@ -116,14 +116,11 @@ function translateByVector(g,v) {
 }
 
 function translateByVectorEuclidean(v) { 
-	var dx = v.x;
-	var dy = v.y;
-	var dz = v.z;
 	var m = new THREE.Matrix4().set(
 	  1.0, 0, 0, 0,
 	  0, 1.0, 0, 0,
 	  0, 0, 1.0, 0,
-	  dx, dy, dz, 1.0 );	
+	  v.x, v.y, v.z, 1.0 );	
 	return m;
 }
 
@@ -164,13 +161,15 @@ function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Cu
 function horosphereHSDF( samplePoint, lightPoint, offset )
 {
 	// Why is sign of lorentzDot opposite here and in glsl?
-	var dot = -samplePoint.lorentzDot(lightPoint);
+	//var dot = -samplePoint.lorentzDot(lightPoint);
+	var dot = -samplePoint.geometryDot(g_geometry, lightPoint);
 	return Math.log( dot ) - offset;
 }
 
 function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
 {
-	var dot = -samplePoint.lorentzDot(dualPoint);
+	//var dot = -samplePoint.lorentzDot(dualPoint);
+	var dot = -samplePoint.geometryDot(g_geometry, dualPoint);
 	return Math.asinh( dot ) - offset;
 }
 

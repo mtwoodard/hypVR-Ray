@@ -42,7 +42,7 @@ THREE.Vector4.prototype.lorentzDot = function(v){
 }
 
 THREE.Vector4.prototype.geometryDot = function(g, v){
-	if(g === Geometry.Spehrical) return this.sphericalDot(v);
+	if(g === Geometry.Spherical) return this.sphericalDot(v);
 	else if(g === Geometry.Hyperbolic) return this.lorentzDot(v);
 	else return this.dot(v);
 }
@@ -66,22 +66,26 @@ THREE.Matrix4.prototype.add = function (m) {
 };
 
 THREE.Matrix4.prototype.gramSchmidt = function(g){
-	var n = this.elements;
-	var temp = new THREE.Vector4();
-	var temp2 = new THREE.Vector4();
-	for (var i = 0; i<4; i++) {  ///normalise row
-		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
-		for (var l = 0; l<4; l++) {
-			n[4*i + l] = n[4*i + l] * invRowNorm;
-		}
-		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-			var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
+	if(g === Geometry.Hyperbolic){ //Only necessary in hyperbolic space
+		var m = this.transpose(); 
+		var n = m.elements; //elements are stored in column major order we need row major
+		var temp = new THREE.Vector4();
+		var temp2 = new THREE.Vector4();
+		for (var i = 0; i<4; i++) {  ///normalize row
+			var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
 			for (var l = 0; l<4; l++) {
-				n[4*j + l] -= component * n[4*i + l];
+				n[4*i + l] = n[4*i + l] * invRowNorm;
+			}
+			for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
+				var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
+				for (var l = 0; l<4; l++) {
+					n[4*j + l] -= component * n[4*i + l];
+				}
 			}
 		}
+		m.elements = n;
+		this.elements = m.transpose().elements;
 	}
-	this.elements = n;
 }
 
 //----------------------------------------------------------------------

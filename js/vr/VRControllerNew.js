@@ -113,6 +113,7 @@ THREE.VRController = function( gamepad ){
 		'\n\tStyle: '+ this.style +
 		'\n\tDOF: '+ this.dof +
 		'\n\tHandedness: '+ handedness +
+		'\n\tPosition: ' + this.position +
 		'\n\n\tAxes: '+ axes.reduce( function( a, e, i ){
 			return a + e + ( i < axes.length - 1 ? ', ' : '' )
 		}, '' ) +

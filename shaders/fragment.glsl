@@ -34,12 +34,6 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
       if(globalObjectTypes[i] == 0){ //sphere
         objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
       }
-      /*else if(globalObjectTypes[i] == 1){ //cuboid
-        vec4 dual0 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
-        vec4 dual1 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
-        vec4 dual2 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
-        objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, globalObjectRadii[i]);
-      }*/
       else{ //not an object
         objDist = MAX_DIST;
       }

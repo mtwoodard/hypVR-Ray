@@ -24,7 +24,12 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   autoSteps:true,
   maxSteps: 31,
   halfIpDistance: 0.03200000151991844,
-  falloffModel: 1
+  falloffModel: 1,
+  resetPosition: function(){
+    g_currentBoost.identity();
+    g_cellBoost.identity();
+    g_invCellBoost.identity();
+  }
 };
 
 function updateEyes(){
@@ -62,11 +67,10 @@ function updateUniformsFromUI()
 	if( g !== g_geometry )
 	{
 		g_geometry = g;
-		var geoFrag = getGeometryFrag();
+    var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
-    g_material.uniforms.geometry.value = g;
-		g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
-    g_currentBoost.identity();
+    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+    guiInfo.resetPosition();
 	}
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
@@ -74,7 +78,7 @@ function updateUniformsFromUI()
 	var midrad = MidRadius(p, q, r);
 	hCWH = hCWK = inrad;
 	if( g == Geometry.Hyperbolic )
-		hCWK = poincareToKlein(hyperbolicToPoincare(inrad));
+		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//
@@ -99,14 +103,15 @@ function updateUniformsFromUI()
 	g_horospherSize = -(g_sphereRad - distToMidEdge);
 
 	// planeOffset
-	var dualPoint = lorentzNormalizeTHREE(new THREE.Vector4(hCWK, hCWK, hCWK, 1.0));
+	var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(g_geometry);
 	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
 	g_planeOffset = distToMidEdge;
 
-	initValues(g);
+  initValues(g_geometry);
+  g_material.uniforms.geometry.value = g;
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
-	g_material.uniforms.halfCubeWidthKlein.value = hCWK;
+  g_material.uniforms.halfCubeWidthKlein.value = hCWK;
 	g_material.uniforms.cut4.value = g_cut4;
 	g_material.uniforms.sphereRad.value = g_sphereRad;
 	g_material.uniforms.tubeRad.value = g_tubeRad;
@@ -126,6 +131,7 @@ var initGui = function(){
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
+  gui.add(guiInfo, 'resetPosition').name("Reset Position");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');

@@ -10,6 +10,8 @@ var g_rotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
 var g_rightCurrentBoost;
+var g_cellBoost;
+var g_invCellBoost;
 var g_screenResolution;
 var g_controllerBoosts = [];
 
@@ -28,6 +30,10 @@ var time;
 //-------------------------------------------------------
 // FPS Manager
 //-------------------------------------------------------
+var m_stepDamping = 0.75;
+var m_stepAccum = 0;
+var fpsLog = new Array(10);
+fpsLog.fill(g_targetFPS.value);
 
 var fps = {
 	lastTime: null,
@@ -36,54 +42,39 @@ var fps = {
 			this.lastTime = new Date();
 			return null;
 		}
-
 		var date = new Date();
 		var currentFps = 1000 / (date - this.lastTime);
 		this.lastTime = date;
 		return currentFps;
 	}
 }
-var fpsLog = new Array(10);
-fpsLog.fill(g_targetFPS.value);
 
-function average(input)
-{
-	var average = 0.0;
-	for(var i = 0; i < input.length; i++) {
-		average += input[i];
-	}
-	average /= input.length;
-	return average;
-}
-
-var m_stepDamping = 0.75;
-var m_stepAccum = 0;
 var calcMaxSteps = function(lastFPS, lastMaxSteps)
 {
   if(guiInfo.autoSteps){
-	   if(!lastFPS)
+	  if(!lastFPS)
 		  return lastMaxSteps;
 
-	 fpsLog.shift();
-	 fpsLog.push(lastFPS);
-	 var averageFPS = average(fpsLog);
-	 textFPS.innerHTML = averageFPS.toPrecision(3);
+	  fpsLog.shift();
+	  fpsLog.push(lastFPS);
+	  var averageFPS = Math.average(fpsLog);
+	  textFPS.innerHTML = averageFPS.toPrecision(3);
 
-	 // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
-	 // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	 var newVal = Math.pow((averageFPS / g_targetFPS.value), (1 / 20)) * lastMaxSteps;
-	 var diff = newVal - lastMaxSteps;
-	 if(Math.abs( m_stepAccum ) < 1)
-	 {
+	  // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
+	  // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
+	  var newVal = Math.pow((averageFPS / g_targetFPS.value), (1 / 20)) * lastMaxSteps;
+	  var diff = newVal - lastMaxSteps;
+	  if(Math.abs( m_stepAccum ) < 1)
+	  {
 		  m_stepAccum += diff;
 		  m_stepAccum *= m_stepDamping;
 		  return lastMaxSteps;
-	 }
+	  }
 
-	 newVal = lastMaxSteps + m_stepAccum;
-	 newVal = Math.round(Math.clamp(newVal, 31, 127));
-	 m_stepAccum = 0;
-	 return newVal;
+	  newVal = lastMaxSteps + m_stepAccum;
+	  newVal = Math.round(Math.clamp(newVal, 31, 127));
+	  m_stepAccum = 0;
+	  return newVal;
   }
   else {
     return guiInfo.maxSteps;
@@ -102,20 +93,20 @@ var hCDP = [];
 var initValues = function(g){
 	g_geometry = g;
 	var invHCWK = 1.0/hCWK;
-	hCDP[0] = lorentzNormalizeTHREE(new THREE.Vector4(invHCWK,0.0,0.0,1.0));
-	hCDP[1] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,invHCWK,0.0,1.0));
-	hCDP[2] = lorentzNormalizeTHREE(new THREE.Vector4(0.0,0.0,invHCWK,1.0));
-	gens = createGenerators(g);
+	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
+	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
+	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
+	gens = createGenerators(g_geometry);
 	invGens = invGenerators(gens);
 }
 
 var createGenerators = function(g){
-  var gen0 = translateByVector(g,new THREE.Vector3(2.0*hCWH,0.0,0.0));
-  var gen1 = translateByVector(g,new THREE.Vector3(-2.0*hCWH,0.0,0.0));
-  var gen2 = translateByVector(g,new THREE.Vector3(0.0,2.0*hCWH,0.0));
-  var gen3 = translateByVector(g,new THREE.Vector3(0.0,-2.0*hCWH,0.0));
-  var gen4 = translateByVector(g,new THREE.Vector3(0.0,0.0,2.0*hCWH));
-  var gen5 = translateByVector(g,new THREE.Vector3(0.0,0.0,-2.0*hCWH));
+  var gen0 = translateByVector(g, new THREE.Vector3(2.0*hCWH,0.0,0.0));
+  var gen1 = translateByVector(g, new THREE.Vector3(-2.0*hCWH,0.0,0.0));
+  var gen2 = translateByVector(g, new THREE.Vector3(0.0,2.0*hCWH,0.0));
+  var gen3 = translateByVector(g, new THREE.Vector3(0.0,-2.0*hCWH,0.0));
+  var gen4 = translateByVector(g, new THREE.Vector3(0.0,0.0,2.0*hCWH));
+  var gen5 = translateByVector(g, new THREE.Vector3(0.0,0.0,-2.0*hCWH));
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
@@ -186,8 +177,8 @@ var init = function(){
   g_controllerBoosts.push(new THREE.Matrix4());
   g_controllerBoosts.push(new THREE.Matrix4());
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
-  cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
-  invCellBoost = new THREE.Matrix4();
+  g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
+  g_invCellBoost = new THREE.Matrix4();
   g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
 	initValues(g_geometry);
   initLights();
@@ -249,8 +240,8 @@ var finishInit = function(fShader){
       currentBoost:{type:"m4", value:g_currentBoost},
       leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
       rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
-      cellBoost:{type:"m4", value:cellBoost},
-      invCellBoost:{type:"m4", value:invCellBoost},
+      cellBoost:{type:"m4", value:g_cellBoost},
+      invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
@@ -298,15 +289,17 @@ var finishInit = function(fShader){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  //console.log(g_material.uniforms.geometry);
   g_controls.update();
 	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
  // console.log(THREE.VRController.controllers.length);
+  if(THREE.VRController.controllers.length > 0){
+    console.log(THREE.VRController.controllers[0].position);
+  }
   g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
-  g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
+  //g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }
 

@@ -1,3 +1,24 @@
+//-------------------------------------------------------
+// Generalized Functions
+//-------------------------------------------------------
+float geometryDot(vec4 u, vec4 v){
+  return dot(u,v);
+}
+vec4 geometryNormalize(vec4 u, bool toTangent){
+  return normalize(u);
+}
+float geometryDistance(vec4 u, vec4 v){
+  return cos(geometryDot(u,v));
+}
+vec4 geometryDirection(vec4 u, vec4 v){
+  vec4 w = v + geometryDot(u,v)*u;
+  return geometryNormalize(w, true);
+}
+
+//-------------------------------------------------------
+//
+//-------------------------------------------------------
+
 // Same formula as in the hyperbolic case gives us gnomonic model
 vec4 projectToKlein(vec4 v){
   return v/v.w;
@@ -21,13 +42,8 @@ vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the lig
 //---------------------------------------------------------------------
 //Raymarch Primitives
 //---------------------------------------------------------------------
-
-float sphereHSDF(vec4 samplePoint, vec4 center, float radius){
-  return geometryDistance(samplePoint, center) - radius;
-}
-
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
-  return sphereHSDF(samplePoint, dualPoint, offset);
+  return sphereSDF(samplePoint, dualPoint, offset);
 }
 
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){

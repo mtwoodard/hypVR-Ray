@@ -1,6 +1,6 @@
 
 float localSceneHSDF(vec4 samplePoint){
-    float sphere = sphereHSDF(samplePoint, ORIGIN, sphereRad);
+    float sphere = sphereSDF(samplePoint, ORIGIN, sphereRad);
     float vertexSphere = 0.0;
      if(cut4 == 2) {
          vertexSphere = horosphereHSDF(abs(samplePoint), idealCubeCornerKlein, horosphereSize);

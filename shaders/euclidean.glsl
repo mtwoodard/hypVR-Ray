@@ -1,3 +1,32 @@
+//-------------------------------------------------------
+// Generalized Functions
+//-------------------------------------------------------
+float geometryDot(vec4 u, vec4 v){
+  return dot(u.xyz,v.xyz);
+}
+vec4 geometryNormalize(vec4 u, bool toTangent){
+  if(toTangent){
+    u.xyz = normalize(u.xyz);
+    u.w = 0.0;
+    return u;
+  }
+  else{
+    u.w = 1.0;
+    return u;
+  }
+}
+float geometryDistance(vec4 u, vec4 v){
+  return distance(u.xyz, v.xyz);
+}
+vec4 geometryDirection(vec4 u, vec4 v){
+  vec4 w = v-u;
+  return geometryNormalize(w, true);
+}
+
+//-------------------------------------------------------
+//
+//-------------------------------------------------------
+
 vec4 projectToKlein(vec4 v)
 {
   // We are already effectively Klein (i.e. lines are straight in the model)
@@ -24,14 +53,9 @@ vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime)
   return projectToKlein(u + vPrime);
 }
 
-float sphereHSDF(vec4 samplePoint, vec4 center, float radius)
-{
-  return geometryDistance(samplePoint, center) - radius;
-}
-
 float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset)
 {
-  return sphereHSDF(samplePoint, vec4(0.0), offset);
+  return sphereSDF(samplePoint, vec4(0.0), offset);
 }
 
 float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 direction, vec4 cylinderCorePoint, float radius)

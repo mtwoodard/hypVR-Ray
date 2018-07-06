@@ -263,17 +263,22 @@ THREE.VRController.prototype.update = function(){
 	if(this.lastPos === new THREE.Vector3()) this.lastPos.copy(this.position);
 	if(this.lastQuat === new THREE.Quaternion()) this.lastQuat.copy(this.quaternion);
 
+	//Grab hmd info
+	var vrState = g_controls.getVRState();
+
 	//Update our boost with delta translation
-	var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPos);
-	var m = translateByVector(g_geometry, deltaPosition);
-	g_controllerBoosts[gamepad.index].premultiply(m);
+	//var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPos);
+	var headsetOffset = new THREE.Vector3().subVectors(this.position, vrState.hmd.position);
+	headsetOffset.applyQuaternion(vrState.hmd.rotation.clone().inverse());
+	var m = translateByVector(g_geometry, headsetOffset);
+	g_controllerBoosts[gamepad.index].copy(m);
 	this.lastPos.copy(this.position);
 
-	//Update our boost with delta rotation
+	/*Update our boost with delta rotation
 	var deltaRotation = new THREE.Quaternion().multiplyQuaternions(this.lastQuat.inverse(), this.quaternion);
     m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
 	g_controllerBoosts[gamepad.index].premultiply(m);
-	this.lastQuat.copy(this.quaternion);
+	this.lastQuat.copy(this.quaternion);*/
 	 
 	this.pollForChanges()
 	this.applyVibes()

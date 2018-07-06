@@ -237,13 +237,18 @@ THREE.VRController.prototype.update = function(){
 	//For some reason these values are not declared during initialization
 	//they need to be declared in order to use the fromArray method
 	if(this.quaternion === undefined) this.quaternion = new THREE.Quaternion();
-	if(this.position == undefined) this.position = new THREE.Vector3(); 
+	if(this.lastQuat == undefined) this.lastQuat = new THREE.Quaternion(); 
+	if(this.position == undefined) this.position = new THREE.Vector3();
+	if(this.lastPos == undefined) this.lastPos = new THREE.Vector3();
+
+	this.lastPos.equals(this.position);
+	this.lastQuat.equals(this.quaternion);
 
 	//All devices should have orientation info
-	if( pose.orientation !== null ) this.quaternion.fromArray( pose.orientation )
+	if( pose.orientation !== null ) this.quaternion.fromArray( pose.orientation );
 
 	//6DOF devices should give position info
-	if( pose.position !== null ) this.position.fromArray( pose.position )
+	if( pose.position !== null ) this.position.fromArray( pose.position );
 
 	//3DOF devices need to use an armModel to calculate position info
 	else {
@@ -255,7 +260,19 @@ THREE.VRController.prototype.update = function(){
 		this.armModel.setHeadOrientation( this.head.quaternion )
 		this.armModel.setControllerOrientation(( new THREE.Quaternion() ).fromArray( pose.orientation ))
 		this.armModel.update()
+		this.position = this.armModel.getPose().position;
+		this.quaternion = this.armModel.getPose().orientation;
 	}
+	//Update our boost with delta translation
+	var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPos);
+	var m = translateByVector(g_geometry, deltaPosition);
+	g_controllerBoosts[gamepad.index].premultiply(m);
+
+	//Update our boost with delta rotation
+	var deltaRotation = new THREE.Quaternion().multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
+    m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
+	g_controllerBoosts[gamepad.index].premultiply(m);
+	 
 	this.pollForChanges()
 	this.applyVibes()
 	if( typeof this.updateCallback === 'function' ) this.updateCallback()

@@ -206,7 +206,7 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
           scenesFrag.push(scene);
           mainFrag = main;
           finishInit(globals.concat(hyperbolic).concat(scene).concat(main));
-          loader.load('shaders/edgeTubes.glsl', function(tubes){
+        loader.load('shaders/edgeTubes.glsl', function(tubes){
             loader.load('shaders/medialSurfaces.glsl', function(medial){
               loader.load('shaders/cubeSides.glsl', function(cubes){
                 scenesFrag.push(tubes);
@@ -294,10 +294,6 @@ var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
- // console.log(THREE.VRController.controllers.length);
-  if(THREE.VRController.controllers.length > 0){
-    console.log(THREE.VRController.controllers[0].position);
-  }
   g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
   //g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);

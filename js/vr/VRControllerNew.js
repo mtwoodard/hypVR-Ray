@@ -25,6 +25,11 @@ THREE.VRController = function( gamepad ){
 		quaternion: new THREE.Quaternion()
 	}
 
+	this.position = new THREE.Vector3();
+	this.quaternion = new THREE.Quaternion();
+	this.lastPos = new THREE.Vector3();
+	this.lastQuat = new THREE.Quaternion();
+
 	this.gamepad = gamepad
 	this.name    = gamepad.id
 	this.dof     = gamepad.pose ? 3 * ( +gamepad.pose.hasOrientation + +gamepad.pose.hasPosition ) : 0
@@ -234,21 +239,12 @@ THREE.VRController.prototype.update = function(){
 	gamepad = this.gamepad,
 	pose = gamepad.pose
 
-	//For some reason these values are not declared during initialization
-	//they need to be declared in order to use the fromArray method
-	if(this.quaternion === undefined) this.quaternion = new THREE.Quaternion();
-	if(this.lastQuat == undefined) this.lastQuat = new THREE.Quaternion(); 
-	if(this.position == undefined) this.position = new THREE.Vector3();
-	if(this.lastPos == undefined) this.lastPos = new THREE.Vector3();
-
-	this.lastPos.equals(this.position);
-	this.lastQuat.equals(this.quaternion);
-
 	//All devices should have orientation info
 	if( pose.orientation !== null ) this.quaternion.fromArray( pose.orientation );
 
 	//6DOF devices should give position info
 	if( pose.position !== null ) this.position.fromArray( pose.position );
+	//console.log(this.position);}
 
 	//3DOF devices need to use an armModel to calculate position info
 	else {
@@ -263,15 +259,21 @@ THREE.VRController.prototype.update = function(){
 		this.position = this.armModel.getPose().position;
 		this.quaternion = this.armModel.getPose().orientation;
 	}
+
+	if(this.lastPos === new THREE.Vector3()) this.lastPos.copy(this.position);
+	if(this.lastQuat === new THREE.Quaternion()) this.lastQuat.copy(this.quaternion);
+
 	//Update our boost with delta translation
 	var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPos);
 	var m = translateByVector(g_geometry, deltaPosition);
 	g_controllerBoosts[gamepad.index].premultiply(m);
+	this.lastPos.copy(this.position);
 
 	//Update our boost with delta rotation
-	var deltaRotation = new THREE.Quaternion().multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
+	var deltaRotation = new THREE.Quaternion().multiplyQuaternions(this.lastQuat.inverse(), this.quaternion);
     m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
 	g_controllerBoosts[gamepad.index].premultiply(m);
+	this.lastQuat.copy(this.quaternion);
 	 
 	this.pollForChanges()
 	this.applyVibes()
@@ -523,6 +525,7 @@ OrientationArmModel.prototype.setLeftHanded = function( isLeftHanded ){//  TODO(
 }
 
 //Called a RAF
+//In order for this to work we need to keep controller.head updated
 OrientationArmModel.prototype.update = function(){
 	this.time = performance.now();
 	var

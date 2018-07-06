@@ -29,6 +29,7 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
     g_currentBoost.identity();
     g_cellBoost.identity();
     g_invCellBoost.identity();
+    g_controllerBoosts[0].identity();
   }
 };
 

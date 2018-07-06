@@ -263,11 +263,16 @@ THREE.VRController.prototype.update = function(){
 		this.position = this.armModel.getPose().position;
 		this.quaternion = this.armModel.getPose().orientation;
 	}
-	
+	//Update our boost with delta translation
 	var deltaPosition = new THREE.Vector3().subVectors(this.position, this.lastPos);
 	var m = translateByVector(g_geometry, deltaPosition);
 	g_controllerBoosts[gamepad.index].premultiply(m);
 
+	//Update our boost with delta rotation
+	var deltaRotation = new THREE.Quaternion().multiplyQuaternions(vrState.hmd.lastRotation.inverse(), vrState.hmd.rotation);
+    m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
+	g_controllerBoosts[gamepad.index].premultiply(m);
+	 
 	this.pollForChanges()
 	this.applyVibes()
 	if( typeof this.updateCallback === 'function' ) this.updateCallback()

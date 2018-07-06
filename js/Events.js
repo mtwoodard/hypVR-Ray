@@ -2,13 +2,11 @@
 // Handle window resize
 //--------------------------------------------------------------------
 var onResize = function(){
-    if(!g_effect._vrHMD){
         g_effect.setSize(window.innerWidth, window.innerHeight);
         if(g_material != null){
             g_material.uniforms.screenResolution.value.x = window.innerWidth;
             g_material.uniforms.screenResolution.value.y = window.innerHeight;
         }
-    }
   }
   window.addEventListener('resize', onResize, false);
 

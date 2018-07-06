@@ -36,14 +36,12 @@ vec4 projectToKlein(vec4 v)
 
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist)
 { 
-  // get point at distance dist on the geodesic from u through v
+  // get point at distance dist on the geodesic from u in the direction vPrime
   return projectToKlein( u + vPrime*dist );
 }
 
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist)
 {
-  // the negative here is to match what we do in hyperbolic.glsl
-  //return -projectToKlein( u + vPrime*dist );
   return vPrime;
 }
 

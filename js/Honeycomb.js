@@ -80,15 +80,14 @@ function MidRadius(p, q, r)
 	var pir = PiOverNSafe(r);
 
 	var inrad = InRadius(p, q, r);
-	var midrad = Math.sinh(inrad) / Math.sin(pir);
 
 	switch( GetGeometry( p, q, r ) )
 	{
 		case Geometry.Hyperbolic:
-			return Math.asinh( midrad );
+			return Math.asinh( Math.sinh(inrad) / Math.sin(pir) );
 		case Geometry.Euclidean:
 			return Math.sqrt( 2 ) * m_euclideanScale;
 		case Geometry.Spherical:
-			return Math.asin( midrad );
+			return Math.asin( Math.sin(inrad) / Math.sin(pir) );
 	}
 }

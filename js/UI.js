@@ -78,6 +78,11 @@ function updateUniformsFromUI()
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
 	hCWH = hCWK = inrad;
+	if( g == Geometry.Spherical )
+	{
+		var stereo = Math.sphericalToStereographic(inrad);
+		hCWK = Math.stereographicToGnomonic( stereo );
+	}
 	if( g == Geometry.Hyperbolic )
 		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 

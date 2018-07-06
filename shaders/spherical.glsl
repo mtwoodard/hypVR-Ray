@@ -8,7 +8,7 @@ vec4 geometryNormalize(vec4 u, bool toTangent){
   return normalize(u);
 }
 float geometryDistance(vec4 u, vec4 v){
-  return cos(geometryDot(u,v));
+  return acos(geometryDot(u,v));
 }
 vec4 geometryDirection(vec4 u, vec4 v){
   vec4 w = v + geometryDot(u,v)*u;
@@ -24,18 +24,22 @@ vec4 projectToKlein(vec4 v){
   return v/v.w;
 }
 
-// Get point at distance dist on the geodesic from u through v
+// Get point at distance dist on the geodesic from u in the direction vPrime
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ 
-  return u*cos(dist) + vPrime*sin(dist);
+  // Calculate the point so that the angle between the resulting vectors will be dist.
+  // NOTE: vPrime will be normalized.
+  float mag = atan(dist);
+  return geometryNormalize(u + vPrime*mag, true);
 }
 
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist){
-  return u*sin(dist) + vPrime*cos(dist);
+  vec4 v = pointOnGeodesic( u, vPrime, dist );
+  vec4 tangent = v*(1.0+cos(dist)) - u;
+  return geometryNormalize(tangent, true);
 }
 
-vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ // returns point on the light
-  // cone intersect Klein model corresponding to the point at infinity on the
-  // geodesic through u and v
+vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ 
+  // I'm not yet sure what we should be doing here.
   return projectToKlein(u + vPrime);
 }
 

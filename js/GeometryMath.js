@@ -30,6 +30,17 @@ Math.poincareToKlein = function(p){
 	return p*mag;
 }
 
+// Spherical norm to steregraphic norm.
+Math.sphericalToStereographic = function(s){
+	return Math.tan(0.5 * s);
+}
+
+// Steregraphic norm to gnomonic norm.
+Math.stereographicToGnomonic = function(s){
+	var mag = 1/(1-s*s);
+	return s*mag;
+}
+
 //----------------------------------------------------------------------
 //	Dot Product
 //----------------------------------------------------------------------
@@ -113,39 +124,43 @@ function constructHyperboloidPoint(direction, distance){
 //----------------------------------------------------------------------
 //	Matrix - Generators
 //----------------------------------------------------------------------
-function translateByVector(g,v) { 
-	if( g === Geometry.Euclidean ) return translateByVectorEuclidean( v );
-	//else if(g ===  Geometry.Spherical) return translateByVectorSpherical(v);
-	return translateByVectorHyperbolic( v );
-}
-
-function translateByVectorEuclidean(v) { 
-	var m = new THREE.Matrix4().set(
-	  1.0, 0, 0, 0,
-	  0, 1.0, 0, 0,
-	  0, 0, 1.0, 0,
-	  v.x, v.y, v.z, 1.0 );	
-	return m;
-}
-
-function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
+function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spaces app
   	var dx = v.x;
   	var dy = v.y;
-  	var dz = v.z;
-  	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+	var dz = v.z;
+	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+	var m03 = dx;
+	var m13 = dy;
+	var m23 = dz;
+	var c1 = Math.sinh(len);
+	var c2 = Math.cosh(len) - 1;
+
+	if( g == Geometry.Euclidean )
+	{
+		m03 = m13 = m23 = c2 = 0;
+		c1 = len;
+	}
+	else if( g == Geometry.Spherical )
+	{
+		m03 = -m03;
+		m13 = -m13;
+		m23 = -m23
+		c1 = Math.sin(len);
+		c2 = 1.0 - Math.cos(len);
+	}
+  	
   	if (len == 0) return new THREE.Matrix4().identity();
   	else{
       dx /= len;
       dy /= len;
       dz /= len;
       var m = new THREE.Matrix4().set(
-        0, 0, 0, dx,
-        0, 0, 0, dy,
-        0, 0, 0, dz,
+        0, 0, 0, m03,
+        0, 0, 0, m13,
+        0, 0, 0, m23,
         dx,dy,dz, 0);
       var m2 = new THREE.Matrix4().copy(m).multiply(m);
-      var c1 = Math.sinh(len);
-      var c2 = Math.cosh(len) - 1;
       m.multiplyScalar(c1);
       m2.multiplyScalar(c2);
       var result = new THREE.Matrix4().identity();

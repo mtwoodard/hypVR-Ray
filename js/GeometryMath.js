@@ -125,30 +125,25 @@ function constructHyperboloidPoint(direction, distance){
 //	Matrix - Generators
 //----------------------------------------------------------------------
 function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spaces app
-  	var dx = v.x;
-  	var dy = v.y;
-	var dz = v.z;
+  	var dx = v.x; var dy = v.y; var dz = v.z;
 	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-	var m03 = dx;
-	var m13 = dy;
-	var m23 = dz;
+	var m03 = dx; var m13 = dy; var m23 = dz;
 	var c1 = Math.sinh(len);
 	var c2 = Math.cosh(len) - 1;
 
-	if( g == Geometry.Euclidean )
-	{
+	if( g == Geometry.Euclidean ){
 		m03 = m13 = m23 = c2 = 0;
 		c1 = len;
 	}
-	else if( g == Geometry.Spherical )
-	{
-		m03 = -m03;
-		m13 = -m13;
-		m23 = -m23
+	else if( g == Geometry.Spherical ){
+		m03 = -m03; m13 = -m13; m23 = -m23
 		c1 = Math.sin(len);
 		c2 = 1.0 - Math.cos(len);
 	}
+	else{ 
+		m03 /= len; m13 /= len; m23 /= len; 
+	} 
   	
   	if (len == 0) return new THREE.Matrix4().identity();
   	else{
@@ -159,7 +154,7 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
         0, 0, 0, m03,
         0, 0, 0, m13,
         0, 0, 0, m23,
-        dx,dy,dz, 0);
+        dx,dy,dz, 0.0);
       var m2 = new THREE.Matrix4().copy(m).multiply(m);
       m.multiplyScalar(c1);
       m2.multiplyScalar(c2);

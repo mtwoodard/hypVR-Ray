@@ -11,7 +11,7 @@ float geometryDistance(vec4 u, vec4 v){
   return acos(geometryDot(u,v));
 }
 vec4 geometryDirection(vec4 u, vec4 v){
-  vec4 w = v + geometryDot(u,v)*u;
+  vec4 w = v - geometryDot(u,v)*u;
   return geometryNormalize(w, true);
 }
 
@@ -26,16 +26,11 @@ vec4 projectToKlein(vec4 v){
 
 // Get point at distance dist on the geodesic from u in the direction vPrime
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ 
-  // Calculate the point so that the angle between the resulting vectors will be dist.
-  // NOTE: vPrime will be normalized.
-  float mag = atan(dist);
-  return geometryNormalize(u + vPrime*mag, true);
+  return u*cos(dist) + vPrime*sin(dist);
 }
 
 vec4 tangentVectorOnGeodesic(vec4 u, vec4 vPrime, float dist){
-  vec4 v = pointOnGeodesic( u, vPrime, dist );
-  vec4 tangent = v*(1.0+cos(dist)) - u;
-  return geometryNormalize(tangent, true);
+  return -u*sin(dist) + vPrime*cos(dist);
 }
 
 vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime){ 

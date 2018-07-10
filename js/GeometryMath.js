@@ -145,7 +145,7 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
 	{
 		m03 = -m03;
 		m13 = -m13;
-		m23 = -m23
+		m23 = -m23;
 		c1 = Math.sin(len);
 		c2 = 1.0 - Math.cos(len);
 	}

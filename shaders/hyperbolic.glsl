@@ -39,8 +39,8 @@ vec4 projectToKlein(vec4 v){
   return v/v.w;
 }
 
-vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){ // get point on
-  // hyperboloid at distance dist on the geodesic from u through v
+// Get point at distance dist on the geodesic from u in the direction vPrime
+vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist){
   return u*cosh(dist) + vPrime*sinh(dist);
 }
 

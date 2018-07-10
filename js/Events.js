@@ -18,7 +18,11 @@ var onResize = function(){
    // controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;
     console.log(controller.inspect());  
     controller.addEventListener('primary press began', function(event){
-  
+        /*var vrState = g_controls.getVRState();
+        var deltaPosition = new THREE.Vector3();
+        deltaPosition.multiplyScalar(guiInfo.eToHScale * 0.2);
+        m = translateByVector(g_geometry, deltaPosition);
+        g_currentBoost.premultiply(m);*/
     });
     controller.addEventListener('primary press ended', function(event){
   

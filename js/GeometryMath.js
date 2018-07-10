@@ -131,7 +131,7 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
 	var m03 = dx; var m13 = dy; var m23 = dz;
 	var c1 = Math.sinh(len);
 	var c2 = Math.cosh(len) - 1;
-
+	//Conditions for different geometries
 	if( g == Geometry.Euclidean ){
 		m03 = m13 = m23 = c2 = 0;
 		c1 = len;

@@ -129,11 +129,10 @@ var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
   lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(-1,-1,-1), 1.0));
-	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
-	for(var i = 3; i<8; i++){
-		lightPositions.push(new THREE.Vector4(0,0,0,1));
-		lightIntensities.push(new THREE.Vector4(0,0,0,0));
-	}
+  lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
+  //Add light info for controllers
+  lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 1.0));
+  lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 1.0));
 }
 
 //-------------------------------------------------------

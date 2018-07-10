@@ -13,7 +13,7 @@ float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhic
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;
-        lightIntensity = lightIntensities[i-4];
+        lightIntensity = lightIntensities[i];
       }
     }
     else{

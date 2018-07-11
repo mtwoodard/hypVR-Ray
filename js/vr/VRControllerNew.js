@@ -279,6 +279,22 @@ THREE.VRController.prototype.update = function(){
     m = new THREE.Matrix4().makeRotationFromQuaternion(deltaRotation.inverse());
 	g_controllerBoosts[gamepad.index].premultiply(m);
 	this.lastQuat.copy(this.quaternion);*/
+	
+	//We need to construct a hyperbolic point for calculating dual points
+	//Currently hardcoded for hyperbolic space
+	var hyperPos = new THREE.Vector4(0,0,0,1).applyMatrix4(g_controllerBoosts[gamepad.index]).applyMatrix4(g_currentBoost);
+	//We need to initialize the translateByVector values in initValues
+	//Since they remain constant
+	if(gamepad.index === 0){
+		g_controllerDualPoints[0] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.1, 0.0, 0.0))));
+		g_controllerDualPoints[1] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.1, 0.0))));
+		g_controllerDualPoints[2] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.0, 0.1))));
+	}
+	else if(gampad.index === 1){
+		g_controllerDualPoints[3] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.1, 0.0, 0.0))));
+		g_controllerDualPoints[4] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.1, 0.0))));
+		g_controllerDualPoints[5] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.0, 0.1))));
+	}
 	 
 	this.pollForChanges()
 	this.applyVibes()

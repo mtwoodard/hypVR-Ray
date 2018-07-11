@@ -34,6 +34,7 @@ uniform int attnModel;
 uniform sampler2D texture;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
+uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoosts[8];
 uniform mat4 invGlobalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];
@@ -146,7 +147,7 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
         lightIntensity = lightIntensities[i];
         att = attenuation(distToLight, lightIntensity);
       }
-      else break;
+      //else break;
       //--------------------------------------------
       //Lighting Calculations
       //--------------------------------------------

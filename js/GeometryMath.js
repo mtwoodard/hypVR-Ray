@@ -69,6 +69,10 @@ THREE.Vector4.prototype.geometryNormalize = function(g){
 	return this.divideScalar(this.geometryLength(g));
 }
 
+THREE.Vector4.prototype.geometryDirection = function(g, v){
+	var w = v.add(this.multiplyScalar(this.geometryDot(g,v)));
+	return w.geometryNormalize(g);
+}
 //----------------------------------------------------------------------
 //	Matrix Operations
 //----------------------------------------------------------------------

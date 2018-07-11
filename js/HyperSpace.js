@@ -14,6 +14,7 @@ var g_cellBoost;
 var g_invCellBoost;
 var g_screenResolution;
 var g_controllerBoosts = [];
+var g_controllerDualPoints = [];
 
 //-------------------------------------------------------
 // Scene Variables
@@ -97,7 +98,10 @@ var initValues = function(g){
 	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
 	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
 	gens = createGenerators(g_geometry);
-	invGens = invGenerators(gens);
+  invGens = invGenerators(gens);
+  for(var i = 0; i<6; i++){
+    g_controllerDualPoints.push(new THREE.Vector4());
+  }
 }
 
 var createGenerators = function(g){
@@ -248,6 +252,7 @@ var finishInit = function(fShader){
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete.jpg")},
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
+      controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},

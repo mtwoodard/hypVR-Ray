@@ -1,5 +1,5 @@
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
-float globalSceneHSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich){
+float globalSceneSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
   //PASS FOR LIGHT OBJECTS
@@ -60,17 +60,17 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
     basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
     if(sceneType == 1 || sceneType == 2){ //global light scene
       return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
-          basis_x * (globalSceneHSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_x, throwAway, throwAlso)) +
-          basis_y * (globalSceneHSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_y, throwAway, throwAlso)) +
-          basis_z * (globalSceneHSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneHSDF(p - newEp*basis_z, throwAway, throwAlso)),
+          basis_x * (globalSceneSDF(p + newEp*basis_x, throwAway, throwAlso) - globalSceneSDF(p - newEp*basis_x, throwAway, throwAlso)) +
+          basis_y * (globalSceneSDF(p + newEp*basis_y, throwAway, throwAlso) - globalSceneSDF(p - newEp*basis_y, throwAway, throwAlso)) +
+          basis_z * (globalSceneSDF(p + newEp*basis_z, throwAway, throwAlso) - globalSceneSDF(p - newEp*basis_z, throwAway, throwAlso)),
           true
       );
     }
     else{ //local scene
       return geometryNormalize(
-          basis_x * (localSceneHSDF(p + newEp*basis_x) - localSceneHSDF(p - newEp*basis_x)) +
-          basis_y * (localSceneHSDF(p + newEp*basis_y) - localSceneHSDF(p - newEp*basis_y)) +
-          basis_z * (localSceneHSDF(p + newEp*basis_z) - localSceneHSDF(p - newEp*basis_z)),
+          basis_x * (localSceneSDF(p + newEp*basis_x) - localSceneSDF(p - newEp*basis_x)) +
+          basis_y * (localSceneSDF(p + newEp*basis_y) - localSceneSDF(p - newEp*basis_y)) +
+          basis_z * (localSceneSDF(p + newEp*basis_z) - localSceneSDF(p - newEp*basis_z)),
           true
       );
     }
@@ -148,8 +148,8 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
       localDepth = MIN_DIST;
     }
     else{
-      float localDist = localSceneHSDF(localSamplePoint);
-      float globalDist = globalSceneHSDF(globalSamplePoint, lightColor, hitWhich);
+      float localDist = localSceneSDF(localSamplePoint);
+      float globalDist = globalSceneSDF(globalSamplePoint, lightColor, hitWhich);
       float dist = min(localDist, globalDist);
       if(dist < EPSILON){
         if(localDist < globalDist){hitWhich = 3;}

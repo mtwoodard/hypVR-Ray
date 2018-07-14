@@ -19,10 +19,6 @@ vec4 geometryDirection(vec4 u, vec4 v){
 //-------------------------------------------------------
 //Hyperbolic Math functions
 //-------------------------------------------------------
-float cosh(float x){
-  float eX = exp(x);
-  return (0.5 * (eX + 1.0/eX));
-}
 float sinh(float x){
   float eX = exp(x);
   return (0.5 * (eX - 1.0/eX));

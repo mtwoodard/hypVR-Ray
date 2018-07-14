@@ -1,5 +1,5 @@
 
-float localSceneHSDF(vec4 samplePoint){
+float localSceneSDF(vec4 samplePoint){
     float sphere = sphereSDF(samplePoint, ORIGIN, sphereRad);
     float vertexSphere = 0.0;
      if(cut4 == 2) {

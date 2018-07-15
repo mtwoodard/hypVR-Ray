@@ -9,8 +9,8 @@ float globalSceneSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich
      break;
     else if(i>3){
       //controllerBoost should be an offset value from headset
-     // objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/10.0);
-      objDist = geodesicCubeHSDF(absoluteSamplePoint, controllerDualPoints[(i-4) * 3],  controllerDualPoints[(i-4) * 3 + 1],  controllerDualPoints[(i-4) * 3 + 2], vec3(0.2, 0.2, 0.2));
+      objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
+     //objDist = geodesicCubeHSDF(absoluteSamplePoint, controllerDualPoints[(i-4) * 3],  controllerDualPoints[(i-4) * 3 + 1],  controllerDualPoints[(i-4) * 3 + 2], vec3(0.2, 0.2, 0.2));
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;

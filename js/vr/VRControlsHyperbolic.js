@@ -82,6 +82,7 @@ THREE.VRControls = function(done){
         var deltaPosition = new THREE.Vector3();
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
             var quat = vrState.hmd.rotation.clone().inverse();
+            //console.log(vrState.hmd.position);
             deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat);
         }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){

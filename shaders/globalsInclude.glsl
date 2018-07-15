@@ -34,7 +34,7 @@ uniform int attnModel;
 uniform sampler2D texture;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
-uniform vec4 controllerDualPoints[6];
+//uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoosts[8];
 uniform mat4 invGlobalObjectBoosts[8];
 uniform vec3 globalObjectRadii[8];

@@ -135,8 +135,8 @@ var initLights = function(){
   lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(-1,-1,-1), 1.0));
   lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
   //Add light info for controllers
-  lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 1.0));
-  lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 1.0));
+  lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
+  lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 2));
 }
 
 //-------------------------------------------------------
@@ -252,7 +252,7 @@ var finishInit = function(fShader){
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete.jpg")},
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
-      controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
+      //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},

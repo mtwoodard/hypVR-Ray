@@ -228,12 +228,13 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
       att = attenuation(distToLight, lightIntensity);
       //Calculations - Phong Reflection Model
       vec4 L = geometryDirection(samplePoint, translatedLightPosition);
-      //shadow = shadowMarch(samplePoint, L, distToLight);
       shadow = 1.0;
       vec4 R = 2.0*geometryDot(L, N)*N - L;
       //Calculate Diffuse Component
       float nDotL = max(geometryDot(N, L),0.0);
       vec3 diffuse = lightIntensity.rgb * nDotL;
+      //check if nDotL = 0  if so don't bother with shadowMarch
+      //shadow = shadowMarch(samplePoint, L, distToLight);
       //Calculate Specular Component
       float rDotV = max(geometryDot(R, V),0.0);
       vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);

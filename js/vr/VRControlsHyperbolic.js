@@ -86,11 +86,12 @@ THREE.VRControls = function(done){
             deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat);
         }
         if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
-            deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
-                getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
-                getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
+            deltaPosition = getFwdVector().multiplyScalar(speed * deltaTime * this.manualMoveRate[0]).add(
+                getRightVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[1])).add(
+                getUpVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
+            deltaPosition.multiplyScalar(guiInfo.eToHScale);
             var m = translateByVector(g_geometry, deltaPosition);
             g_currentBoost.premultiply(m);
         }

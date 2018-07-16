@@ -120,9 +120,7 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   return false;
 }
 
-float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
-  out vec4 globalEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out int hitWhich, out vec4 lightColor){
+float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint, out vec4 localEndTangentVector, out vec4 globalEndTangentVector, out int hitWhich, out vec4 lightColor){
   lightColor = vec4(0.0);
   int fakeI = 0;
   float globalDepth = MIN_DIST;
@@ -130,7 +128,6 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
   mat4 fixMatrix;
   vec4 localrO = rO;
   vec4 localrD = rD;
-  totalFixMatrix = mat4(1.0);  // out variables start undeclared in the function
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
       //when we break its as if we reached our max marching steps
@@ -138,7 +135,7 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     }
     fakeI++;
     vec4 localSamplePoint = pointOnGeodesic(localrO, localrD, localDepth);
-    vec4 globalSamplePoint = pointOnGeodesic(rO, rD, globalDepth);
+    vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     if(isOutsideCell(localSamplePoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
       vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
@@ -149,12 +146,12 @@ float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
     }
     else{
       float localDist = localSceneSDF(localSamplePoint);
-      float globalDist = globalSceneSDF(globalSamplePoint, lightColor, hitWhich);
+      float globalDist = globalSceneSDF(globalEndPoint, lightColor, hitWhich);
       float dist = min(localDist, globalDist);
       if(dist < EPSILON){
         if(localDist < globalDist){hitWhich = 3;}
         localEndPoint = localSamplePoint;
-        globalEndPoint = globalSamplePoint;
+        globalSamplePoint = globalEndPoint;
         localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth); //move to outside raymarch distance
         globalEndTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
         return globalDepth;
@@ -177,7 +174,6 @@ void main(){
   vec4 globalEndPoint = vec4(0.0,0.0,0.0,1.0);
   vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
   vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
-  mat4 totalFixMatrix;
   vec4 rayOrigin = vec4(0.0,0.0,0.0,1.0);
   vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
   int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
@@ -197,9 +193,7 @@ void main(){
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint,
-    globalEndPoint, localEndTangentVector, globalEndTangentVector, totalFixMatrix,
-    hitWhich, globalLightColor);
+  float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint, localEndTangentVector, globalEndTangentVector, hitWhich, globalLightColor);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
@@ -212,14 +206,14 @@ void main(){
     return;
   }
   else if(hitWhich == 2){ // global objects
-    vec4 N = estimateNormal(globalEndPoint, hitWhich);
-    vec3 color = phongModel(globalEndPoint, globalEndTangentVector, N,  mat4(1.0), invGlobalObjectBoosts[0], true);
+    vec4 N = estimateNormal(globalSamplePoint, hitWhich);
+    vec3 color = phongModel(globalSamplePoint, globalEndTangentVector, N, invGlobalObjectBoosts[0], true);
     gl_FragColor = vec4(color, 1.0);
     return;
   }
   else if(hitWhich == 3){ // local
     vec4 N = estimateNormal(localEndPoint, hitWhich);
-    vec3 color = phongModel(localEndPoint, localEndTangentVector, N, totalFixMatrix, mat4(1.0), false);
+    vec3 color = phongModel(localEndPoint, localEndTangentVector, N, mat4(1.0), false);
     gl_FragColor = vec4(color, 1.0);
   }
 }

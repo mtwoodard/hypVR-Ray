@@ -11,8 +11,13 @@ const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 const float halfIdealCubeWidthKlein = 0.5773502692;
 const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
+//--------------------------------------------
+//Global Variables
+//--------------------------------------------
+mat4 totalFixMatrix = mat4(1.0);
+vec4 globalSamplePoint = vec4 (0,0,0,1);
 //-------------------------------------------
-//Global Constants
+//Translation & Utility Variables
 //--------------------------------------------
 uniform int isStereo;
 uniform int geometry;
@@ -197,7 +202,7 @@ float attenuation(float distToLight, vec4 lightIntensity){
   return att;
 }
 
-vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
+vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 invObjectBoost, bool isGlobal){
     vec4 V = -T; //Viewer is in the direction of the negative ray tangent vector
     float ambient = 0.1;
     vec3 baseColor = vec3(0.0,1.0,1.0);
@@ -234,6 +239,9 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
       float nDotL = max(geometryDot(N, L),0.0);
       vec3 diffuse = lightIntensity.rgb * nDotL;
       //check if nDotL = 0  if so don't bother with shadowMarch
+      if(nDotL == 0.0){
+        shadow = 0.0;
+      }
       //shadow = shadowMarch(samplePoint, L, distToLight);
       //Calculate Specular Component
       float rDotV = max(geometryDot(R, V),0.0);

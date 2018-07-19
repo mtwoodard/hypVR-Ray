@@ -1,25 +1,13 @@
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
-float globalSceneSDF(vec4 samplePoint, out int hitWhich){
+float globalSceneSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
-  //PASS FOR LIGHT OBJECTS
+  //Light Objects
   for(int i=0; i<6; i++){
     float objDist;
-    if(i>3+controllerCount) //If no controllers are present exit for loop
-     break;
-    else if(i>3){
-      //controllerBoost should be an offset value from headset
-      objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
-     //objDist = geodesicCubeHSDF(absoluteSamplePoint, controllerDualPoints[(i-4) * 3],  controllerDualPoints[(i-4) * 3 + 1],  controllerDualPoints[(i-4) * 3 + 2], vec3(0.2, 0.2, 0.2));
-      if(distance > objDist){
-        hitWhich = 1;
-        distance = objDist;
-        globalLightColor = lightIntensities[i];
-      }
-    }
+    if(lightIntensities[i].w == 0.0) { objDist = MAX_DIST; }
     else{
-      if(lightIntensities[i].w == 0.0) objDist = MAX_DIST;
-      else objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
+      objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;
@@ -27,28 +15,36 @@ float globalSceneSDF(vec4 samplePoint, out int hitWhich){
       }
     }
   }
+  //Controller Objects
+  for(int i=0; i<2; i++){
+    if(controllerCount != 0){
+      float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
+      if(distance > objDist){
+        hitWhich = 1;
+        distance = objDist;
+        globalLightColor = lightIntensities[i+4];
+      }
+      if(controllerCount == 1) break;
+    }
+  }
+  //Global Objects
   for(int i=0; i<4; i++){
     float objDist;
-    if(length(globalObjectRadii[i]) == 0.0)
-      objDist = MAX_DIST;
+    if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
     else{
-      if(globalObjectTypes[i] == 0){ //sphere
-        objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
+      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
+      else { objDist = MAX_DIST; }
+      if(distance > objDist){
+        hitWhich = 2;
+        distance = objDist;
       }
-      else{ //not an object
-        objDist = MAX_DIST;
-      }
-    }
-    if(distance > objDist){
-      hitWhich = 2;
-      distance = objDist;
     }
   }
   return distance;
 }
 
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
-vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hyperplane to hyperboloid at p
+vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyperboloid at p
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
     vec4 throwAway = vec4(0.0);
     int throwAlso = 0;
@@ -58,11 +54,11 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
     basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x, true); // need to Gram Schmidt
     basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
-    if(sceneType == 1 || sceneType == 2){ //global light scene
+    if(hitWhich == 1 || hitWhich == 2){ //global light scene
       return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
-          basis_x * (globalSceneSDF(p + newEp*basis_x, throwAlso) - globalSceneSDF(p - newEp*basis_x, throwAlso)) +
-          basis_y * (globalSceneSDF(p + newEp*basis_y, throwAlso) - globalSceneSDF(p - newEp*basis_y, throwAlso)) +
-          basis_z * (globalSceneSDF(p + newEp*basis_z, throwAlso) - globalSceneSDF(p - newEp*basis_z, throwAlso)),
+          basis_x * (globalSceneSDF(p + newEp*basis_x) - globalSceneSDF(p - newEp*basis_x)) +
+          basis_y * (globalSceneSDF(p + newEp*basis_y) - globalSceneSDF(p - newEp*basis_y)) +
+          basis_z * (globalSceneSDF(p + newEp*basis_z) - globalSceneSDF(p - newEp*basis_z)),
           true
       );
     }
@@ -77,12 +73,8 @@ vec4 estimateNormal(vec4 p, int sceneType) { // normal vector is in tangent hype
   }
 
 vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
-  if(isStereo != 0){
-    resolution.x = resolution.x/2.0;
-  }
-  if(isStereo == 1){
-    fragCoord.x = fragCoord.x - resolution.x;
-  }
+  if(isStereo != 0) { resolution.x = resolution.x * 0.5; }
+  if(isStereo == 1) { fragCoord.x = fragCoord.x - resolution.x; }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
   vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
@@ -120,64 +112,54 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   return false;
 }
 
-float raymarchDistance(vec4 rO, vec4 rD, out vec4 localEndPoint,
-  out vec4 localEndTangentVector, out vec4 globalEndTangentVector,
-  out mat4 totalFixMatrix, out int hitWhich){
+void raymarch(vec4 rO, vec4 rD){
   int fakeI = 0;
   float globalDepth = MIN_DIST;
   float localDepth = globalDepth;
   mat4 fixMatrix;
   vec4 localrO = rO;
   vec4 localrD = rD;
-  totalFixMatrix = mat4(1.0);  // out variables start undeclared in the function
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
       //when we break its as if we reached our max marching steps
       break;
     }
     fakeI++;
-    vec4 localSamplePoint = pointOnGeodesic(localrO, localrD, localDepth);
+    vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
-    if(isOutsideCell(localSamplePoint, fixMatrix)){
+    if(isOutsideCell(localEndPoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
       vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
-      localrO = geometryNormalize(localSamplePoint*fixMatrix, false);
+      localrO = geometryNormalize(localEndPoint*fixMatrix, false);
       newDirectionPoint = geometryNormalize(newDirectionPoint*fixMatrix, false);
       localrD = geometryDirection(localrO,newDirectionPoint);
       localDepth = MIN_DIST;
     }
     else{
-      float localDist = localSceneSDF(localSamplePoint);
-      float globalDist = globalSceneSDF(globalEndPoint, hitWhich);
+      float localDist = localSceneSDF(localEndPoint);
+      float globalDist = globalSceneSDF(globalEndPoint);
       float dist = min(localDist, globalDist);
       if(dist < EPSILON){
-        if(localDist < globalDist){hitWhich = 3;}
-        localEndPoint = localSamplePoint;
-        globalSamplePoint = globalEndPoint;
-        localEndTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth); //move to outside raymarch distance
-        globalEndTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
-        return globalDepth;
+        if(localDist < globalDist) hitWhich = 3;
+        sampleInfo[0] = globalEndPoint; //global sample point
+        sampleInfo[1] = tangentVectorOnGeodesic(rO, rD, globalDepth); //global tangent vector
+        sampleInfo[2] = localEndPoint; //local sample point
+        sampleInfo[3] = tangentVectorOnGeodesic(localrO, localrD, localDepth); //local tangent vector
+        return;
       }
       globalDepth += dist;
       localDepth += dist;
-      if(globalDepth >=MAX_DIST){
+      if(globalDepth >= MAX_DIST){
         hitWhich = 0;
-        return MAX_DIST;
       }
     }
   }
   hitWhich = 0;
-  return MAX_DIST;
 }
 
 void main(){
-  vec4 localEndPoint = vec4(0.0,0.0,0.0,1.0);
-  vec4 localEndTangentVector = vec4(0.0,0.0,0.0,0.0);
-  vec4 globalEndTangentVector = vec4(0.0,0.0,0.0,0.0);
-  mat4 totalFixMatrix;
   vec4 rayOrigin = ORIGIN;
   vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
-  int hitWhich = 0; // 0 means nothing, 1 means local, 2 means global object
   //camera position must be translated in hyperboloid ------------------------
   if(isStereo != 0){ //move left or right for stereo
     if(isStereo == -1){
@@ -194,14 +176,11 @@ void main(){
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  float dist = raymarchDistance(rayOrigin, rayDirVPrime, localEndPoint,
-    localEndTangentVector, globalEndTangentVector, totalFixMatrix,
-    hitWhich);
+  raymarch(rayOrigin, rayDirVPrime);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
     gl_FragColor = vec4(0.0);
-    gl_FragColor = ORIGIN * controllerBoosts[0];
     return;
   }
   else if(hitWhich == 1){ // global lights
@@ -209,14 +188,14 @@ void main(){
     return;
   }
   else if(hitWhich == 2){ // global objects
-    vec4 N = estimateNormal(globalSamplePoint, hitWhich);
-    vec3 color = phongModel(globalSamplePoint, globalEndTangentVector, N,  mat4(1.0), invGlobalObjectBoosts[0], true);
+    N = estimateNormal(sampleInfo[0]);
+    vec3 color = phongModel(invGlobalObjectBoosts[0], true);
     gl_FragColor = vec4(color, 1.0);
     return;
   }
   else if(hitWhich == 3){ // local
-    vec4 N = estimateNormal(localEndPoint, hitWhich);
-    vec3 color = phongModel(localEndPoint, localEndTangentVector, N, totalFixMatrix, mat4(1.0), false);
+    N = estimateNormal(sampleInfo[2]);
+    vec3 color = phongModel(mat4(1.0), false);
     gl_FragColor = vec4(color, 1.0);
   }
 }

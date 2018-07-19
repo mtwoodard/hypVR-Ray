@@ -14,14 +14,20 @@ const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWid
 //--------------------------------------------
 //Global Variables
 //--------------------------------------------
-//mat4 totalFixMatrix = mat4(1.0);
-vec4 globalSamplePoint = vec4 (0,0,0,1);
-vec4 globalLightColor = vec4 (0,0,0,1);
+//column 0 = globalSamplePoint
+//column 1 = globalEndTangentVector
+//column 2 = localSamplePoint
+//column 3 = localEndTangentVector
+mat4 sampleInfo = mat4(1.0);
+mat4 totalFixMatrix = mat4(1.0);
+vec4 N = ORIGIN; //normal vector
+vec4 globalLightColor = ORIGIN;
+int hitWhich = 0;
 //-------------------------------------------
 //Translation & Utility Variables
 //--------------------------------------------
 uniform int isStereo;
-uniform int geometry;
+//uniform int geometry;
 uniform vec2 screenResolution;
 uniform float fov;
 uniform mat4 invGenerators[6];
@@ -41,8 +47,8 @@ uniform sampler2D texture;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 //uniform vec4 controllerDualPoints[6];
-uniform mat4 globalObjectBoosts[8];
-uniform mat4 invGlobalObjectBoosts[8];
+uniform mat4 globalObjectBoosts[8]; //switch to vec4 array
+uniform mat4 invGlobalObjectBoosts[8]; 
 uniform vec3 globalObjectRadii[8];
 uniform int globalObjectTypes[8];
 //--------------------------------------------
@@ -176,14 +182,15 @@ float shadowMarch(vec4 samplePoint, vec4 dirToLight, float distToLight){
   return 1.0;
 }*/
 
-vec4 texcube(sampler2D tex, vec4 samplePoint, vec4 N, float k, mat4 toOrigin){
+vec4 texcube(vec4 samplePoint, mat4 toOrigin){
+    float k = 4.0;
     vec4 newSP = samplePoint * toOrigin;
     vec3 p = mod(newSP.xyz,1.0);
     vec3 n = geometryNormalize(N*toOrigin, true).xyz; //Very hacky you are warned
     vec3 m = pow(abs(n), vec3(k));
-    vec4 x = texture2D(tex, p.yz);
-    vec4 y = texture2D(tex, p.zx);
-    vec4 z = texture2D(tex, p.xy);
+    vec4 x = texture2D(texture, p.yz);
+    vec4 y = texture2D(texture, p.zx);
+    vec4 z = texture2D(texture, p.xy);
     return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
 }
 
@@ -203,14 +210,23 @@ float attenuation(float distToLight, vec4 lightIntensity){
   return att;
 }
 
-vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invObjectBoost, bool isGlobal){
-    vec4 V = -T; //Viewer is in the direction of the negative ray tangent vector
+vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
+    vec4 V, samplePoint;
     float ambient = 0.1;
     vec3 baseColor = vec3(0.0,1.0,1.0);
-    if(isGlobal)
-      baseColor = texcube(texture, samplePoint, N, 4.0, cellBoost * invObjectBoost).xyz; 
-    else
-      baseColor = texcube(texture, samplePoint, N, 4.0, mat4(1.0)).xyz; 
+
+    if(isGlobal){
+      totalFixMatrix = mat4(1.0);
+      samplePoint = sampleInfo[0];
+      V = -sampleInfo[1]; //Viewer is in the direction of the negative ray tangent vector
+      baseColor = texcube(samplePoint, cellBoost * invObjectBoost).xyz; 
+    }
+    else{
+      samplePoint = sampleInfo[2];
+      V = -sampleInfo[3]; //Viewer is in the direction of the negative ray tangent vector
+      baseColor = texcube(samplePoint, mat4(1.0)).xyz;
+    } 
+
     vec3 color = baseColor * ambient; //Setup up color with ambient component
 
     //--------------------------------------------
@@ -226,7 +242,7 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
           translatedLightPosition = ORIGIN*controllerBoosts[i-4]*currentBoost;
       }
       //Normal Lights
-      else if(lightIntensities[i] != vec4(0.0)){
+      else if(lightIntensities[i].w != 0.0){
         translatedLightPosition = lightPositions[i]*invCellBoost*totalFixMatrix;
       }
       distToLight = geometryDistance(samplePoint, translatedLightPosition);
@@ -240,9 +256,9 @@ vec3 phongModel(vec4 samplePoint, vec4 T, vec4 N, mat4 totalFixMatrix, mat4 invO
       float nDotL = max(geometryDot(N, L),0.0);
       vec3 diffuse = lightIntensity.rgb * nDotL;
       //check if nDotL = 0  if so don't bother with shadowMarch
-      if(nDotL == 0.0){
-        shadow = 0.0;
-      }
+      //if(nDotL == 0.0){
+        //shadow = 0.0;
+      //}
       //shadow = shadowMarch(samplePoint, L, distToLight);
       //Calculate Specular Component
       float rDotV = max(geometryDot(R, V),0.0);

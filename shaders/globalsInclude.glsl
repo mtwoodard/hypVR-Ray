@@ -114,6 +114,17 @@ float sphereSDF(vec4 samplePoint, vec4 center, float radius){
   return geometryDistance(samplePoint, center) - radius;
 }
 
+float sortOfEllipsoidSDF(vec4 samplePoint, mat4 scaleMatrix){
+  /*Values must be less than one!
+  mat4 scaleMatrix = mat4( 
+    0.3, 0.0, 0.0, 0.0,
+    0.0, 0.6, 0.0, 0.0,
+    0.0, 0.0, 0.9, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  );*/
+  return sphereSDF(geometryNormalize(samplePoint * scaleMatrix, false), ORIGIN, 0.05);
+}
+
 //--------------------------------------------------------------------
 // Lighting Functions
 //--------------------------------------------------------------------

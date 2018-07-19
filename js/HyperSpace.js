@@ -146,12 +146,17 @@ var globalObjectBoosts = [];
 var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
+//TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
   var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(-0.5,0,0)));
   globalObjectBoosts.push(objMat);
   invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
   globalObjectTypes.push(0);
+  //objMat = new THREE.Matrix4().multiply(translateByVector(g, new THREE.Vector3(0.5,0,0)));
+  //invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
+  //globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
+  //globalObjectTypes.push(1);
   for(var i = 1; i<8; i++){
     globalObjectBoosts.push(new THREE.Matrix4());
     invGlobalObjectBoosts.push(new THREE.Matrix4());

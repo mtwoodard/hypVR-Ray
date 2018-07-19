@@ -3,7 +3,7 @@ float globalSceneSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
   //Light Objects
-  for(int i=0; i<6; i++){
+  for(int i=0; i<4; i++){
     float objDist;
     if(lightIntensities[i].w == 0.0) { objDist = MAX_DIST; }
     else{
@@ -33,6 +33,7 @@ float globalSceneSDF(vec4 samplePoint){
     if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
     else{
       if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
+      //if(globalObjectTypes[i] == 0) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint);}
       else { objDist = MAX_DIST; }
       if(distance > objDist){
         hitWhich = 2;
@@ -46,8 +47,6 @@ float globalSceneSDF(vec4 samplePoint){
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
 vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyperboloid at p
     // float denom = sqrt(1.0 + p.x*p.x + p.y*p.y + p.z*p.z);  // first, find basis for that tangent hyperplane
-    vec4 throwAway = vec4(0.0);
-    int throwAlso = 0;
     float newEp = EPSILON * 10.0;
     vec4 basis_x = geometryNormalize(vec4(p.w,0.0,0.0,p.x), true);  // dw/dx = x/w on hyperboloid
     vec4 basis_y = vec4(0.0,p.w,0.0,p.y);  // dw/dy = y/denom
@@ -129,10 +128,8 @@ void raymarch(vec4 rO, vec4 rD){
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     if(isOutsideCell(localEndPoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
-      vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1); //forwards a bit
       localrO = geometryNormalize(localEndPoint*fixMatrix, false);
-      newDirectionPoint = geometryNormalize(newDirectionPoint*fixMatrix, false);
-      localrD = geometryDirection(localrO,newDirectionPoint);
+      localrD = geometryDirection(localrO, localrD*fixMatrix);
       localDepth = MIN_DIST;
     }
     else{
@@ -141,6 +138,7 @@ void raymarch(vec4 rO, vec4 rD){
       float dist = min(localDist, globalDist);
       if(dist < EPSILON){
         if(localDist < globalDist) hitWhich = 3;
+        //Pass information out to global variables
         sampleInfo[0] = globalEndPoint; //global sample point
         sampleInfo[1] = tangentVectorOnGeodesic(rO, rD, globalDepth); //global tangent vector
         sampleInfo[2] = localEndPoint; //local sample point

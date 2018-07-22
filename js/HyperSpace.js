@@ -146,22 +146,13 @@ var globalObjectBoosts = [];
 var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
+
 //TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(-0.5,0,0)));
-  globalObjectBoosts.push(objMat);
-  invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
-  globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
-  globalObjectTypes.push(0);
-  //objMat = new THREE.Matrix4().multiply(translateByVector(g, new THREE.Vector3(0.5,0,0)));
-  //invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
-  //globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
-  //globalObjectTypes.push(1);
-  for(var i = 1; i<8; i++){
-    globalObjectBoosts.push(new THREE.Matrix4());
-    invGlobalObjectBoosts.push(new THREE.Matrix4());
-    globalObjectRadii.push(new THREE.Vector3(0,0,0));
-    globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
+  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
+  EllipsoidObject(g, new THREE.Vector3(-0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
+  for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
+    EmptyObject();
   }
 }
 //-------------------------------------------------------

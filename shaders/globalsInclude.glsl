@@ -47,10 +47,10 @@ uniform sampler2D texture;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 //uniform vec4 controllerDualPoints[6];
-uniform mat4 globalObjectBoosts[8]; //switch to vec4 array
-uniform mat4 invGlobalObjectBoosts[8]; 
-uniform vec3 globalObjectRadii[8];
-uniform int globalObjectTypes[8];
+uniform mat4 globalObjectBoosts[4];
+uniform mat4 invGlobalObjectBoosts[4]; 
+uniform vec3 globalObjectRadii[4];
+uniform int globalObjectTypes[4];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------
@@ -114,15 +114,20 @@ float sphereSDF(vec4 samplePoint, vec4 center, float radius){
   return geometryDistance(samplePoint, center) - radius;
 }
 
-float sortOfEllipsoidSDF(vec4 samplePoint, mat4 scaleMatrix){
-  /*Values must be less than one!
-  mat4 scaleMatrix = mat4( 
-    0.3, 0.0, 0.0, 0.0,
-    0.0, 0.6, 0.0, 0.0,
-    0.0, 0.0, 0.9, 0.0,
+float sortOfEllipsoidSDF(vec4 samplePoint, mat4 boostMatrix){
+  return sphereSDF(geometryNormalize(samplePoint * boostMatrix, false), ORIGIN, 0.05);
+}
+
+float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
+  float sphere = sphereSDF(samplePoint, ORIGIN * controllerBoost, radius);
+  mat4 scaleMatrix = mat4(
+    0.5, 0.0, 0.0, 0.0,
+    0.0, 0.7, 0.0, 0.0,
+    0.0, 0.0, 0.4, 0.0,
     0.0, 0.0, 0.0, 1.0
-  );*/
-  return sphereSDF(geometryNormalize(samplePoint * scaleMatrix, false), ORIGIN, 0.05);
+  );
+  float ellipsoid = sortOfEllipsoidSDF(samplePoint, scaleMatrix * controllerBoost);
+  return unionSDF(sphere, ellipsoid);
 }
 
 //--------------------------------------------------------------------

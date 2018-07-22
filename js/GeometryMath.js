@@ -222,3 +222,37 @@ function fixOutsideCentralCell( mat ) {
     else
 		return -1;
 }
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//	Object Constructors
+//-----------------------------------------------------------------------------------------------------------------------------
+
+var EmptyObject = function(){
+	globalObjectBoosts.push(new THREE.Matrix4());
+    invGlobalObjectBoosts.push(new THREE.Matrix4());
+    globalObjectRadii.push(new THREE.Vector3(0,0,0));
+    globalObjectTypes.push(-1);
+}
+
+var SphereObject = function(g, pos, radii){
+	var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
+	globalObjectBoosts.push(objMat);
+    invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
+  	globalObjectRadii.push(new THREE.Vector3(radii, radii, radii));
+  	globalObjectTypes.push(0);
+}
+
+var EllipsoidObject = function(g, pos, radii){
+	var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
+	var scaleMatrix = new THREE.Matrix4().set(
+		radii.x, 0, 0, 0,
+		0, radii.y, 0, 0,
+		0, 0, radii.z, 0,
+		0, 0, 0, 1
+	);
+	objMat.multiply(scaleMatrix);
+	invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
+	globalObjectBoosts.push(objMat);
+  	globalObjectRadii.push(radii);
+  	globalObjectTypes.push(1);
+}

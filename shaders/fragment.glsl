@@ -33,7 +33,7 @@ float globalSceneSDF(vec4 samplePoint){
     if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
     else{
       if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
-      //if(globalObjectTypes[i] == 0) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint);}
+      else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint, globalObjectBoosts[i]);}
       else { objDist = MAX_DIST; }
       if(distance > objDist){
         hitWhich = 2;

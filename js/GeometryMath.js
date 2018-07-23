@@ -227,6 +227,13 @@ function fixOutsideCentralCell( mat ) {
 //	Object Constructors
 //-----------------------------------------------------------------------------------------------------------------------------
 
+var PointLightObject = function(pos, colorInt){ //position is a euclidean Vector3
+	var posMag = pos.length();
+	var posDir = pos.normalize();
+	lightPositions.push(constructHyperboloidPoint(posDir, posMag));
+	lightIntensities.push(colorInt);
+}
+
 var EmptyObject = function(){
 	globalObjectBoosts.push(new THREE.Matrix4());
     invGlobalObjectBoosts.push(new THREE.Matrix4());

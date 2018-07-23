@@ -107,7 +107,7 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix);
 // Generalized SDFs
 //--------------------------------------------------------------------
 
-float globalSceneSDF(vec4 samplePoint, out vec4 lightIntensity, out int hitWhich);
+float globalSceneSDF(vec4 samplePoint);
 float localSceneSDF(vec4 samplePoint);
 
 float sphereSDF(vec4 samplePoint, vec4 center, float radius){
@@ -137,32 +137,28 @@ float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
 //Essentially we are starting at our sample point then marching to the light
 //If we make it to/past the light without hitting anything we return 1
 /*otherwise the spot does not receive light from that light source
-float shadowMarch(vec4 samplePoint, vec4 dirToLight, float distToLight){
+float shadowMarch(vec4 dirToLight, float distToLight){
   int fakeI = 0;
   float value = 0.0;
   mat4 fixMatrix;
   // Depth of our raymarcher 
-  float globalDepth = MIN_DIST; float localDepth = MIN_DIST;
+  float globalDepth = MIN_DIST + 0.1; float localDepth = MIN_DIST + 0.1;
   // Values for local scene 
-  vec4 localrO = samplePoint; vec4 localrD = dirToLight;
-  // Stuff we don't need but have to pass as parameters 
-  vec4 throwaway = vec4(0.0); int throwAlso = 0;
+  vec4 localrO = sampleInfo[2]; vec4 localrD = dirToLight;
   // Are you ready boots? Start marchin'.
   for(int i = 0; i<MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps) break;
     fakeI++;
-    vec4 localSamplePoint = pointOnGeodesic(localrO, localrD, localDepth);
-    vec4 globalSamplePoint = pointOnGeodesic(samplePoint, dirToLight, globalDepth);
-    if(isOutsideCell(localSamplePoint, fixMatrix)){
-      vec4 newDirectionPoint = pointOnGeodesic(localrO, localrD, localDepth + 0.1);
-      localrO = geometryNormalize(localSamplePoint*fixMatrix, false);
-      newDirectionPoint = geometryNormalize(newDirectionPoint*fixMatrix, false);
-      localrD = geometryDirection(localrO, newDirectionPoint);
+    vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
+    vec4 globalEndPoint = pointOnGeodesic(sampleInfo[0], dirToLight, globalDepth);
+    if(isOutsideCell(localEndPoint, fixMatrix)){
+      localrO = geometryNormalize(localEndPoint*fixMatrix, false);
+      localrD = geometryDirection(localrO, localrD*fixMatrix);
       localDepth = MIN_DIST;
     }
     else{
-      float localDist = localSceneSDF(localSamplePoint);
-      float globalDist = globalSceneSDF(globalSamplePoint, throwaway, throwAlso);
+      float localDist = localSceneSDF(localEndPoint);
+      float globalDist = globalSceneSDF(globalEndPoint);
       float dist = min(localDist, globalDist);
       if(globalDist < EPSILON)
         return 0.0;
@@ -176,19 +172,20 @@ float shadowMarch(vec4 samplePoint, vec4 dirToLight, float distToLight){
 }
 
 //Global only shadow march
-float shadowMarch(vec4 samplePoint, vec4 dirToLight, float distToLight){
+/*float shadowMarch(bool isGlobal, vec4 dirToLight, float distToLight){
   int fakeI = 0;
   mat4 fixMatrix;
   // Depth of our raymarcher 
-  float depth = MIN_DIST; 
-  // Stuff we don't need but have to pass as parameters 
-  vec4 throwaway = vec4(0.0); int throwAlso = 0;
+  float depth = MIN_DIST + 0.1;
+  vec4 samplePoint;
+  if(isGlobal) samplePoint = sampleInfo[0];
+  else samplePoint = sampleInfo[2];
   // Are you ready boots? Start marchin'.
   for(int i = 0; i<MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps) break;
     fakeI++;
     vec4 globalSamplePoint = pointOnGeodesic(samplePoint, dirToLight, depth);
-    float dist = globalSceneSDF(globalSamplePoint, throwaway, throwAlso);
+    float dist = globalSceneSDF(globalSamplePoint);
     if(dist < EPSILON)
       return 0.0;
     depth += dist;
@@ -226,6 +223,27 @@ float attenuation(float distToLight, vec4 lightIntensity){
   return att;
 }
 
+vec3 lightingCalculations(vec4 SP, vec4 TLP, vec4 V, vec3 baseColor, vec4 lightIntensity){
+  float distToLight = geometryDistance(SP, TLP);
+  float att = attenuation(distToLight, lightIntensity);
+  //Calculations - Phong Reflection Model
+  float shadow = 1.0;
+  vec4 L = geometryDirection(SP, TLP);
+  vec4 R = 2.0*geometryDot(L, N)*N - L;
+  //Calculate Diffuse Component
+  float nDotL = max(geometryDot(N, L),0.0);
+  vec3 diffuse = lightIntensity.rgb * nDotL;
+  /*check if nDotL = 0  if so don't bother with shadowMarch
+  //if(nDotL == 0.0)
+    //shadow = 0.0;
+  //shadow = shadowMarch(L, distToLight);*/
+  //Calculate Specular Component
+  float rDotV = max(geometryDot(R, V),0.0);
+  vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);
+  //Compute final color
+  return att*(shadow*((diffuse*baseColor) + specular));
+}
+
 vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     vec4 V, samplePoint;
     float ambient = 0.1;
@@ -248,41 +266,18 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     //--------------------------------------------
     //Lighting Calculations
     //--------------------------------------------
-    for(int i = 0; i<6; i++){ //6 is the size of the lightPosition array
-      vec4 translatedLightPosition, lightIntensity;
-      float distToLight, att, shadow;
-      //Controller Lights
-      if(i>3){
-        if(controllerCount == 0) break;
-        else
-          translatedLightPosition = ORIGIN*controllerBoosts[i-4]*currentBoost;
-      }
-      //Normal Lights
-      else if(lightIntensities[i].w != 0.0){
+    vec4 translatedLightPosition;
+    for(int i = 0; i<4; i++){ //6 is the size of the lightPosition array
+      if(lightIntensities[i].w != 0.0){
         translatedLightPosition = lightPositions[i]*invCellBoost*totalFixMatrix;
+        color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i]);
       }
-      distToLight = geometryDistance(samplePoint, translatedLightPosition);
-      lightIntensity = lightIntensities[i];
-      att = attenuation(distToLight, lightIntensity);
-      //Calculations - Phong Reflection Model
-      vec4 L = geometryDirection(samplePoint, translatedLightPosition);
-      shadow = 1.0;
-      vec4 R = 2.0*geometryDot(L, N)*N - L;
-      //Calculate Diffuse Component
-      float nDotL = max(geometryDot(N, L),0.0);
-      vec3 diffuse = lightIntensity.rgb * nDotL;
-      //check if nDotL = 0  if so don't bother with shadowMarch
-      //if(nDotL == 0.0){
-        //shadow = 0.0;
-      //}
-      //shadow = shadowMarch(samplePoint, L, distToLight);
-      //Calculate Specular Component
-      float rDotV = max(geometryDot(R, V),0.0);
-      vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);
-      //Compute final color
-      color += att*(shadow*((diffuse*baseColor) + specular));
-      //Exit if there is only one controller
-      if(controllerCount == 1 && i > 3) break;
+    }
+    for(int i = 0; i<2; i++){
+      if(controllerCount == 0) break; //if there are no controllers do nothing
+      else translatedLightPosition = ORIGIN*controllerBoosts[i]*currentBoost;
+      color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i+4]);
+      if(controllerCount == 1) break; //if there is one controller only do one loop
     }
     return color;
 }

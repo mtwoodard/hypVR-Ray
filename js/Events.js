@@ -13,22 +13,17 @@ var onResize = function(){
 //--------------------------------------------------------------------
 // Handle VR Controllers
 //-------------------------------------------------------------------- 
+  var g_controllerMove = false;
+
   var onControllerConnected = function(event){
     var controller = event.detail;
-   // controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;
+   //controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;
     console.log(controller.inspect());  
-    controller.addEventListener('primary press began', function(event){
-        /*var vrState = g_controls.getVRState();
-        var deltaPosition = new THREE.Vector3();
-        deltaPosition.multiplyScalar(guiInfo.eToHScale * 0.2);
-        m = translateByVector(g_geometry, deltaPosition);
-        g_currentBoost.premultiply(m);*/
-    });
-    controller.addEventListener('primary press ended', function(event){
-  
-    });
-    controller.addEventListener('disconnected', function(event){
-      //controller.parent.remove(controller);
+    controller.addEventListener('primary press began', function(event){ g_controllerMove = true; });
+    controller.addEventListener('primary press ended', function(event){ g_controllerMove = false; });
+
+    controller.addEventListener('axes changed', function(event){
+
     });
   }
   

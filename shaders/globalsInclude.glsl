@@ -126,6 +126,7 @@ float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
     0.0, 0.0, 0.4, 0.0,
     0.0, 0.0, 0.0, 1.0
   );
+  //We need to offset this so that the ellipsoid is not centered at the same point as the sphere
   float ellipsoid = sortOfEllipsoidSDF(samplePoint, scaleMatrix * controllerBoost);
   return unionSDF(sphere, ellipsoid);
 }
@@ -136,8 +137,8 @@ float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
 
 //Essentially we are starting at our sample point then marching to the light
 //If we make it to/past the light without hitting anything we return 1
-/*otherwise the spot does not receive light from that light source
-float shadowMarch(vec4 dirToLight, float distToLight){
+//otherwise the spot does not receive light from that light source
+/*float shadowMarch(vec4 dirToLight, float distToLight){
   int fakeI = 0;
   float value = 0.0;
   mat4 fixMatrix;
@@ -172,14 +173,12 @@ float shadowMarch(vec4 dirToLight, float distToLight){
 }
 
 //Global only shadow march
-/*float shadowMarch(bool isGlobal, vec4 dirToLight, float distToLight){
+float shadowMarch(vec4 dirToLight, float distToLight){
   int fakeI = 0;
   mat4 fixMatrix;
   // Depth of our raymarcher 
   float depth = MIN_DIST + 0.1;
-  vec4 samplePoint;
-  if(isGlobal) samplePoint = sampleInfo[0];
-  else samplePoint = sampleInfo[2];
+  vec4 samplePoint = sampleInfo[0];
   // Are you ready boots? Start marchin'.
   for(int i = 0; i<MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps) break;
@@ -233,10 +232,10 @@ vec3 lightingCalculations(vec4 SP, vec4 TLP, vec4 V, vec3 baseColor, vec4 lightI
   //Calculate Diffuse Component
   float nDotL = max(geometryDot(N, L),0.0);
   vec3 diffuse = lightIntensity.rgb * nDotL;
-  /*check if nDotL = 0  if so don't bother with shadowMarch
+  //Check if nDotL = 0  if so don't bother with shadowMarch
   //if(nDotL == 0.0)
-    //shadow = 0.0;
-  //shadow = shadowMarch(L, distToLight);*/
+  //  shadow = 0.0;
+  //shadow = shadowMarch(L, distToLight);
   //Calculate Specular Component
   float rDotV = max(geometryDot(R, V),0.0);
   vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);
@@ -249,6 +248,9 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     float ambient = 0.1;
     vec3 baseColor = vec3(0.0,1.0,1.0);
 
+    //--------------------------------------------
+    //Setup Variables
+    //--------------------------------------------    
     if(isGlobal){
       totalFixMatrix = mat4(1.0);
       samplePoint = sampleInfo[0];
@@ -259,20 +261,23 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
       samplePoint = sampleInfo[2];
       V = -sampleInfo[3]; //Viewer is in the direction of the negative ray tangent vector
       baseColor = texcube(samplePoint, mat4(1.0)).xyz;
-    } 
+    }
 
-    vec3 color = baseColor * ambient; //Setup up color with ambient component
+    //Setup up color with ambient component
+    vec3 color = baseColor * ambient; 
 
     //--------------------------------------------
     //Lighting Calculations
     //--------------------------------------------
     vec4 translatedLightPosition;
-    for(int i = 0; i<4; i++){ //6 is the size of the lightPosition array
+    //Standard Light Objects
+    for(int i = 0; i<4; i++){ //4 is the number of lights we can use
       if(lightIntensities[i].w != 0.0){
         translatedLightPosition = lightPositions[i]*invCellBoost*totalFixMatrix;
         color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i]);
       }
     }
+    //Lights for Controllers
     for(int i = 0; i<2; i++){
       if(controllerCount == 0) break; //if there are no controllers do nothing
       else translatedLightPosition = ORIGIN*controllerBoosts[i]*currentBoost;

@@ -120,12 +120,17 @@ float sortOfEllipsoidSDF(vec4 samplePoint, mat4 boostMatrix){
 
 float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
   float sphere = sphereSDF(samplePoint, ORIGIN * controllerBoost, radius);
+  
+  //generated on JS side
+  //may be subject to change
+  //translateByVector(0,0,0.2)*scale matrix (0.8, 0.8, 0.4)
   mat4 scaleMatrix = mat4(
-    0.5, 0.0, 0.0, 0.0,
-    0.0, 0.7, 0.0, 0.0,
-    0.0, 0.0, 0.4, 0.0,
-    0.0, 0.0, 0.0, 1.0
+    0.8, 0.0, 0.0, 0.0,
+    0.0, 0.8, 0.0, 0.0,
+    0.0, 0.0, 0.408, 0.0805,
+    0.0, 0.0, 0.2013, 1.02
   );
+
   //We need to offset this so that the ellipsoid is not centered at the same point as the sphere
   float ellipsoid = sortOfEllipsoidSDF(samplePoint, scaleMatrix * controllerBoost);
   return unionSDF(sphere, ellipsoid);

@@ -279,6 +279,16 @@ var finishInit = function(fShader){
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
   mesh = new THREE.Mesh(geom, g_material);
   scene.add(mesh);
+  var scaleMatrix = new THREE.Matrix4().set(
+		0.8, 0, 0, 0,
+		0, 0.8, 0, 0,
+		0, 0, 0.4, 0,
+		0, 0, 0, 1
+  );
+  
+  //Generator for controllerScaleMatrix on the glsl side
+  //console.log(translateByVector(g_geometry, new THREE.Vector3(0,0,0.2)).multiply(scaleMatrix));
+
   animate();
 }
 
@@ -292,7 +302,6 @@ var animate = function(){
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
   g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
-  //g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }
 

@@ -88,7 +88,7 @@ THREE.VRControls = function(done){
         var controllerMove = 0;
         if(g_controllerMove){ controllerMove = 1; }
 
-        if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
+        if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0 || controllerMove !== 0){
             deltaPosition = getFwdVector().multiplyScalar(speed * deltaTime * (this.manualMoveRate[0] + controllerMove)).add(
                 getRightVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[1])).add(
                 getUpVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[2]));

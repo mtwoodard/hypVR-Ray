@@ -18,7 +18,8 @@ float globalSceneSDF(vec4 samplePoint){
   //Controller Objects
   for(int i=0; i<2; i++){
     if(controllerCount != 0){
-      float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
+      //float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
+      float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
       if(distance > objDist){
         hitWhich = 1;
         distance = objDist;

@@ -19,11 +19,11 @@ var onResize = function(){
     var controller = event.detail;
    //controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;
     console.log(controller.inspect());  
-    controller.addEventListener('primary press began', function(event){ g_controllerMove = true; });
-    controller.addEventListener('primary press ended', function(event){ g_controllerMove = false; });
+    controller.addEventListener('primary press began', function(){ g_controllerMove = true; });
+    controller.addEventListener('primary press ended', function(){ g_controllerMove = false; });
 
     controller.addEventListener('axes changed', function(event){
-
+        console.log(event);
     });
   }
   

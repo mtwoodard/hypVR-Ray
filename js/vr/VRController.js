@@ -115,6 +115,7 @@ THREE.VRController = function( gamepad ){
 
 	this.inspect = function(){ return (
 		'#'+ gamepad.index +': '+ gamepad.id +
+		'\n\tAxes Names: '+ Object.keys(axes.byName)+
 		'\n\tStyle: '+ this.style +
 		'\n\tDOF: '+ this.dof +
 		'\n\tHandedness: '+ handedness +

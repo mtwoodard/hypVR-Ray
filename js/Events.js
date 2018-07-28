@@ -22,12 +22,16 @@ var onResize = function(){
     controller.addEventListener('primary press began', function(){ g_controllerMove = true; });
     controller.addEventListener('primary press ended', function(){ g_controllerMove = false; });
 
+    //This only works for OpenVR controllers
+    //For example the oculus uses thumbstick instead of thumbpad
     controller.addEventListener('thumbpad axes changed', function(event){
         var HueSat = axesToHueSat(event.axes);
-        var HSV = new THREE.Vector3(HueSat.x, HueSat.y, 1.0);
-        var RGB = HSVtoRGB(HSV);
-        //console.log(event);
-        lightIntensities[event.target.gamepad.index + 4] = new THREE.Vector4(RGB.x, RGB.y, RGB.z, 2.0);
+        console.log(HueSat);
+        if(HueSat.x !== 0.5 && HueSat.y !== 0){
+            var HSV = new THREE.Vector3(HueSat.x, HueSat.y, 1.0);
+            var RGB = HSVtoRGB(HSV);
+            lightIntensities[event.target.gamepad.index + 4] = new THREE.Vector4(RGB.x, RGB.y, RGB.z, 2.0);
+        }
     });
   }
   
@@ -58,8 +62,8 @@ var onResize = function(){
         if(_i === 0)      {_r =  V; _g = _3; _b = _1;}
         else if(_i === 1) {_r = _2; _g =  V; _b = _1;}
         else if(_i === 2) {_r = _1; _g =  V; _b = _3;}
-        else if(_i === 2) {_r = _1; _g = _2; _b =  V;}
-        else if(_i === 2) {_r = _3; _g = _1; _b =  V;}
+        else if(_i === 3) {_r = _1; _g = _2; _b =  V;}
+        else if(_i === 4) {_r = _3; _g = _1; _b =  V;}
         else              {_r =  V; _g = _1; _b = _2;}
 
         R = _r; B = _b; G = _g;

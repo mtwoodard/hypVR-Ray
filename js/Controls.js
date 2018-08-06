@@ -4,7 +4,7 @@
  * hawksley / https://github.com/hawksley 
  */
 
-THREE.VRControls = function(done){
+THREE.Controls = function(done){
     this.phoneVR = new PhoneVR();
     var speed = 0.2;
     this._oldVRState;
@@ -78,6 +78,7 @@ THREE.VRControls = function(done){
         //--------------------------------------------------------------------
         // Translation
         //--------------------------------------------------------------------
+        //TODO: Beautify
         var deltaTime = (newTime - oldTime) * 0.001;
         var deltaPosition = new THREE.Vector3();
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){

@@ -152,6 +152,7 @@ var initObjects = function(g){
     EmptyObject();
   }
 }
+
 //-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
@@ -168,7 +169,7 @@ var init = function(){
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   g_virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
-  g_controls = new THREE.VRControls();
+  g_controls = new THREE.Controls();
   g_rotation = new THREE.Quaternion();
   g_controllerBoosts.push(new THREE.Matrix4());
   g_controllerBoosts.push(new THREE.Matrix4());

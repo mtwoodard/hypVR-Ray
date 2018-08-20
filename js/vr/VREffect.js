@@ -30,25 +30,12 @@ THREE.VREffect = function ( renderer, done ) {
 	this._init = function() {
 		var self = this;
 
-		self.getEyeRotation = function(translationDistance){
-			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
-			var leftEyeRotation = new THREE.Quaternion();
-			var rightEyeRotation = new THREE.Quaternion();
-			if(guiInfo.rotateEyes){
-				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
-				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
-				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
-				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
-			}
-		}
-
 		// default some stuff for mobile VR
 		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
 		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
 		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
-		self.getEyeRotation(self.leftEyeTranslation.x);
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
@@ -72,7 +59,6 @@ THREE.VREffect = function ( renderer, done ) {
 			self.rightEyeTranslation = {x: self.rightEyeTranslation[0], y:self.rightEyeTranslation[1], z:self.rightEyeTranslation[2], w:0}
 			g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
 			g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
-			self.getEyeRotation(self.leftEyeTranslation.x);
 		}
 
 		function gotVRDisplay( devices ) {
@@ -86,11 +72,7 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					document.getElementById("crosshairLeft").style.visibility = 'visible';
-        			document.getElementById("crosshairRight").style.visibility = 'visible';
-        			document.getElementById("crosshair").style.visibility = 'hidden';
 					guiInfo.toggleStereo = true;
-					self.getEyeRotation(self.leftEyeTranslation.x);
 					if (parametersLeft.fieldOfView !== undefined) {
 						self.leftEyeFOV = parametersLeft.fieldOfView;
 						self.rightEyeFOV = parametersRight.fieldOfView;
@@ -118,11 +100,7 @@ THREE.VREffect = function ( renderer, done ) {
 					var parametersRight = vrHMD.getEyeParameters( "right" );
 					self.leftEyeTranslation.x = parametersLeft.offset[0];
 					self.rightEyeTranslation.x = parametersRight.offset[0];
-					document.getElementById("crosshairLeft").style.visibility = 'visible';
-        			document.getElementById("crosshairRight").style.visibility = 'visible';
-        			document.getElementById("crosshair").style.visibility = 'hidden';
 					guiInfo.toggleStereo = true;
-					self.getEyeRotation(self.leftEyeTranslation.x);
 					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
 					self.rightEyeFOV = parametersRight.recommendedFieldOfView;
 					break; // We keep the first we encounter
@@ -151,7 +129,6 @@ THREE.VREffect = function ( renderer, done ) {
 			vrHMD.requestAnimationFrame(animate);
 			this.renderStereo.apply( this, [scene, camera] );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
-				// vrHMD.getAnimationFrame(frameData);
 				vrHMD.submitFrame();
 			}
 			return;

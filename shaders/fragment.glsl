@@ -15,27 +15,12 @@ float globalSceneSDF(vec4 samplePoint){
       }
     }
   }
-  //Controller Objects
-  for(int i=0; i<2; i++){
-    if(controllerCount != 0){
-      //float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
-      float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
-      if(distance > objDist){
-        hitWhich = 1;
-        distance = objDist;
-        globalLightColor = lightIntensities[i+4];
-      }
-      if(controllerCount == 1) break;
-    }
-  }
   //Global Objects
   for(int i=0; i<4; i++){
     float objDist;
     if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
     else{
-      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
-      else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint, globalObjectBoosts[i]);}
-      else { objDist = MAX_DIST; }
+      objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
       if(distance > objDist){
         hitWhich = 2;
         distance = objDist;

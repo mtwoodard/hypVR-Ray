@@ -27,7 +27,6 @@ int hitWhich = 0;
 //Translation & Utility Variables
 //--------------------------------------------
 uniform int isStereo;
-//uniform int geometry;
 uniform vec2 screenResolution;
 uniform float fov;
 uniform mat4 invGenerators[6];
@@ -41,16 +40,11 @@ uniform int maxSteps;
 //Lighting Variables & Global Object Variables
 //--------------------------------------------
 uniform vec4 lightPositions[4];
-uniform vec4 lightIntensities[6]; //w component is the light's attenuation -- 6 since we need controllers
+uniform vec4 lightIntensities[4]; //w component is the light's attenuation 
 uniform int attnModel;
-uniform sampler2D texture;
-uniform int controllerCount; //Max is two
-uniform mat4 controllerBoosts[2];
-//uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoosts[4];
 uniform mat4 invGlobalObjectBoosts[4]; 
 uniform vec3 globalObjectRadii[4];
-uniform int globalObjectTypes[4];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------
@@ -114,103 +108,9 @@ float sphereSDF(vec4 samplePoint, vec4 center, float radius){
   return geometryDistance(samplePoint, center) - radius;
 }
 
-float sortOfEllipsoidSDF(vec4 samplePoint, mat4 boostMatrix){
-  return sphereSDF(geometryNormalize(samplePoint * boostMatrix, false), ORIGIN, 0.05);
-}
-
-float controllerSDF(vec4 samplePoint, mat4 controllerBoost, float radius){
-  float sphere = sphereSDF(samplePoint, ORIGIN * controllerBoost, radius);
-  
-  //generated on JS side
-  //may be subject to change
-  //translateByVector(0,0,0.2)*scale matrix (0.8, 0.8, 0.4)
-  mat4 scaleMatrix = mat4(
-    0.8, 0.0, 0.0, 0.0,
-    0.0, 0.8, 0.0, 0.0,
-    0.0, 0.0, 0.408, 0.0805,
-    0.0, 0.0, 0.2013, 1.02
-  );
-
-  //We need to offset this so that the ellipsoid is not centered at the same point as the sphere
-  float ellipsoid = sortOfEllipsoidSDF(samplePoint, scaleMatrix * controllerBoost);
-  return unionSDF(sphere, ellipsoid);
-}
-
 //--------------------------------------------------------------------
 // Lighting Functions
 //--------------------------------------------------------------------
-
-//Essentially we are starting at our sample point then marching to the light
-//If we make it to/past the light without hitting anything we return 1
-//otherwise the spot does not receive light from that light source
-/*float shadowMarch(vec4 dirToLight, float distToLight){
-  int fakeI = 0;
-  float value = 0.0;
-  mat4 fixMatrix;
-  // Depth of our raymarcher 
-  float globalDepth = MIN_DIST + 0.1; float localDepth = MIN_DIST + 0.1;
-  // Values for local scene 
-  vec4 localrO = sampleInfo[2]; vec4 localrD = dirToLight;
-  // Are you ready boots? Start marchin'.
-  for(int i = 0; i<MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps) break;
-    fakeI++;
-    vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
-    vec4 globalEndPoint = pointOnGeodesic(sampleInfo[0], dirToLight, globalDepth);
-    if(isOutsideCell(localEndPoint, fixMatrix)){
-      localrO = geometryNormalize(localEndPoint*fixMatrix, false);
-      localrD = geometryDirection(localrO, localrD*fixMatrix);
-      localDepth = MIN_DIST;
-    }
-    else{
-      float localDist = localSceneSDF(localEndPoint);
-      float globalDist = globalSceneSDF(globalEndPoint);
-      float dist = min(localDist, globalDist);
-      if(globalDist < EPSILON)
-        return 0.0;
-      globalDepth += dist;
-      localDepth += dist;
-      if(globalDepth >= distToLight)
-        return 1.0;
-    }
-  }
-  return 1.0;
-}
-
-//Global only shadow march
-float shadowMarch(vec4 dirToLight, float distToLight){
-  int fakeI = 0;
-  mat4 fixMatrix;
-  // Depth of our raymarcher 
-  float depth = MIN_DIST + 0.1;
-  vec4 samplePoint = sampleInfo[0];
-  // Are you ready boots? Start marchin'.
-  for(int i = 0; i<MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps) break;
-    fakeI++;
-    vec4 globalSamplePoint = pointOnGeodesic(samplePoint, dirToLight, depth);
-    float dist = globalSceneSDF(globalSamplePoint);
-    if(dist < EPSILON)
-      return 0.0;
-    depth += dist;
-    if(depth >= distToLight)
-      return 1.0;
-  }
-  return 1.0;
-}*/
-
-vec4 texcube(vec4 samplePoint, mat4 toOrigin){
-    float k = 4.0;
-    vec4 newSP = samplePoint * toOrigin;
-    vec3 p = mod(newSP.xyz,1.0);
-    vec3 n = geometryNormalize(N*toOrigin, true).xyz; //Very hacky you are warned
-    vec3 m = pow(abs(n), vec3(k));
-    vec4 x = texture2D(texture, p.yz);
-    vec4 y = texture2D(texture, p.zx);
-    vec4 z = texture2D(texture, p.xy);
-    return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
-}
-
 
 float attenuation(float distToLight, vec4 lightIntensity){
   float att;
@@ -231,27 +131,22 @@ vec3 lightingCalculations(vec4 SP, vec4 TLP, vec4 V, vec3 baseColor, vec4 lightI
   float distToLight = geometryDistance(SP, TLP);
   float att = attenuation(distToLight, lightIntensity);
   //Calculations - Phong Reflection Model
-  float shadow = 1.0;
   vec4 L = geometryDirection(SP, TLP);
   vec4 R = 2.0*geometryDot(L, N)*N - L;
   //Calculate Diffuse Component
   float nDotL = max(geometryDot(N, L),0.0);
   vec3 diffuse = lightIntensity.rgb * nDotL;
-  //Check if nDotL = 0  if so don't bother with shadowMarch
-  //if(nDotL == 0.0)
-  //  shadow = 0.0;
-  //shadow = shadowMarch(L, distToLight);
   //Calculate Specular Component
   float rDotV = max(geometryDot(R, V),0.0);
   vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);
   //Compute final color
-  return att*(shadow*((diffuse*baseColor) + specular));
+  return att*((diffuse*baseColor) + specular);
 }
 
 vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     vec4 V, samplePoint;
     float ambient = 0.1;
-    vec3 baseColor = vec3(0.0,1.0,1.0);
+    vec3 baseColor = vec3(1.0,1.0,1.0);
 
     //--------------------------------------------
     //Setup Variables
@@ -260,12 +155,10 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
       totalFixMatrix = mat4(1.0);
       samplePoint = sampleInfo[0];
       V = -sampleInfo[1]; //Viewer is in the direction of the negative ray tangent vector
-      baseColor = texcube(samplePoint, cellBoost * invObjectBoost).xyz; 
     }
     else{
       samplePoint = sampleInfo[2];
       V = -sampleInfo[3]; //Viewer is in the direction of the negative ray tangent vector
-      baseColor = texcube(samplePoint, mat4(1.0)).xyz;
     }
 
     //Setup up color with ambient component
@@ -282,19 +175,5 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
         color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i]);
       }
     }
-    //Lights for Controllers
-    for(int i = 0; i<2; i++){
-      if(controllerCount == 0) break; //if there are no controllers do nothing
-      else translatedLightPosition = ORIGIN*controllerBoosts[i]*currentBoost;
-      color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i+4]);
-      if(controllerCount == 1) break; //if there is one controller only do one loop
-    }
     return color;
 }
-
-/*else if(globalObjectTypes[i] == 1){ //cuboid
-        vec4 dual0 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.1,0.0,0.0)));
-        vec4 dual1 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.1,0.0)));
-        vec4 dual2 = geometryDirection(globalObjectBoosts[i][3], globalObjectBoosts[i][3]*translateByVector(vec3(0.0,0.0,0.1)));
-        objDist = geodesicCubeHSDF(absoluteSamplePoint, dual0, dual1, dual2, globalObjectRadii[i]);
-      }*/

@@ -1,12 +1,10 @@
 //-------------------------------------------------------
 // Global Variables
 //-------------------------------------------------------
-var g_cut4 = 2;
 var g_sphereRad = 0.996216;
 var g_tubeRad = 0.15;
 var g_horospherSize = -0.951621;
 var g_planeOffset = 0.75;
-var g_targetFPS = {value:27.5};
 
 //-------------------------------------------------------
 // UI Variables
@@ -19,17 +17,11 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
   edgeThickness:1.5,
   eToHScale:1.0,
   fov:90,
-  toggleStereo:false,
-  rotateEyes:false,
-  autoSteps:true,
-  maxSteps: 31,
-  halfIpDistance: 0.03200000151991844,
   falloffModel: 1,
   resetPosition: function(){
     g_currentBoost.identity();
     g_cellBoost.identity();
     g_invCellBoost.identity();
-    g_controllerBoosts[0].identity();
   }
 };
 
@@ -39,19 +31,8 @@ function updateEyes(){
 
   g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
   g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
-  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
   g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
   g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
-}
-
-function getGeometryFrag()
-{
-	geometryFragIdx = 0;
-	if( g_geometry == Geometry.Euclidean )
-		geometryFragIdx = 1;
-	if( g_geometry == Geometry.Spherical )
-		geometryFragIdx = 2;
-	return geometryFrag[geometryFragIdx];
 }
 
 // Inputs are from the UI parameterizations.
@@ -68,9 +49,8 @@ function updateUniformsFromUI()
 	if( g !== g_geometry )
 	{
 		g_geometry = g;
-    var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
-    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
+    g_material.fragmentShader = globalsFrag.concat(hyperbolic).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
     guiInfo.resetPosition();
 	}
 
@@ -78,13 +58,7 @@ function updateUniformsFromUI()
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
 	hCWH = hCWK = inrad;
-	if( g == Geometry.Spherical )
-	{
-		var stereo = Math.sphericalToStereographic(inrad);
-		hCWK = Math.stereographicToGnomonic( stereo );
-	}
-	if( g == Geometry.Hyperbolic )
-		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
+	hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
 	// Calculate sphereRad, horosphereSize, and planeOffset
 	//
@@ -93,7 +67,6 @@ function updateUniformsFromUI()
 	// We want them to be slightly bigger than that so that they intersect.
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
-	g_cut4 = GetGeometry2D( q, r );
 	var hOffset = guiInfo.edgeThickness / 10;
 
 	//Tube Radius
@@ -118,7 +91,6 @@ function updateUniformsFromUI()
 	g_material.uniforms.invGenerators.value = invGens;
 	g_material.uniforms.halfCubeDualPoints.value = hCDP;
   g_material.uniforms.halfCubeWidthKlein.value = hCWK;
-	g_material.uniforms.cut4.value = g_cut4;
 	g_material.uniforms.sphereRad.value = g_sphereRad;
 	g_material.uniforms.tubeRad.value = g_tubeRad;
 	g_material.uniforms.horosphereSize.value = g_horospherSize;
@@ -131,23 +103,13 @@ var initGui = function(){
   var gui = new dat.GUI();
   gui.close();
   //scene settings ---------------------------------
-  var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
+  var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2}).name("Scene");
   var edgeController = gui.add(guiInfo, 'edgeCase', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12}).name("Edge Degree");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
-  //debug settings ---------------------------------
-  var debugFolder = gui.addFolder('Debug');
-  var stereoFolder = debugFolder.addFolder('Stereo');
-  var debugUIController = debugFolder.add(guiInfo, 'toggleUI').name("Toggle Debug UI");
-  debugFolder.add(guiInfo, 'autoSteps').name("Auto Adjust Step Count");
-  debugFolder.add(guiInfo, 'maxSteps', 0, 127).name("Set Step Count");
-  debugFolder.add(g_targetFPS, 'value', 15, 90).name("Target FPS");
-  var switchToStereo = stereoFolder.add(guiInfo, 'toggleStereo').name("Toggle Stereo");
-  var rotateController = stereoFolder.add(guiInfo, 'rotateEyes').name("Rotate Eyes");
-  var pupilDistanceController = stereoFolder.add(guiInfo, 'halfIpDistance').name("Interpupiliary Distance");
 
   // ------------------------------
   // UI Controllers
@@ -169,59 +131,8 @@ var initGui = function(){
   });
 
   fovController.onChange(function(value){
-    g_virtCamera.fov = value;
+    g_fov = value;
     g_material.uniforms.fov.value = value;
-  });
-
-  debugUIController.onFinishChange(function(value){
-    var crosshair = document.getElementById("crosshair");
-    var crosshairLeft = document.getElementById("crosshairLeft");
-    var crosshairRight = document.getElementById("crosshairRight");
-    var fps = document.getElementById("fps");
-    var about = document.getElementById("about");
-    if(value){
-      about.style.visibility = 'visible';
-      fps.style.visibility = 'visible';
-      if(guiInfo.toggleStereo){
-        crosshairLeft.style.visibility = 'visible';
-        crosshairRight.style.visibility = 'visible';
-      }
-      else
-        crosshair.style.visibility = 'visible';
-    }
-    else{
-      about.style.visibility = 'hidden';
-      fps.style.visibility = 'hidden';
-      crosshair.style.visibility = 'hidden';
-      crosshairLeft.style.visibility = 'hidden';
-      crosshairRight.style.visibility = 'hidden';
-    }
-  });
-
-  switchToStereo.onFinishChange(function(value){
-    var crosshair = document.getElementById("crosshair");
-    var crosshairLeft = document.getElementById("crosshairLeft");
-    var crosshairRight = document.getElementById("crosshairRight");
-    if(guiInfo.toggleUI){
-      if(value){
-        crosshairLeft.style.visibility = 'visible';
-        crosshairRight.style.visibility = 'visible';
-        crosshair.style.visibility = 'hidden';
-      }
-      else{
-        crosshairLeft.style.visibility = 'hidden';
-        crosshairRight.style.visibility = 'hidden';
-        crosshair.style.visibility = 'visible';
-      }
-    }
-  });
-
-  pupilDistanceController.onFinishChange(function(value){
-    updateEyes();
-  });
-
-  rotateController.onFinishChange(function(value) {
-    updateEyes();
   });
 
   sceneController.onFinishChange(function(index){

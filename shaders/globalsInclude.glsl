@@ -6,6 +6,8 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float fov = 90.0;
+const float horosphereSize = -0.951621;
+const float halfCubeWidthKlein = 0.5773502692;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Generated Constants
@@ -44,11 +46,6 @@ uniform vec4 lightIntensities[4]; //w component is the light's attenuation
 uniform mat4 globalObjectBoosts[4];
 uniform mat4 invGlobalObjectBoosts[4]; 
 uniform vec3 globalObjectRadii[4];
-//--------------------------------------------
-//Scene Dependent Variables
-//--------------------------------------------
-uniform float halfCubeWidthKlein;
-uniform float horosphereSize;
 
 //Quaternion Math
 vec3 qtransform( vec4 q, vec3 v ){

@@ -5,7 +5,6 @@ var g_effect;
 var g_fov;
 var g_material;
 var g_controls;
-var g_geometry;
 var g_rotation;
 var g_currentBoost;
 var g_leftCurrentBoost;
@@ -153,7 +152,6 @@ var init = function(){
   g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
   g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   g_invCellBoost = new THREE.Matrix4();
-  g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
 	initValues();
   initLights();
   initObjects();
@@ -182,7 +180,6 @@ var finishInit = function(fShader){
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      geometry:{type: "i", value: 3},
       screenResolution:{type:"v2", value:g_screenResolution},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
@@ -196,18 +193,13 @@ var finishInit = function(fShader){
       attnModel:{type:"i", value:attnModel},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
-      globalObjectRadii:{type:"v3v", value:globalObjectRadii},
-			halfCubeDualPoints:{type:"v4v", value:hCDP},
-      halfCubeWidthKlein:{type:"f", value: hCWK},
-      horosphereSize:{type:"f", value:g_horospherSize}
+      globalObjectRadii:{type:"v3v", value:globalObjectRadii}    
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,
     transparent:true
   });
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
-  //Setup dat GUI --- SceneManipulator.js
-  initGui();
   //Setup a "quad" to render on-------------------------
   geom = new THREE.BufferGeometry();
   var vertices = new Float32Array([

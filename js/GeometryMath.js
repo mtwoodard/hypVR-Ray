@@ -19,59 +19,27 @@ Math.average = function(arr){
 	return ave;
 }
 
-// Hyperbolic norm to Poincare norm.
-Math.hyperbolicToPoincare = function(h){
-	return Math.tanh(0.5 * h);
-}
-
-// Poincare norm to klein norm.
-Math.poincareToKlein = function(p){
-	var mag = 2/(1+p*p);
-	return p*mag;
-}
-
-// Spherical norm to steregraphic norm.
-Math.sphericalToStereographic = function(s){
-	return Math.tan(0.5 * s);
-}
-
-// Steregraphic norm to gnomonic norm.
-Math.stereographicToGnomonic = function(s){
-	var mag = 1/(1-s*s);
-	return s*mag;
-}
-
 //----------------------------------------------------------------------
 //	Dot Product
 //----------------------------------------------------------------------
-THREE.Vector4.prototype.sphericalDot = function(v){
-	return this.x*v.x + this.y*v.y + this.z*v.z + this.w *v.w;
-}
-
 THREE.Vector4.prototype.lorentzDot = function(v){
 	return this.x * v.x + this.y * v.y + this.z * v.z - this.w * v.w;
-}
-
-THREE.Vector4.prototype.geometryDot = function(g, v){
-	if(g === Geometry.Spherical) return this.sphericalDot(v);
-	else if(g === Geometry.Hyperbolic) return this.lorentzDot(v);
-	else return this.dot(v);
 }
 
 //----------------------------------------------------------------------
 //	Norm & Normalize
 //----------------------------------------------------------------------
-THREE.Vector4.prototype.geometryLength = function(g){
-	return Math.sqrt(Math.abs(this.geometryDot(g,this)));
+THREE.Vector4.prototype.geometryLength = function(){
+	return Math.sqrt(Math.abs(this.lorentzDot(this)));
 }
 
 THREE.Vector4.prototype.geometryNormalize = function(g){
-	return this.divideScalar(this.geometryLength(g));
+	return this.divideScalar(this.geometryLength());
 }
 
-THREE.Vector4.prototype.geometryDirection = function(g, v){
-	var w = v.add(this.multiplyScalar(this.geometryDot(g,v)));
-	return w.geometryNormalize(g);
+THREE.Vector4.prototype.geometryDirection = function(v){
+	var w = v.add(this.multiplyScalar(this.lorentzDot(v)));
+	return w.geometryNormalize();
 }
 //----------------------------------------------------------------------
 //	Matrix Operations
@@ -80,27 +48,25 @@ THREE.Matrix4.prototype.add = function (m) {
   	this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
-THREE.Matrix4.prototype.gramSchmidt = function(g){
-	if(g === Geometry.Hyperbolic){ //Only necessary in hyperbolic space
-		var m = this.transpose(); 
-		var n = m.elements; //elements are stored in column major order we need row major
-		var temp = new THREE.Vector4();
-		var temp2 = new THREE.Vector4();
-		for (var i = 0; i<4; i++) {  ///normalize row
-			var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
+THREE.Matrix4.prototype.gramSchmidt = function(){
+	var m = this.transpose(); 
+	var n = m.elements; //elements are stored in column major order we need row major
+	var temp = new THREE.Vector4();
+	var temp2 = new THREE.Vector4();
+	for (var i = 0; i<4; i++) {  ///normalize row
+		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
+		for (var l = 0; l<4; l++) {
+			n[4*i + l] = n[4*i + l] * invRowNorm;
+		}
+		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
+			var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
 			for (var l = 0; l<4; l++) {
-				n[4*i + l] = n[4*i + l] * invRowNorm;
-			}
-			for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-				var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
-				for (var l = 0; l<4; l++) {
-					n[4*j + l] -= component * n[4*i + l];
-				}
+				n[4*j + l] -= component * n[4*i + l];
 			}
 		}
-		m.elements = n;
-		this.elements = m.transpose().elements;
 	}
+	m.elements = n;
+	this.elements = m.transpose().elements;
 }
 
 //----------------------------------------------------------------------
@@ -128,27 +94,15 @@ function constructHyperboloidPoint(direction, distance){
 //----------------------------------------------------------------------
 //	Matrix - Generators
 //----------------------------------------------------------------------
-function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spaces app
+function translateByVector(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
   	var dx = v.x; var dy = v.y; var dz = v.z;
 	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
 	var m03 = dx; var m13 = dy; var m23 = dz;
 	var c1 = Math.sinh(len);
 	var c2 = Math.cosh(len) - 1;
-	//Conditions for different geometries
-	if( g == Geometry.Euclidean ){
-		m03 = m13 = m23 = c2 = 0;
-		c1 = len;
-	}
-	else if( g == Geometry.Spherical ){
-		m03 = -m03; m13 = -m13; m23 = -m23;
-		c1 = Math.sin(len);
-		c2 = 1.0 - Math.cos(len);
-	}
-	else{ 
-		m03 /= len; m13 /= len; m23 /= len; 
-	} 
-  	
+	m03 /= len; m13 /= len; m23 /= len; 
+
   	if (len == 0) return new THREE.Matrix4().identity();
   	else{
       dx /= len;
@@ -167,28 +121,6 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
       result.add(m2);
       return result;
     }
-}
-
-//-----------------------------------------------------------------------------------------------------------------------------
-//	Signed Distance Fields
-//-----------------------------------------------------------------------------------------------------------------------------
-
-// A horosphere can be constructed by offseting from a standard horosphere.
-// Our standard horosphere will have a center in the direction of lightPoint
-// and go through the origin. Negative offsets will "shrink" it.
-function horosphereHSDF( samplePoint, lightPoint, offset )
-{
-	// Why is sign of lorentzDot opposite here and in glsl?
-	//var dot = -samplePoint.lorentzDot(lightPoint);
-	var dot = -samplePoint.geometryDot(g_geometry, lightPoint);
-	return Math.log( dot ) - offset;
-}
-
-function geodesicPlaneHSDF(samplePoint, dualPoint, offset)
-{
-	//var dot = -samplePoint.lorentzDot(dualPoint);
-	var dot = -samplePoint.geometryDot(g_geometry, dualPoint);
-	return Math.asinh( dot ) - offset;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -240,8 +172,8 @@ var EmptyObject = function(){
     globalObjectRadii.push(new THREE.Vector3(0,0,0));
 }
 
-var SphereObject = function(g, pos, radii){
-	var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
+var SphereObject = function(pos, radii){
+	var objMat = new THREE.Matrix4().multiply(translateByVector(pos));
 	globalObjectBoosts.push(objMat);
     invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   	globalObjectRadii.push(new THREE.Vector3(radii, radii, radii));

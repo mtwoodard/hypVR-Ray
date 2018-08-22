@@ -5,6 +5,7 @@ const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
+const float fov = 90.0;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Generated Constants
@@ -28,7 +29,6 @@ int hitWhich = 0;
 //--------------------------------------------
 uniform int isStereo;
 uniform vec2 screenResolution;
-uniform float fov;
 uniform mat4 invGenerators[6];
 uniform mat4 currentBoost;
 uniform mat4 leftCurrentBoost;
@@ -41,24 +41,14 @@ uniform int maxSteps;
 //--------------------------------------------
 uniform vec4 lightPositions[4];
 uniform vec4 lightIntensities[4]; //w component is the light's attenuation 
-uniform int attnModel;
 uniform mat4 globalObjectBoosts[4];
 uniform mat4 invGlobalObjectBoosts[4]; 
 uniform vec3 globalObjectRadii[4];
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------
-uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
-uniform float sphereRad;
-uniform float tubeRad;
 uniform float horosphereSize;
-uniform float planeOffset;
-
-// The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
-// These integers match our values for the geometry of the honeycomb vertex figure.
-// We'll need more of these later when we support more symmetry groups.
-uniform int cut4;
 
 //Quaternion Math
 vec3 qtransform( vec4 q, vec3 v ){

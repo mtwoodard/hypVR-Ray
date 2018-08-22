@@ -1,15 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Basic Page Needs
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- Basic Page Needs –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta charset="utf-8">
   <title>Hyperbolic Raymarching</title>
-  <!-- Metas
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- Metas –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <!-- Style
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- Style –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <style>
       body {
           background-color: #000;
@@ -19,20 +16,11 @@
           overflow: hidden;
       }
   </style>
-  <!-- Favicon
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- Favicon –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="images/favicon.png">
 </head>
 
 <body>
-  <div id="fps" style="position: absolute; top:30px; left:30px; width:30px; text-align:center; z-index: 100; display:block;background-color:black">
-    0.0
-  </div>
-  
-  <div id="about" style="position: absolute; bottom: 30px; left:30px; font-weight: bold; z-index:100">
-    <a href="https://github.com/mtwoodard/hypVR-Ray">About</a>
-  </div>
-
   <img id="vr-icon" src="images/vr-icon.png" height="50px"
     style="
       position: fixed;
@@ -43,8 +31,7 @@
 </body>
 
 
-<!-- Vertex Shader
-–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<!-- Vertex Shader –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
 <script type="x-shader/x-vertex" id="vertexShader">
   uniform mat4 cameraProjection;
@@ -54,16 +41,12 @@
   }
 </script>
 
-<!-- Scripts
-–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<!-- Script –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <script src="js/lib/three.min.js"></script>
-<script src="js/lib/dat.gui.min.js"></script>
-<script src="js/Honeycomb.js"></script>
 <script src="js/GeometryMath.js"></script>
 <script src="js/Events.js"></script>
 <script src="js/vr/PhoneVR.js"></script>
 <script src="js/Controls.js"></script>
 <script src="js/vr/VREffect.js"></script>
-<script src="js/UI.js"></script>
 <script src="js/HyperSpace.js" id="mainCode"></script>
 </html>

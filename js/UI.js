@@ -29,6 +29,7 @@ var guiInfo = { //Since dat gui can only modify object values we store variables
     g_currentBoost.identity();
     g_cellBoost.identity();
     g_invCellBoost.identity();
+    g_controllerBoosts[0].identity();
   }
 };
 
@@ -77,6 +78,11 @@ function updateUniformsFromUI()
 	var inrad = InRadius(p, q, r);
 	var midrad = MidRadius(p, q, r);
 	hCWH = hCWK = inrad;
+	if( g == Geometry.Spherical )
+	{
+		var stereo = Math.sphericalToStereographic(inrad);
+		hCWK = Math.stereographicToGnomonic( stereo );
+	}
 	if( g == Geometry.Hyperbolic )
 		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 

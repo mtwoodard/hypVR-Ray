@@ -1,4 +1,4 @@
-float localSceneHSDF(vec4 samplePoint){
+float localSceneSDF(vec4 samplePoint){
     /// draw sides of the cube fundamental domain
     float plane0 = geodesicPlaneHSDF(abs(samplePoint), halfCubeDualPoints[0], 0.0);
     float plane1 = geodesicPlaneHSDF(abs(samplePoint), halfCubeDualPoints[1], 0.0);

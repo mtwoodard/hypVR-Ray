@@ -30,6 +30,17 @@ Math.poincareToKlein = function(p){
 	return p*mag;
 }
 
+// Spherical norm to steregraphic norm.
+Math.sphericalToStereographic = function(s){
+	return Math.tan(0.5 * s);
+}
+
+// Steregraphic norm to gnomonic norm.
+Math.stereographicToGnomonic = function(s){
+	var mag = 1/(1-s*s);
+	return s*mag;
+}
+
 //----------------------------------------------------------------------
 //	Dot Product
 //----------------------------------------------------------------------
@@ -58,6 +69,10 @@ THREE.Vector4.prototype.geometryNormalize = function(g){
 	return this.divideScalar(this.geometryLength(g));
 }
 
+THREE.Vector4.prototype.geometryDirection = function(g, v){
+	var w = v.add(this.multiplyScalar(this.geometryDot(g,v)));
+	return w.geometryNormalize(g);
+}
 //----------------------------------------------------------------------
 //	Matrix Operations
 //----------------------------------------------------------------------
@@ -113,39 +128,38 @@ function constructHyperboloidPoint(direction, distance){
 //----------------------------------------------------------------------
 //	Matrix - Generators
 //----------------------------------------------------------------------
-function translateByVector(g,v) { 
-	if( g === Geometry.Euclidean ) return translateByVectorEuclidean( v );
-	//else if(g ===  Geometry.Spherical) return translateByVectorSpherical(v);
-	return translateByVectorHyperbolic( v );
-}
+function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spaces app
+  	var dx = v.x; var dy = v.y; var dz = v.z;
+	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-function translateByVectorEuclidean(v) { 
-	var m = new THREE.Matrix4().set(
-	  1.0, 0, 0, 0,
-	  0, 1.0, 0, 0,
-	  0, 0, 1.0, 0,
-	  v.x, v.y, v.z, 1.0 );	
-	return m;
-}
-
-function translateByVectorHyperbolic(v) { // trickery stolen from Jeff Weeks' Curved Spaces app
-  	var dx = v.x;
-  	var dy = v.y;
-  	var dz = v.z;
-  	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+	var m03 = dx; var m13 = dy; var m23 = dz;
+	var c1 = Math.sinh(len);
+	var c2 = Math.cosh(len) - 1;
+	//Conditions for different geometries
+	if( g == Geometry.Euclidean ){
+		m03 = m13 = m23 = c2 = 0;
+		c1 = len;
+	}
+	else if( g == Geometry.Spherical ){
+		m03 = -m03; m13 = -m13; m23 = -m23;
+		c1 = Math.sin(len);
+		c2 = 1.0 - Math.cos(len);
+	}
+	else{ 
+		m03 /= len; m13 /= len; m23 /= len; 
+	} 
+  	
   	if (len == 0) return new THREE.Matrix4().identity();
   	else{
       dx /= len;
       dy /= len;
       dz /= len;
       var m = new THREE.Matrix4().set(
-        0, 0, 0, dx,
-        0, 0, 0, dy,
-        0, 0, 0, dz,
-        dx,dy,dz, 0);
+        0, 0, 0, m03,
+        0, 0, 0, m13,
+        0, 0, 0, m23,
+        dx,dy,dz, 0.0);
       var m2 = new THREE.Matrix4().copy(m).multiply(m);
-      var c1 = Math.sinh(len);
-      var c2 = Math.cosh(len) - 1;
       m.multiplyScalar(c1);
       m2.multiplyScalar(c2);
       var result = new THREE.Matrix4().identity();
@@ -207,4 +221,45 @@ function fixOutsideCentralCell( mat ) {
 	}
     else
 		return -1;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//	Object Constructors
+//-----------------------------------------------------------------------------------------------------------------------------
+
+var PointLightObject = function(pos, colorInt){ //position is a euclidean Vector3
+	var posMag = pos.length();
+	var posDir = pos.normalize();
+	lightPositions.push(constructHyperboloidPoint(posDir, posMag));
+	lightIntensities.push(colorInt);
+}
+
+var EmptyObject = function(){
+	globalObjectBoosts.push(new THREE.Matrix4());
+    invGlobalObjectBoosts.push(new THREE.Matrix4());
+    globalObjectRadii.push(new THREE.Vector3(0,0,0));
+    globalObjectTypes.push(-1);
+}
+
+var SphereObject = function(g, pos, radii){
+	var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
+	globalObjectBoosts.push(objMat);
+    invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
+  	globalObjectRadii.push(new THREE.Vector3(radii, radii, radii));
+  	globalObjectTypes.push(0);
+}
+
+var EllipsoidObject = function(g, pos, radii){
+	var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
+	var scaleMatrix = new THREE.Matrix4().set(
+		radii.x, 0, 0, 0,
+		0, radii.y, 0, 0,
+		0, 0, radii.z, 0,
+		0, 0, 0, 1
+	);
+	objMat.multiply(scaleMatrix);
+	invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
+	globalObjectBoosts.push(objMat);
+  	globalObjectRadii.push(radii);
+  	globalObjectTypes.push(1);
 }

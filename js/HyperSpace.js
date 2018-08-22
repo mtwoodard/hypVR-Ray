@@ -14,6 +14,7 @@ var g_cellBoost;
 var g_invCellBoost;
 var g_screenResolution;
 var g_controllerBoosts = [];
+var g_controllerDualPoints = [];
 
 //-------------------------------------------------------
 // Scene Variables
@@ -97,7 +98,10 @@ var initValues = function(g){
 	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
 	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
 	gens = createGenerators(g_geometry);
-	invGens = invGenerators(gens);
+  invGens = invGenerators(gens);
+  for(var i = 0; i<6; i++){
+    g_controllerDualPoints.push(new THREE.Vector4());
+  }
 }
 
 var createGenerators = function(g){
@@ -121,19 +125,15 @@ var invGenerators = function(genArr){
 var lightPositions = [];
 var lightIntensities = [];
 var attnModel = 1;
+
 var initLights = function(){
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,0,1), 1.0));
-  lightIntensities.push(new THREE.Vector4(0.0,0.0,1.0,1.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(1,0,0), 1.2));
-  lightIntensities.push(new THREE.Vector4(1.0,0.0,0.0,1.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(0,1,0), 1.1));
-  lightIntensities.push(new THREE.Vector4(0.0,1.0,0.0,1.0));
-  lightPositions.push(constructHyperboloidPoint(new THREE.Vector3(-1,-1,-1), 1.0));
-	lightIntensities.push(new THREE.Vector4(1.0,1.0,1.0,1.0));
-	for(var i = 3; i<8; i++){
-		lightPositions.push(new THREE.Vector4(0,0,0,1));
-		lightIntensities.push(new THREE.Vector4(0,0,0,0));
-	}
+  PointLightObject(new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,1));
+  PointLightObject(new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,1));
+  PointLightObject(new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,1));
+  PointLightObject(new THREE.Vector3(-1,-1,-1), new THREE.Vector4(1,1,1,1));
+  //Add light info for controllers
+  lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
+  lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 2));
 }
 
 //-------------------------------------------------------
@@ -143,19 +143,16 @@ var globalObjectBoosts = [];
 var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
+
+//TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(g,new THREE.Vector3(-0.5,0,0)));
-  globalObjectBoosts.push(objMat);
-  invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
-  globalObjectRadii.push(new THREE.Vector3(0.2,0.2,0.2));
-  globalObjectTypes.push(0);
-  for(var i = 1; i<8; i++){
-    globalObjectBoosts.push(new THREE.Matrix4());
-    invGlobalObjectBoosts.push(new THREE.Matrix4());
-    globalObjectRadii.push(new THREE.Vector3(0,0,0));
-    globalObjectTypes.push(-1); // -1 stands for not an object so we dont waste time coloring on the glsl side
+  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
+  EllipsoidObject(g, new THREE.Vector3(-0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
+  for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
+    EmptyObject();
   }
 }
+
 //-------------------------------------------------------
 // Sets up the scene
 //-------------------------------------------------------
@@ -172,7 +169,7 @@ var init = function(){
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
   g_virtCamera.position.z = 0.1;
   cameraOffset = new THREE.Vector3();
-  g_controls = new THREE.VRControls();
+  g_controls = new THREE.Controls();
   g_rotation = new THREE.Quaternion();
   g_controllerBoosts.push(new THREE.Matrix4());
   g_controllerBoosts.push(new THREE.Matrix4());
@@ -249,6 +246,7 @@ var finishInit = function(fShader){
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete.jpg")},
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
+      //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
@@ -282,6 +280,16 @@ var finishInit = function(fShader){
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
   mesh = new THREE.Mesh(geom, g_material);
   scene.add(mesh);
+  var scaleMatrix = new THREE.Matrix4().set(
+		0.8, 0, 0, 0,
+		0, 0.8, 0, 0,
+		0, 0, 0.4, 0,
+		0, 0, 0, 1
+  );
+  
+  //Generator for controllerScaleMatrix on the glsl side
+  //console.log(translateByVector(g_geometry, new THREE.Vector3(0,0,0.2)).multiply(scaleMatrix));
+
   animate();
 }
 
@@ -295,7 +303,6 @@ var animate = function(){
   THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
   g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
-  //g_material.uniforms.controllerBoosts.value = g_controllerBoosts;
   g_effect.render(scene, camera, animate);
 }
 

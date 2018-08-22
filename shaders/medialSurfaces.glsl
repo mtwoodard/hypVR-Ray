@@ -1,4 +1,4 @@
-float localSceneHSDF(vec4 samplePoint){
+float localSceneSDF(vec4 samplePoint){
     samplePoint = abs(samplePoint);
     // //now reflect until smallest xyz coord is z, and largest is x
     if(samplePoint.x < samplePoint.z){

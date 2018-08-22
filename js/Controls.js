@@ -4,7 +4,7 @@
  * hawksley / https://github.com/hawksley 
  */
 
-THREE.VRControls = function(done){
+THREE.Controls = function(done){
     this.phoneVR = new PhoneVR();
     var speed = 0.2;
     this._oldVRState;
@@ -78,18 +78,24 @@ THREE.VRControls = function(done){
         //--------------------------------------------------------------------
         // Translation
         //--------------------------------------------------------------------
+        //TODO: Beautify
         var deltaTime = (newTime - oldTime) * 0.001;
         var deltaPosition = new THREE.Vector3();
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
             var quat = vrState.hmd.rotation.clone().inverse();
             deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat);
         }
-        if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0){
-            deltaPosition = getFwdVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[0]).add(
-                getRightVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[1])).add(
-                getUpVector().multiplyScalar(speed * guiInfo.eToHScale * deltaTime * this.manualMoveRate[2]));
+
+        var controllerMove = 0;
+        if(g_controllerMove){ controllerMove = 1; }
+
+        if(this.manualMoveRate[0] !== 0 || this.manualMoveRate[1] !== 0 || this.manualMoveRate[2] !== 0 || controllerMove !== 0){
+            deltaPosition = getFwdVector().multiplyScalar(speed * deltaTime * (this.manualMoveRate[0] + controllerMove)).add(
+                getRightVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[1])).add(
+                getUpVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
+            deltaPosition.multiplyScalar(guiInfo.eToHScale);
             var m = translateByVector(g_geometry, deltaPosition);
             g_currentBoost.premultiply(m);
         }

@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Hyperbolic Raymarching</title>
+  <!-- Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <!-- Style
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <style>
+      body {
+          background-color: #000;
+          color: #fff;
+          margin: 0px;
+          padding: 0;
+          overflow: hidden;
+      }
+  </style>
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+
+<body>
+  <div id="fps" style="position: absolute; top:30px; left:30px; width:30px; text-align:center; z-index: 100; display:block;background-color:black">
+    0.0
+  </div>
+
+  <img id="crosshair" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:50%; margin-top:-7.5px; margin-left:-7.5px"/>
+
+  <img id="crosshairLeft" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:25%; margin-top:-7.5px; margin-left:-7.5px; visibility: hidden"/>
+
+  <img id="crosshairRight" src="images/crosshair.png" style ="height:15px; width: 15px; position:absolute; top:50%; left:75%; margin-top:-7.5px; margin-left:-7.5px; visibility: hidden"/>
+
+  <div id="about" style="position: absolute; bottom: 30px; left:30px; font-weight: bold; z-index:100">
+    <a href="https://github.com/mtwoodard/hypVR-Ray">About</a>
+  </div>
+
+  <img id="vr-icon" src="images/vr-icon.png" height="50px"
+    style="
+      position: fixed;
+      bottom: 30px;
+      right: 50px;
+      display: none;"
+  />
+</body>
+
+
+<!-- Vertex Shader
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+
+<script type="x-shader/x-vertex" id="vertexShader">
+  uniform mat4 cameraProjection;
+  void main()
+  {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xyz, 1.0);
+  }
+</script>
+
+<!-- Scripts
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<script src="js/lib/three.min.js"></script>
+<script src="js/lib/dat.gui.min.js"></script>
+<script src="js/Honeycomb.js"></script>
+<script src="js/GeometryMath.js"></script>
+<script src="js/Events.js"></script>
+<script src="js/vr/PhoneVR.js"></script>
+<script src="js/vr/VRControlsHyperbolic.js"></script>
+<script src="js/vr/VRControllerNew.js"></script>
+<script src="js/vr/VREffect.js"></script>
+<script src="js/UI.js"></script>
+<script src="js/HyperSpace.js" id="mainCode"></script>
+</html>

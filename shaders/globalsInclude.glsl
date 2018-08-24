@@ -94,6 +94,7 @@ float acosh(float x){ //must be more than 1
 
 vec4 geometryNormalize(vec4 v, bool toTangent);
 vec4 geometryDirection(vec4 u, vec4 v);
+vec4 geometryFixDirection(vec4 u, vec4 v, mat4 fixMatrix);
 float geometryDot(vec4 u, vec4 v);
 float geometryDistance(vec4 u, vec4 v);
 float geometryNorm(vec4 v){

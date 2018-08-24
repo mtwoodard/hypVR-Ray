@@ -15,12 +15,21 @@ vec4 geometryNormalize(vec4 u, bool toTangent){
     return u;
   }
 }
+
 float geometryDistance(vec4 u, vec4 v){
   return distance(u.xyz, v.xyz);
 }
-vec4 geometryDirection(vec4 u, vec4 v){
+
+//Given two positions find the unit tangent vector at the first that points to the second
+vec4 geometryDirection(vec4 u, vec4 v){ 
   vec4 w = v-u;
   return geometryNormalize(w, true);
+}
+
+//calculate the new direction vector (v) for the continuation of the ray from the new ray origin (u)
+//having moved by fix matrix
+vec4 geometryFixDirection(vec4 u, vec4 v, mat4 fixMatrix){
+  return v;
 }
 
 //-------------------------------------------------------
@@ -51,11 +60,6 @@ vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime)
   return projectToKlein(u + vPrime);
 }
 
-float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset)
-{
-  return sphereSDF(samplePoint, vec4(0.0), offset);
-}
-
 float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 direction, vec4 cylinderCorePoint, float radius)
 {
   vec4 pos = (samplePoint - cylinderCorePoint);
@@ -67,5 +71,9 @@ float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 direction, vec4 cylinder
 
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset)
 {
+  return 0.0;
+}
+
+float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
   return 0.0;
 }

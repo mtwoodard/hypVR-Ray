@@ -14,6 +14,11 @@ vec4 geometryDirection(vec4 u, vec4 v){
   vec4 w = v - geometryDot(u,v)*u;
   return geometryNormalize(w, true);
 }
+//calculate the new direction vector (v) for the continuation of the ray from the new ray origin (u)
+//having moved by fix matrix
+vec4 geometryFixDirection(vec4 u, vec4 v, mat4 fixMatrix){
+  return geometryDirection(u, v*fixMatrix);
+}
 
 //-------------------------------------------------------
 //

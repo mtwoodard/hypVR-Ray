@@ -130,7 +130,7 @@ void raymarch(vec4 rO, vec4 rD){
     if(isOutsideCell(localEndPoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
       localrO = geometryNormalize(localEndPoint*fixMatrix, false);
-      localrD = geometryDirection(localrO, localrD*fixMatrix);
+      localrD = geometryFixDirection(localrO, localrD, fixMatrix); 
       localDepth = MIN_DIST;
     }
     else{

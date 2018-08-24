@@ -33,7 +33,7 @@ THREE.Vector4.prototype.geometryLength = function(){
 	return Math.sqrt(Math.abs(this.lorentzDot(this)));
 }
 
-THREE.Vector4.prototype.geometryNormalize = function(g){
+THREE.Vector4.prototype.geometryNormalize = function(){
 	return this.divideScalar(this.geometryLength());
 }
 

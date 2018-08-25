@@ -92,15 +92,14 @@ THREE.Controls = function(done){
                 getUpVector().multiplyScalar(speed  * deltaTime * this.manualMoveRate[2]));
         }
         if(deltaPosition !== undefined){
-            deltaPosition.multiplyScalar(guiInfo.eToHScale);
-            var m = translateByVector(g_geometry, deltaPosition);
+            var m = translateByVector(deltaPosition);
             g_currentBoost.premultiply(m);
         }
         var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell
-        g_currentBoost.gramSchmidt(g_geometry);
+        g_currentBoost.gramSchmidt();
         if(fixIndex !== -1){
            g_cellBoost = g_cellBoost.premultiply(invGens[fixIndex]); //keeps track of how many cells we've moved 
-           g_cellBoost.gramSchmidt(g_geometry);
+           g_cellBoost.gramSchmidt();
            g_invCellBoost.getInverse(g_cellBoost);
         }
 
@@ -124,7 +123,7 @@ THREE.Controls = function(done){
             g_currentBoost.premultiply(m);
         }
 
-        g_currentBoost.gramSchmidt(g_geometry);
+        g_currentBoost.gramSchmidt();
     };
 
     this.zeroSensor = function(){

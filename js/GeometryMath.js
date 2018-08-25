@@ -54,12 +54,12 @@ THREE.Matrix4.prototype.gramSchmidt = function(){
 	var temp = new THREE.Vector4();
 	var temp2 = new THREE.Vector4();
 	for (var i = 0; i<4; i++) {  ///normalize row
-		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
+		var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength();
 		for (var l = 0; l<4; l++) {
 			n[4*i + l] = n[4*i + l] * invRowNorm;
 		}
 		for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-			var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
+			var component = temp.fromArray(n.slice(4*i, 4*i+4)).lorentzDot(temp2.fromArray(n.slice(4*j, 4*j+4)));
 			for (var l = 0; l<4; l++) {
 				n[4*j + l] -= component * n[4*i + l];
 			}
@@ -168,13 +168,11 @@ var PointLightObject = function(pos, colorInt){ //position is a euclidean Vector
 
 var EmptyObject = function(){
 	globalObjectBoosts.push(new THREE.Matrix4());
-    invGlobalObjectBoosts.push(new THREE.Matrix4());
     globalObjectRadii.push(new THREE.Vector3(0,0,0));
 }
 
 var SphereObject = function(pos, radii){
 	var objMat = new THREE.Matrix4().multiply(translateByVector(pos));
 	globalObjectBoosts.push(objMat);
-    invGlobalObjectBoosts.push(new THREE.Matrix4().getInverse(objMat));
   	globalObjectRadii.push(new THREE.Vector3(radii, radii, radii));
 }

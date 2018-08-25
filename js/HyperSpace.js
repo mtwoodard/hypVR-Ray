@@ -55,7 +55,6 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 	  fpsLog.shift();
 	  fpsLog.push(lastFPS);
 	  var averageFPS = Math.average(fpsLog);
-	  textFPS.innerHTML = averageFPS.toPrecision(3);
 
 	  // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
 	  // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
@@ -85,9 +84,9 @@ var hCDP = [];
 
 var initValues = function(){
 	var invHCWK = 1.0/hCWK;
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
+	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize();
+	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize();
+	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize();
 	gens = createGenerators();
   invGens = invGenerators(gens);
 }
@@ -125,7 +124,6 @@ var initLights = function(){
 // Sets up global objects
 //-------------------------------------------------------
 var globalObjectBoosts = [];
-var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 
 var initObjects = function(){
@@ -164,14 +162,8 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   var loader = new THREE.FileLoader();
   loader.setResponseType('text');
   loader.load('shaders/fragment.glsl',function(main){
-    loader.load('shaders/simplexCuts.glsl', function(scene){
-      loader.load('shaders/hyperbolic.glsl', function(hyperbolic){
-        loader.load('shaders/globalsInclude.glsl', function(globals){
-          //pass full shader string to finish our init
-          finishInit(globals.concat(hyperbolic).concat(scene).concat(main));
-        });
-      });
-    });
+    //pass full shader string to finish our init
+    finishInit(main);
   });
 }
 
@@ -192,7 +184,6 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
-      invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii}    
     },
     vertexShader: document.getElementById('vertexShader').textContent,

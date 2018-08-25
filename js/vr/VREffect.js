@@ -34,8 +34,8 @@ THREE.VREffect = function ( renderer, done ) {
 		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
-		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
-		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
+		g_leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+		g_rightCurrentBoost = translateByVector(self.rightEyeTranslation);
 		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
 		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
@@ -57,8 +57,8 @@ THREE.VREffect = function ( renderer, done ) {
 			//we need these to be objects instead of arrays in order to process the information correctly
 			self.leftEyeTranslation = {x: self.leftEyeTranslation[0], y:self.leftEyeTranslation[1], z:self.leftEyeTranslation[2], w:0 };
 			self.rightEyeTranslation = {x: self.rightEyeTranslation[0], y:self.rightEyeTranslation[1], z:self.rightEyeTranslation[2], w:0}
-			g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
-			g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
+			g_leftCurrentBoost = translateByVector(self.leftEyeTranslation);
+			g_rightCurrentBoost = translateByVector(self.rightEyeTranslation);
 		}
 
 		function gotVRDisplay( devices ) {
@@ -145,7 +145,7 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
-		if ( guiInfo.toggleStereo ) { //change this to true to debug stereo render
+		if ( false ) { //change this to true to debug stereo render
 			fixLeaveStereo = true;
 			this.renderStereo.apply( this, [scene, camera] );
 			return;

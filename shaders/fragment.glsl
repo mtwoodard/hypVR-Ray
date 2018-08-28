@@ -163,14 +163,16 @@ vec3 lightingCalculations(vec4 SP, vec4 TLP, vec4 V, vec3 baseColor, vec4 lightI
   //Calculate Specular Component
   float rDotV = max(hypDot(R, V),0.0);
   vec3 specular = lightIntensity.rgb * pow(rDotV,10.0);
+  //Attenuation - Inverse Square
+  float distToLight = hypDistance(SP, TLP);
+  float att = 1.0/(0.01 + lightIntensity.w * distToLight* distToLight);
   //Compute final color
-  return (diffuse*baseColor) + specular;
+  return att*(diffuse*baseColor) + specular;
 }
 
 vec3 phongModel(vec4 samplePoint, vec4 tangentVector, mat4 totalFixMatrix){
     vec4 V = -tangentVector;
-    float ambient = 0.1;
-    vec3 color = vec3(1.0,1.0,1.0) * ambient;
+    vec3 color = vec3(0.1, 0.1, 0.1);
     //--------------------------------------------
     //Lighting Calculations
     //--------------------------------------------
@@ -326,13 +328,13 @@ void main(){
   }
   else if(hitWhich == 2){ // global objects
     N = estimateNormal(sampleInfo[0]);
-    vec3 color = phongModel(sampleInfo[0], sampleInfo[2], mat4(1.0));
+    vec3 color = phongModel(sampleInfo[0], sampleInfo[1], mat4(1.0));
     gl_FragColor = vec4(color, 1.0);
     return;
   }
   else if(hitWhich == 3){ // local
     N = estimateNormal(sampleInfo[2]);
-    vec3 color = phongModel(sampleInfo[1], sampleInfo[3], totalFixMatrix);
+    vec3 color = phongModel(sampleInfo[2], sampleInfo[3], totalFixMatrix);
     gl_FragColor = vec4(color, 1.0);
   }
 }

@@ -5,10 +5,6 @@ Math.clamp = function(input, min, max){
 	return Math.max(Math.min(input, max), min);
 }
 
-Math.lerp = function(a, b, t){
-  	return (1-t)*a + t*b;
-}
-
 //Takes average of a float array
 Math.average = function(arr){
 	var ave = 0.0;
@@ -37,10 +33,6 @@ THREE.Vector4.prototype.geometryNormalize = function(){
 	return this.divideScalar(this.geometryLength());
 }
 
-THREE.Vector4.prototype.geometryDirection = function(v){
-	var w = v.add(this.multiplyScalar(this.lorentzDot(v)));
-	return w.geometryNormalize();
-}
 //----------------------------------------------------------------------
 //	Matrix Operations
 //----------------------------------------------------------------------
@@ -126,9 +118,6 @@ function translateByVector(v) { // trickery stolen from Jeff Weeks' Curved Space
 //-----------------------------------------------------------------------------------------------------------------------------
 //	Helper Functions
 //-----------------------------------------------------------------------------------------------------------------------------
-
-var halfIdealCubeWidthKlein = 0.5773502692;
-var idealCubeCornerKlein = new THREE.Vector4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 
 function fakeDist( v ){  //good enough for comparison of distances on the hyperboloid
 	return v.x*v.x + v.y*v.y + v.z*v.z;

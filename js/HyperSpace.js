@@ -77,16 +77,10 @@ var calcMaxSteps = function(lastFPS, lastMaxSteps)
 // Sets up precalculated values
 //-------------------------------------------------------
 var hCWH = 0.6584789485;
-var hCWK = 0.5773502692;
 var gens;
 var invGens;
-var hCDP = [];
 
 var initValues = function(){
-	var invHCWK = 1.0/hCWK;
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize();
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize();
-	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize();
 	gens = createGenerators();
   invGens = invGenerators(gens);
 }
@@ -168,7 +162,6 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
 }
 
 var finishInit = function(fShader){
-//  console.log(fShader);
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
@@ -214,7 +207,6 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   g_controls.update();
-	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   g_material.uniforms.maxSteps.value = maxSteps;
   g_effect.render(scene, camera, animate);

@@ -17,7 +17,6 @@ var onResize = function(){
 
   var onControllerConnected = function(event){
     var controller = event.detail;
-   //controller.head = new THREE.Vector3(0,0,0) * g_currentBoost;
     console.log(controller.inspect());  
     controller.addEventListener('primary press began', function(){ g_controllerMove = true; });
     controller.addEventListener('primary press ended', function(){ g_controllerMove = false; });

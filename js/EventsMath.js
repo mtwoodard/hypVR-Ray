@@ -196,8 +196,6 @@ if (control.index <= 2)
 	g_controls.manualRotateRate[control.index] += sign * control.sign;
 else if (control.index <= 5)
 	g_controls.manualMoveRate[control.index - 3] += sign * control.sign;
-
-
 }
 
 document.addEventListener('keydown', function(event){key(event, 1);}, false);
@@ -207,7 +205,7 @@ document.addEventListener('keyup', function(event){key(event, -1);}, false);
 // Phone screen tap for movement
 //--------------------------------------------------------------------
 function tap(event, sign){
-g_controls.manualMoveRate[0] += sign;
+	g_controls.manualMoveRate[0] += sign;
 }
 
 document.addEventListener('touchstart', function(event){tap(event, 1);}, false);

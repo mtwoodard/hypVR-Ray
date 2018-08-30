@@ -164,7 +164,7 @@ vec3 lightingCalculations(vec4 SP, vec4 TLP, vec4 V, vec3 baseColor, vec4 lightI
   float distToLight = hypDistance(SP, TLP);
   float att = 1.0/(0.01 + lightIntensity.w * distToLight* distToLight);
   //Compute final color
-  return att*(diffuse*baseColor) + specular;
+  return att*((diffuse*baseColor) + specular);
 }
 
 vec3 phongModel(vec4 samplePoint, vec4 tangentVector, mat4 totalFixMatrix){
@@ -206,7 +206,7 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
         basis_y * (localSceneSDF(p + newEp*basis_y) - localSceneSDF(p - newEp*basis_y)) +
         basis_z * (localSceneSDF(p + newEp*basis_z) - localSceneSDF(p - newEp*basis_z)));
     }
-  }
+}
 
 vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
   if(isStereo != 0) { resolution.x = resolution.x * 0.5; }

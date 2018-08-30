@@ -9,6 +9,7 @@ const float fov = 90.0;
 const float horosphereSize = -0.951621;
 const float sphereRad = 0.996216;
 const float halfCubeWidthKlein = 0.5773502692;
+const float globalObjectRadius = 0.2;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Generated Constants
@@ -38,8 +39,7 @@ uniform int maxSteps;
 //--------------------------------------------
 uniform vec4 lightPositions[4];
 uniform vec4 lightIntensities[4]; //w component is the light's attenuation 
-uniform mat4 globalObjectBoosts[4];
-uniform vec3 globalObjectRadii[4];
+uniform mat4 globalObjectBoost;
 
 //--------------------------------------------------------------------
 // Hyperbolic Functions
@@ -138,13 +138,10 @@ float globalSceneSDF(vec4 samplePoint){
   //Global Objects
   for(int i=0; i<4; i++){
     float objDist;
-    if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
-    else{
-      objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x);
-      if(distance > objDist){
-        hitWhich = 2;
-        distance = objDist;
-      }
+    objDist = sphereSDF(absoluteSamplePoint, globalObjectBoost[3], globalObjectRadius);
+    if(distance > objDist){
+      hitWhich = 2;
+      distance = objDist;
     }
   }
   return distance;

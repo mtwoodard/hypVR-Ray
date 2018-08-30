@@ -117,14 +117,10 @@ var initLights = function(){
 //-------------------------------------------------------
 // Sets up global objects
 //-------------------------------------------------------
-var globalObjectBoosts = [];
-var globalObjectRadii = [];
+var globalObjectBoost;
 
 var initObjects = function(){
-  SphereObject(new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
-  for(var i = 1; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
-    EmptyObject();
-  }
+  globalObjectBoost = new THREE.Matrix4().multiply(translateByVector(new THREE.Vector3(-0.5,0,0)));
 }
 
 //-------------------------------------------------------
@@ -175,9 +171,7 @@ var finishInit = function(fShader){
       maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
-      attnModel:{type:"i", value:attnModel},
-      globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
-      globalObjectRadii:{type:"v3v", value:globalObjectRadii}    
+      globalObjectBoosts:{type:"m4", value:globalObjectBoost}    
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

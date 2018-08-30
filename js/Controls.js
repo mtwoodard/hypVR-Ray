@@ -9,7 +9,6 @@ THREE.Controls = function(done){
     var speed = 0.2;
     this._oldVRState;
     this.defaultPosition = new THREE.Vector3();
-    this.manualRotation = new THREE.Quaternion();
     this.manualRotateRate = new Float32Array([0.0, 0.0, 0.0]);
     this.manualMoveRate = new Float32Array([0.0, 0.0, 0.0]);
     this.updateTime = 0;
@@ -70,7 +69,6 @@ THREE.Controls = function(done){
 
     this.update = function(){
         var vrState = this.getVRState();
-        var manualRotation = this.manualRotation;
         var oldTime = this.updateTime;
         var newTime = Date.now();
         this.updateTime = newTime;
@@ -81,6 +79,7 @@ THREE.Controls = function(done){
         //TODO: Beautify
         var deltaTime = (newTime - oldTime) * 0.001;
         var deltaPosition = new THREE.Vector3();
+        
         if(vrState !== null && vrState.hmd.lastPosition !== undefined && vrState.hmd.position[0] !== 0){
             var quat = vrState.hmd.rotation.clone().inverse();
             deltaPosition = new THREE.Vector3().subVectors(vrState.hmd.position, vrState.hmd.lastPosition).applyQuaternion(quat);
@@ -95,6 +94,7 @@ THREE.Controls = function(done){
             var m = translateByVector(deltaPosition);
             g_currentBoost.premultiply(m);
         }
+
         var fixIndex = fixOutsideCentralCell(g_currentBoost); //moves camera back to main cell
         g_currentBoost.gramSchmidt();
         if(fixIndex !== -1){

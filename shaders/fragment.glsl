@@ -1,7 +1,7 @@
 //--------------------------------------------
 //Global Constants
 //--------------------------------------------
-const int MAX_MARCHING_STEPS = 127;
+const int MAX_MARCHING_STEPS = 63;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
@@ -249,16 +249,10 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 }
 
 mat4 raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
-  int fakeI = 0;
   mat4 sampleInfo = mat4(1.0);
   float globalDepth = MIN_DIST; float localDepth = globalDepth;
   vec4 localrO = rO; vec4 localrD = rD;
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps){
-      //when we break its as if we reached our max marching steps
-      break;
-    }
-    fakeI++;
     mat4 fixMatrix;
     vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);

@@ -22,56 +22,8 @@ var camera;
 var mesh;
 var geom;
 var maxSteps = 50;
-var textFPS;
 var time;
 
-//-------------------------------------------------------
-// FPS Manager
-//-------------------------------------------------------
-var m_stepDamping = 0.75;
-var m_stepAccum = 0;
-var fpsLog = new Array(10);
-fpsLog.fill(30);
-
-var fps = {
-	lastTime: null,
-	getFPS: function () {
-		if(!this.lastTime) {
-			this.lastTime = new Date();
-			return null;
-		}
-		var date = new Date();
-		var currentFps = 1000 / (date - this.lastTime);
-		this.lastTime = date;
-		return currentFps;
-	}
-}
-
-var calcMaxSteps = function(lastFPS, lastMaxSteps)
-{
-	  if(!lastFPS)
-		  return lastMaxSteps;
-
-	  fpsLog.shift();
-	  fpsLog.push(lastFPS);
-	  var averageFPS = Math.average(fpsLog);
-
-	  // We don't want the adjustment to happen too quickly (changing maxSteps every frame is quick!),
-	  // so we'll let fractional amounts m_stepAccumulate until they reach an integer value.
-	  var newVal = Math.pow((averageFPS /30), (1 / 20)) * lastMaxSteps;
-	  var diff = newVal - lastMaxSteps;
-	  if(Math.abs( m_stepAccum ) < 1)
-	  {
-		  m_stepAccum += diff;
-		  m_stepAccum *= m_stepDamping;
-		  return lastMaxSteps;
-	  }
-
-	  newVal = lastMaxSteps + m_stepAccum;
-	  newVal = Math.round(Math.clamp(newVal, 31, 127));
-	  m_stepAccum = 0;
-	  return newVal;
-}
 
 //-------------------------------------------------------
 // Sets up precalculated values
@@ -168,7 +120,6 @@ var finishInit = function(fShader){
       rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
       cellBoost:{type:"m4", value:g_cellBoost},
       invCellBoost:{type:"m4", value:g_invCellBoost},
-      maxSteps:{type:"i", value:maxSteps},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       globalObjectBoosts:{type:"m4", value:globalObjectBoost}    
@@ -201,8 +152,6 @@ var finishInit = function(fShader){
 //-------------------------------------------------------
 var animate = function(){
   g_controls.update();
-  maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
-  g_material.uniforms.maxSteps.value = maxSteps;
   g_effect.render(scene, camera, animate);
 }
 

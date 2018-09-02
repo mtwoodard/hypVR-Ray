@@ -135,14 +135,11 @@ float globalSceneSDF(vec4 samplePoint){
       }
     }
   }
-  //Global Objects
-  for(int i=0; i<4; i++){
-    float objDist;
-    objDist = sphereSDF(absoluteSamplePoint, globalObjectBoost[3], globalObjectRadius);
-    if(distance > objDist){
-      hitWhich = 2;
-      distance = objDist;
-    }
+  float objDist;
+  objDist = sphereSDF(absoluteSamplePoint, globalObjectBoost[3], globalObjectRadius);
+  if(distance > objDist){
+    hitWhich = 2;
+    distance = objDist;
   }
   return distance;
 }

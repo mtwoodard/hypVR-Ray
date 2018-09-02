@@ -122,7 +122,7 @@ var finishInit = function(fShader){
       invCellBoost:{type:"m4", value:g_invCellBoost},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
-      globalObjectBoosts:{type:"m4", value:globalObjectBoost}    
+      globalObjectBoost:{type:"m4", value:globalObjectBoost}    
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

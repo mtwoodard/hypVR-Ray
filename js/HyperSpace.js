@@ -309,4 +309,9 @@ var animate = function(){
 //-------------------------------------------------------
 // Where the magic happens
 //-------------------------------------------------------
-init();
+if(mobileCheck){
+  console.log(window.location.href);
+}
+else{
+  init();
+}

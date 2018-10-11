@@ -125,7 +125,7 @@ void raymarch(vec4 rO, vec4 rD){
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
-      //when we break its as if we reached our max marching steps
+      //when we break it's as if we reached our max marching steps
       break;
     }
     fakeI++;
@@ -137,7 +137,7 @@ void raymarch(vec4 rO, vec4 rD){
       localDepth = MIN_DIST;
     }
     else{
-      float localDist = localSceneSDF(localEndPoint);
+      float localDist = min(0.5,localSceneSDF(localEndPoint));
       if(localDist < EPSILON){
         hitWhich = 3;
         sampleEndPoint = localEndPoint;

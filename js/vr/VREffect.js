@@ -49,22 +49,15 @@ THREE.VREffect = function ( renderer, done ) {
 		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
 		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
 		self.getEyeRotation(self.leftEyeTranslation.x);
-		self.leftEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 47.52769258067174, downDegrees: 53.04646464878503, leftDegrees: 46.63209579904155 };
-		self.rightEyeFOV = { upDegrees: 53.04646464878503, rightDegrees: 46.63209579904155, downDegrees: 53.04646464878503, leftDegrees: 47.52769258067174 };
 
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
-			if ( done ) {
-				done("Your browser is not VR Ready");
-			}
+			if(done) done("Your browser is not VR Ready");
 			return;
 		}
-		if (navigator.getVRDisplays) {
-			navigator.getVRDisplays().then( gotVRDisplay );
-		}else if ( navigator.getVRDevices ) {
-			navigator.getVRDevices().then( gotVRDevices );
-		} else {
-			navigator.mozGetVRDevices( gotVRDevices );
-		}
+
+		if (navigator.getVRDisplays) navigator.getVRDisplays().then( gotVRDisplay );
+		else if ( navigator.getVRDevices ) navigator.getVRDevices().then( gotVRDevices );
+		else navigator.mozGetVRDevices( gotVRDevices );
 
 		if(self.leftEyeTranslation.x == undefined){
 			//we need these to be objects instead of arrays in order to process the information correctly
@@ -91,18 +84,12 @@ THREE.VREffect = function ( renderer, done ) {
         			document.getElementById("crosshair").style.visibility = 'hidden';
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
-					if (parametersLeft.fieldOfView !== undefined) {
-						self.leftEyeFOV = parametersLeft.fieldOfView;
-						self.rightEyeFOV = parametersRight.fieldOfView;
-					}
 					break; // We keep the first we encounter
 				}
 			}
 
 			if ( done ) {
-				if ( !vrHMD ) {
-				 error = 'HMD not available';
-				}
+				if ( !vrHMD ) error = 'HMD not available';
 				done( error );
 			}
 		}
@@ -123,15 +110,11 @@ THREE.VREffect = function ( renderer, done ) {
         			document.getElementById("crosshair").style.visibility = 'hidden';
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
-					self.leftEyeFOV = parametersLeft.recommendedFieldOfView;
-					self.rightEyeFOV = parametersRight.recommendedFieldOfView;
 					break; // We keep the first we encounter
 				}
 			}
 			if ( done ) {
-				if ( !vrHMD ) {
-				 error = 'HMD not available';
-				}
+				if ( !vrHMD ) error = 'HMD not available';
 				done( error );
 			}
 		}
@@ -224,16 +207,11 @@ THREE.VREffect = function ( renderer, done ) {
 		var vrHMD = this._vrHMD;
 		var canvas = renderer.domElement;
 
-		if (!vrHMD) {
- 			return;
- 		}
+		if (!vrHMD) return;
 
  		this._vrMode = !this._vrMode
- 		if (this._vrMode) {
-			vrHMD.requestPresent([{source: canvas, leftBounds: [0.0, 0.0, 0.5, 1.0], rightBounds: [0.5, 0.0, 0.5, 1.0]}]);
-		} else {
-			vrHMD.exitPresent();
-		}
+ 		if (this._vrMode) vrHMD.requestPresent([{source: canvas, leftBounds: [0.0, 0.0, 0.5, 1.0], rightBounds: [0.5, 0.0, 0.5, 1.0]}]);
+		else vrHMD.exitPresent();
 	}
 	
 	this.setFullScreen = function( enable ) {
@@ -243,20 +221,14 @@ THREE.VREffect = function ( renderer, done ) {
 		var canvasOriginalSize = this._canvasOriginalSize;
 
 		// If state doesn't change we do nothing
-		if ( enable === this._fullScreen ) {
-			return;
-		}
+		if ( enable === this._fullScreen ) return;
 		this._fullScreen = !!enable;
 
 		if (!vrHMD) {
 			var canvas = renderer.domElement;
-			if (canvas.mozRequestFullScreen) {
-				canvas.mozRequestFullScreen(); // Firefox
-			} else if (canvas.webkitRequestFullscreen) {
-				canvas.webkitRequestFullscreen(); // Chrome and Safari
-			} else if (canvas.requestFullScreen){
-				canvas.requestFullscreen();
-			}
+			if (canvas.mozRequestFullScreen)  canvas.mozRequestFullScreen(); // Firefox
+			else if (canvas.webkitRequestFullscreen)  canvas.webkitRequestFullscreen(); // Chrome and Safari
+			else if (canvas.requestFullScreen) canvas.requestFullscreen();
 			return;
 		}
 
@@ -266,6 +238,7 @@ THREE.VREffect = function ( renderer, done ) {
 			renderer.setSize( canvasOriginalSize.width, canvasOriginalSize.height );
 			return;
 		}
+
 		// VR Mode enabled
 		this._canvasOriginalSize = {
 			width: renderer.domElement.width,
@@ -282,19 +255,13 @@ THREE.VREffect = function ( renderer, done ) {
 		var renderer = this._renderer;
 		var vrHMD = this._vrHMD;
 		var canvas = renderer.domElement;
-		var fullScreenChange =
-			canvas.mozRequestFullScreen? 'mozfullscreenchange' : 'webkitfullscreenchange';
+		var fullScreenChange = canvas.mozRequestFullScreen? 'mozfullscreenchange' : 'webkitfullscreenchange';
 
 		document.addEventListener( fullScreenChange, onFullScreenChanged, false );
 		function onFullScreenChanged() {
-			if ( !document.mozFullScreenElement && !document.webkitFullScreenElement ) {
-				self.setFullScreen( false );
-			}
+			if ( !document.mozFullScreenElement && !document.webkitFullScreenElement ) self.setFullScreen( false );
 		}
-		if ( canvas.mozRequestFullScreen ) {
-			canvas.mozRequestFullScreen( { vrDisplay: vrHMD } );
-		} else {
-			canvas.webkitRequestFullscreen( { vrDisplay: vrHMD } );
-		}
+		if ( canvas.mozRequestFullScreen ) canvas.mozRequestFullScreen( { vrDisplay: vrHMD } );
+		else canvas.webkitRequestFullscreen( { vrDisplay: vrHMD } );
 	};
 };

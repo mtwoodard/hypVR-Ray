@@ -259,6 +259,10 @@ var finishInit = function(fShader){
       horosphereSize:{type:"f", value:g_horospherSize},
       planeOffset:{type:"f", value:g_planeOffset}
     },
+    defines: {
+      NUM_LIGHTS: lightPositions.length,
+      NUM_OBJECTS: globalObjectBoosts.length
+    },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,
     transparent:true
@@ -309,4 +313,9 @@ var animate = function(){
 //-------------------------------------------------------
 // Where the magic happens
 //-------------------------------------------------------
-init();
+if(mobileCheck()){
+  console.log(window.location.href);
+}
+else{
+  init();
+}

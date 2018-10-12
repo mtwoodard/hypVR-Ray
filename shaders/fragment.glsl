@@ -3,15 +3,16 @@ float globalSceneSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
   float distance = MAX_DIST;
   //Light Objects
-  for(int i=0; i<4; i++){
+  for(int i=0; i<NUM_LIGHTS; i++){
     float objDist;
     if(lightIntensities[i].w == 0.0) { objDist = MAX_DIST; }
     else{
       objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
-      if(distance > objDist){
+      distance = min(distance, objDist);
+      if(distance < EPSILON){
         hitWhich = 1;
-        distance = objDist;
         globalLightColor = lightIntensities[i];
+        return distance;
       }
     }
   }
@@ -20,25 +21,26 @@ float globalSceneSDF(vec4 samplePoint){
     if(controllerCount != 0){
       //float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
       float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
-      if(distance > objDist){
+      distance = min(distance, objDist);
+      if(distance < EPSILON){
         hitWhich = 1;
-        distance = objDist;
         globalLightColor = lightIntensities[i+4];
+        return distance;
       }
       if(controllerCount == 1) break;
     }
   }
   //Global Objects
-  for(int i=0; i<4; i++){
+  for(int i=0; i<NUM_OBJECTS; i++) {
     float objDist;
     if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
     else{
       if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
       else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint, globalObjectBoosts[i]);}
       else { objDist = MAX_DIST; }
-      if(distance > objDist){
+      distance = min(distance, objDist);
+      if(distance < EPSILON){
         hitWhich = 2;
-        distance = objDist;
       }
     }
   }
@@ -119,14 +121,15 @@ void raymarch(vec4 rO, vec4 rD){
   mat4 fixMatrix;
   vec4 localrO = rO;
   vec4 localrD = rD;
+  
+  // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
-      //when we break its as if we reached our max marching steps
+      //when we break it's as if we reached our max marching steps
       break;
     }
     fakeI++;
     vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
-    vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     if(isOutsideCell(localEndPoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
       localrO = geometryNormalize(localEndPoint*fixMatrix, false);
@@ -134,26 +137,40 @@ void raymarch(vec4 rO, vec4 rD){
       localDepth = MIN_DIST;
     }
     else{
-      float localDist = localSceneSDF(localEndPoint);
-      float globalDist = globalSceneSDF(globalEndPoint);
-      float dist = min(localDist, globalDist);
-      if(dist < EPSILON){
-        if(localDist < globalDist) hitWhich = 3;
-        //Pass information out to global variables
-        sampleInfo[0] = globalEndPoint; //global sample point
-        sampleInfo[1] = tangentVectorOnGeodesic(rO, rD, globalDepth); //global tangent vector
-        sampleInfo[2] = localEndPoint; //local sample point
-        sampleInfo[3] = tangentVectorOnGeodesic(localrO, localrD, localDepth); //local tangent vector
-        return;
+      float localDist = min(0.5,localSceneSDF(localEndPoint));
+      if(localDist < EPSILON){
+        hitWhich = 3;
+        sampleEndPoint = localEndPoint;
+        sampleTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        break;
       }
-      globalDepth += dist;
-      localDepth += dist;
-      if(globalDepth >= MAX_DIST){
-        hitWhich = 0;
-      }
+      localDepth += localDist;
+      globalDepth += localDist;
     }
   }
-  hitWhich = 0;
+  
+  // Set localDepth to our new max tracing distance:
+  localDepth = min(globalDepth, MAX_DIST);
+  globalDepth = MIN_DIST;
+  fakeI = 0;
+  for(int i = 0; i< MAX_MARCHING_STEPS; i++){
+    if(fakeI >= maxSteps){
+      break;
+    }
+    fakeI++;
+    vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
+    float globalDist = globalSceneSDF(globalEndPoint);
+    if(globalDist < EPSILON){
+      // hitWhich has now been set
+      sampleEndPoint = globalEndPoint;
+      sampleTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
+      return;
+    }
+    globalDepth += globalDist;
+    if(globalDepth >= localDepth){
+      break;
+    }
+  }
 }
 
 void main(){
@@ -186,15 +203,14 @@ void main(){
     gl_FragColor = vec4(globalLightColor.rgb, 1.0);
     return;
   }
-  else if(hitWhich == 2){ // global objects
-    N = estimateNormal(sampleInfo[0]);
-    vec3 color = phongModel(invGlobalObjectBoosts[0], true);
-    gl_FragColor = vec4(color, 1.0);
-    return;
-  }
-  else if(hitWhich == 3){ // local
-    N = estimateNormal(sampleInfo[2]);
-    vec3 color = phongModel(mat4(1.0), false);
+  else{ // objects
+    N = estimateNormal(sampleEndPoint);
+    vec3 color;
+    if(hitWhich == 2){ // global objects
+      color = phongModel(invGlobalObjectBoosts[0], true);
+    }else{ // local objects
+      color = phongModel(mat4(1.0), false);
+    }
     gl_FragColor = vec4(color, 1.0);
   }
 }

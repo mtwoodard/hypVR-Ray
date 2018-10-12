@@ -14,11 +14,8 @@ const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWid
 //--------------------------------------------
 //Global Variables
 //--------------------------------------------
-//column 0 = globalSamplePoint
-//column 1 = globalEndTangentVector
-//column 2 = localSamplePoint
-//column 3 = localEndTangentVector
-mat4 sampleInfo = mat4(1.0);
+vec4 sampleEndPoint = vec4(1, 1, 1, 1);
+vec4 sampleTangentVector = vec4(1, 1, 1, 1);
 mat4 totalFixMatrix = mat4(1.0);
 vec4 N = ORIGIN; //normal vector
 vec4 globalLightColor = ORIGIN;
@@ -257,15 +254,13 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     //--------------------------------------------
     //Setup Variables
     //--------------------------------------------    
+	samplePoint = sampleEndPoint;
+    V = -sampleTangentVector; //Viewer is in the direction of the negative ray tangent vector
     if(isGlobal){
       totalFixMatrix = mat4(1.0);
-      samplePoint = sampleInfo[0];
-      V = -sampleInfo[1]; //Viewer is in the direction of the negative ray tangent vector
       baseColor = texcube(samplePoint, cellBoost * invObjectBoost).xyz; 
     }
     else{
-      samplePoint = sampleInfo[2];
-      V = -sampleInfo[3]; //Viewer is in the direction of the negative ray tangent vector
       baseColor = texcube(samplePoint, mat4(1.0)).xyz;
     }
 
@@ -277,7 +272,7 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     //--------------------------------------------
     vec4 translatedLightPosition;
     //Standard Light Objects
-    for(int i = 0; i<4; i++){ //4 is the number of lights we can use
+    for(int i = 0; i<NUM_LIGHTS; i++){
       if(lightIntensities[i].w != 0.0){
         translatedLightPosition = lightPositions[i]*invCellBoost*totalFixMatrix;
         color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i]);

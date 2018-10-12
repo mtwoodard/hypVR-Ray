@@ -118,7 +118,7 @@ void raymarch(vec4 rO, vec4 rD){
   int fakeI = 0;
   float globalDepth = MIN_DIST;
   float localDepth = globalDepth;
-  mat4 fixMatrix;
+  mat4 fixMatrix = mat4(1.0);
   vec4 localrO = rO;
   vec4 localrD = rD;
   

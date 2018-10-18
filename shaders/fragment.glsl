@@ -177,6 +177,11 @@ void main(){
   vec4 rayOrigin = ORIGIN;
   vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
   //camera position must be translated in hyperboloid ------------------------
+
+  //TODO: remove the leftCurrentBoost and rightCurrentBoost in favor of 
+  //stereoBoost which we can set at the time of render on the JS side
+  //this can be seen in the hypTest file in my mtwoodard.github.io repo
+  
   if(isStereo != 0){ //move left or right for stereo
     if(isStereo == -1){
       rayOrigin *= leftCurrentBoost;

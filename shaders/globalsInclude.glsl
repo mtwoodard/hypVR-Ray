@@ -256,7 +256,7 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     //--------------------------------------------    
 	samplePoint = sampleEndPoint;
     V = -sampleTangentVector; //Viewer is in the direction of the negative ray tangent vector
-    if(isGlobal){
+    if(isGlobal){ //this may be possible to move outside function as we already have an if statement for global v. local
       totalFixMatrix = mat4(1.0);
       baseColor = texcube(samplePoint, cellBoost * invObjectBoost).xyz; 
     }

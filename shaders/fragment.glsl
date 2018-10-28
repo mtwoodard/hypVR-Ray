@@ -118,13 +118,13 @@ void raymarch(vec4 rO, vec4 rD){
   int fakeI = 0;
   float globalDepth = MIN_DIST;
   float localDepth = globalDepth;
-  mat4 fixMatrix;
+  mat4 fixMatrix = mat4(1.0);
   vec4 localrO = rO;
   vec4 localrD = rD;
   
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps){
+    if(fakeI >= maxSteps || globalDepth >= MAX_DIST){
       //when we break it's as if we reached our max marching steps
       break;
     }
@@ -177,6 +177,11 @@ void main(){
   vec4 rayOrigin = ORIGIN;
   vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
   //camera position must be translated in hyperboloid ------------------------
+
+  //TODO: remove the leftCurrentBoost and rightCurrentBoost in favor of 
+  //stereoBoost which we can set at the time of render on the JS side
+  //this can be seen in the hypTest file in my mtwoodard.github.io repo
+  
   if(isStereo != 0){ //move left or right for stereo
     if(isStereo == -1){
       rayOrigin *= leftCurrentBoost;

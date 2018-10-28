@@ -314,7 +314,6 @@ var animate = function(){
 // Where the magic happens
 //-------------------------------------------------------
 if(mobileCheck()){
-  //console.log(window.location.href);
   window.location.replace("http://www.michaelwoodard.net/hypVR-Ray_m/")
 }
 else{

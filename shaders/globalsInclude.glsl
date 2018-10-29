@@ -3,7 +3,7 @@
 //--------------------------------------------
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 10.0;
+const float MAX_DIST = 10.0; //needs to be larger for euclidean, if higher than this value for hyperbolic we run into floating point errors
 const float EPSILON = 0.0001;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
@@ -55,8 +55,7 @@ uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;
 uniform float tubeRad;
-uniform float horosphereSize;
-uniform float planeOffset;
+uniform float vertexSurfaceOffset;
 
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.

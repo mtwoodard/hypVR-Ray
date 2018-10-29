@@ -73,6 +73,20 @@ THREE.Vector4.prototype.geometryDirection = function(g, v){
 	var w = v.add(this.multiplyScalar(this.geometryDot(g,v)));
 	return w.geometryNormalize(g);
 }
+
+THREE.Vector4.prototype.geometryDistance = function(g, v){
+	if(g == Geometry.Hyperbolic){
+		return Math.acosh(-this.geometryDot(Geometry.Hyperbolic, v));
+	}
+	else if(g == Geometry.Spherical){
+		return Math.acos(this.geometryDot(Geometry.Spherical, v));
+	}
+	else{
+		var diff = this.sub(v);
+		var diff3 = new THREE.Vector3(v.x, v.y, v.z);
+		return diff3.length();
+	}
+}
 //----------------------------------------------------------------------
 //	Matrix Operations
 //----------------------------------------------------------------------
@@ -172,6 +186,10 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
 //-----------------------------------------------------------------------------------------------------------------------------
 //	Signed Distance Fields
 //-----------------------------------------------------------------------------------------------------------------------------
+
+function sphereSDF(samplePoint, center, radius){
+	return samplePoint.geometryDistance(g_geometry, center) - radius;
+}
 
 // A horosphere can be constructed by offseting from a standard horosphere.
 // Our standard horosphere will have a center in the direction of lightPoint

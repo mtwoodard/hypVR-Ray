@@ -256,8 +256,7 @@ var finishInit = function(fShader){
 	  	cut4:{type:"i", value:g_cut4},
       sphereRad:{type:"f", value:g_sphereRad},
       tubeRad:{type:"f", value:g_tubeRad},
-      horosphereSize:{type:"f", value:g_horospherSize},
-      planeOffset:{type:"f", value:g_planeOffset}
+      vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset}
     },
     defines: {
       NUM_LIGHTS: lightPositions.length,

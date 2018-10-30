@@ -70,6 +70,7 @@ THREE.Vector4.prototype.geometryNormalize = function(g){
 }
 
 THREE.Vector4.prototype.geometryDirection = function(g, v){
+  // FIXME: This doesn't match the shader for spherical geometry.
 	var w = v.add(this.multiplyScalar(this.geometryDot(g,v)));
 	return w.geometryNormalize(g);
 }

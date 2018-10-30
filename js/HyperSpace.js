@@ -25,6 +25,7 @@ var camera;
 var mesh;
 var geom;
 var maxSteps = 50;
+var maxDist = 10.0;
 var textFPS;
 var time;
 
@@ -246,6 +247,7 @@ var finishInit = function(fShader){
       cellBoost:{type:"m4", value:g_cellBoost},
       invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
+      maxDist:{type:"f", value:maxDist},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},

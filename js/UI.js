@@ -146,6 +146,13 @@ function updateUniformsFromUI()
     break;
   }
 
+  // I higher than this value for hyperbolic we run into floating point errors
+  var maxDist = 10.0;
+  if( g_geometry == Geometry.Euclidean )
+    maxDist = 50.0; // Needs to be larger for euclidean, i
+  if( g_geometry == Geometry.Spherical )
+    maxDist = Math.PI; // Only go to antipode.
+
   initValues(g_geometry);
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
@@ -157,6 +164,7 @@ function updateUniformsFromUI()
   g_material.uniforms.vertexPosition.value = g_vertexPosition;
   g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
   g_material.uniforms.attnModel.value = guiInfo.falloffModel;
+  g_material.uniforms.maxDist.value = maxDist;
 }
 
 //What we need to init our dat GUI

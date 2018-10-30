@@ -3,7 +3,6 @@
 //--------------------------------------------
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 10.0; //needs to be larger for euclidean, if higher than this value for hyperbolic we run into floating point errors
 const float EPSILON = 0.0001;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
@@ -29,6 +28,7 @@ uniform mat4 rightCurrentBoost;
 uniform mat4 cellBoost; 
 uniform mat4 invCellBoost;
 uniform int maxSteps;
+uniform float maxDist;
 //--------------------------------------------
 //Lighting Variables & Global Object Variables
 //--------------------------------------------

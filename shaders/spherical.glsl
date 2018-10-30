@@ -11,7 +11,7 @@ float geometryDistance(vec4 u, vec4 v){
   return acos(geometryDot(u,v));
 }
 vec4 geometryDirection(vec4 u, vec4 v){
-  vec4 w = v + geometryDot(u,v)*u;
+  vec4 w = v - geometryDot(u,v)*u;
   return geometryNormalize(w, true);
 }
 //calculate the new direction vector (v) for the continuation of the ray from the new ray origin (u)

@@ -93,10 +93,16 @@ var hCDP = [];
 
 var initValues = function(g){
 	g_geometry = g;
-	var invHCWK = 1.0/hCWK;
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
+  var invHCWK = 1.0/hCWK;
+  
+	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0);
+	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0);
+  hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0);
+  if( g != Geometry.Euclidean ) {
+    for( var i=0; i<3; i++ )
+      hCDP[i].geometryNormalize(g_geometry);
+  }
+
 	gens = createGenerators(g_geometry);
   invGens = invGenerators(gens);
   for(var i = 0; i<6; i++){

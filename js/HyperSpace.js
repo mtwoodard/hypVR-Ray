@@ -262,7 +262,7 @@ var finishInit = function(fShader){
 	  	cut4:{type:"i", value:g_cut4},
       sphereRad:{type:"f", value:g_sphereRad},
       tubeRad:{type:"f", value:g_tubeRad},
-      vertexKlein:{type:"v4", value:g_vertexKlein},
+      vertexPosition:{type:"v4", value:g_vertexPosition},
       vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset}
     },
     defines: {

@@ -50,7 +50,7 @@ uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;
 uniform float tubeRad;
-uniform vec4 vertexKlein;
+uniform vec4 vertexPosition;
 uniform float vertexSurfaceOffset;
 
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.

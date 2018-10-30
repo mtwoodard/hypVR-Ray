@@ -140,6 +140,7 @@ function updateUniformsFromUI()
 
   initValues(g_geometry);
   initLights(g_geometry);
+  initObjects(g_geometry);
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
   g_material.uniforms.halfCubeDualPoints.value = hCDP;

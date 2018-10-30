@@ -82,8 +82,7 @@ THREE.Vector4.prototype.geometryDistance = function(g, v){
 		return Math.acos(this.geometryDot(Geometry.Spherical, v));
 	}
 	else{
-		var diff = this.sub(v);
-		var diff3 = new THREE.Vector3(v.x, v.y, v.z);
+		var diff3 = new THREE.Vector3(this.x - v.x, this.y - v.y, this.z - v.z);
 		return diff3.length();
 	}
 }

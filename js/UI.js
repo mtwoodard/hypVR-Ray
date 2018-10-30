@@ -4,6 +4,7 @@
 var g_cut4 = 2;
 var g_sphereRad = 0.996216;
 var g_tubeRad = 0.15;
+var g_vertexKlein = idealCubeCornerKlein;
 var g_vertexSurfaceOffset = -0.951621;
 var g_targetFPS = {value:27.5};
 
@@ -62,16 +63,16 @@ function updateUniformsFromUI()
 	var p = 4, q = 3;
 	var g = GetGeometry( p, q, r );
 
-	// Check to see if the geometry has changed.
-	// If so, update the shader.
-	if( g !== g_geometry )
-	{
-		g_geometry = g;
+  // Check to see if the geometry has changed.
+  // If so, update the shader.
+  if( g !== g_geometry )
+  {
+    g_geometry = g;
     var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
     guiInfo.resetPosition();
-	}
+  }
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var inrad = InRadius(p, q, r);
@@ -112,29 +113,34 @@ function updateUniformsFromUI()
     var midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
   }
 
-	// vertexSurfaceOffset
-  var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(g_geometry);
+  // vertex variables.
+  g_vertexKlein = new THREE.Vector4( hCWK, hCWK, hCWK, 1.0 ); 
+  if( g_geometry != Geometry.Euclidean )
+    g_vertexKlein.geometryNormalize( g_geometry );
   if( g_cut4 === Geometry.Spherical) {
-    g_vertexSurfaceOffset = midEdge.geometryDistance(g_geometry, dualPoint)
+    var distToMidEdge = midEdge.geometryDistance(g_geometry, g_vertexKlein);
+    g_vertexSurfaceOffset = distToMidEdge;
   }
-  else if( g_cut4 === Geometry.Euclidean){
+  else if( g_cut4 === Geometry.Euclidean) {
     var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
+    g_vertexKlein = idealCubeCornerKlein;
     g_vertexSurfaceOffset = -(g_sphereRad - distToMidEdge);
   }
   else{ // hyperbolic
-    g_vertexSurfaceOffset = geodesicPlaneHSDF(midEdge, dualPoint, 0);
+    g_vertexSurfaceOffset = geodesicPlaneHSDF(midEdge, g_vertexKlein, 0);
   }
 
   initValues(g_geometry);
   g_material.uniforms.geometry.value = g;
-	g_material.uniforms.invGenerators.value = invGens;
-	g_material.uniforms.halfCubeDualPoints.value = hCDP;
+  g_material.uniforms.invGenerators.value = invGens;
+  g_material.uniforms.halfCubeDualPoints.value = hCDP;
   g_material.uniforms.halfCubeWidthKlein.value = hCWK;
-	g_material.uniforms.cut4.value = g_cut4;
-	g_material.uniforms.sphereRad.value = g_sphereRad;
-	g_material.uniforms.tubeRad.value = g_tubeRad;
-	g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
-	g_material.uniforms.attnModel.value = guiInfo.falloffModel;
+  g_material.uniforms.cut4.value = g_cut4;
+  g_material.uniforms.sphereRad.value = g_sphereRad;
+  g_material.uniforms.tubeRad.value = g_tubeRad;
+  g_material.uniforms.vertexKlein.value = g_vertexKlein;
+  g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
+  g_material.uniforms.attnModel.value = guiInfo.falloffModel;
 }
 
 //What we need to init our dat GUI

@@ -133,11 +133,12 @@ var lightPositions = [];
 var lightIntensities = [];
 var attnModel = 1;
 
-var initLights = function(){
-  PointLightObject(new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,1));
-  PointLightObject(new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,1));
-  PointLightObject(new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,1));
-  PointLightObject(new THREE.Vector3(-1,-1,-1), new THREE.Vector4(1,1,1,1));
+var initLights = function(g){
+  lightPositions = [];
+  PointLightObject(g, new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,1));
+  PointLightObject(g, new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,1));
+  PointLightObject(g, new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,1));
+  PointLightObject(g, new THREE.Vector3(-1,-1,-1), new THREE.Vector4(1,1,1,1));
   //Add light info for controllers
   lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
   lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 2));
@@ -185,7 +186,7 @@ var init = function(){
   g_invCellBoost = new THREE.Matrix4();
   g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
 	initValues(g_geometry);
-  initLights();
+  initLights(g_geometry);
   initObjects(g_geometry);
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish

@@ -150,6 +150,27 @@ function constructHyperboloidPoint(direction, distance){
 	return new THREE.Vector4(direction.x, direction.y, direction.z, w);
 }
 
+function constructPointInGeometry(g, direction, distance) {
+
+  var result = null;
+  switch( g_geometry )
+  {
+  case Geometry.Spherical:
+    result = constructSpherePoint(direction, distance);
+    break;
+
+  case Geometry.Euclidean:
+    result =  direction.normalize().multiplyScalar(distance);
+    result = new THREE.Vector4(direction.x, direction.y, direction.z, 1);
+    break;
+
+  case Geometry.Hyperbolic:
+    result = constructHyperboloidPoint(direction, distance);
+    break;
+  }
+  return result;
+}
+
 //----------------------------------------------------------------------
 //	Matrix - Generators
 //----------------------------------------------------------------------
@@ -250,10 +271,10 @@ function fixOutsideCentralCell( mat ) {
 //	Object Constructors
 //-----------------------------------------------------------------------------------------------------------------------------
 
-var PointLightObject = function(pos, colorInt){ //position is a euclidean Vector3
+var PointLightObject = function(g, pos, colorInt){ //position is a euclidean Vector3
 	var posMag = pos.length();
 	var posDir = pos.normalize();
-	lightPositions.push(constructHyperboloidPoint(posDir, posMag));
+	lightPositions.push(constructPointInGeometry(g,posDir, posMag));
 	lightIntensities.push(colorInt);
 }
 

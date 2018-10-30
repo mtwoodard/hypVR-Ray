@@ -106,22 +106,7 @@ function updateUniformsFromUI()
 
   // Calculate a point we need for the vertex sphere calc.
   var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-  var midEdge = null;
-  switch( g_geometry )
-  {
-  case Geometry.Spherical:
-    midEdge = constructSpherePoint(midEdgeDir, g_sphereRad);
-    break;
-
-  case Geometry.Euclidean:
-    midEdge =  midEdgeDir.normalize().multiplyScalar(g_sphereRad);
-    midEdge = new THREE.Vector4(midEdge.x, midEdge.y, midEdge.z, 1);
-    break;
-
-  case Geometry.Hyperbolic:
-    midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
-    break;
-  }
+  var midEdge = constructPointInGeometry( g_geometry, midEdgeDir, g_sphereRad );
 
   // Vertex location and sphere size.
   g_vertexPosition = new THREE.Vector4( hCWK, hCWK, hCWK, 1.0 ); 
@@ -154,6 +139,7 @@ function updateUniformsFromUI()
     maxDist = Math.PI; // Only go to antipode.
 
   initValues(g_geometry);
+  initLights(g_geometry);
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
   g_material.uniforms.halfCubeDualPoints.value = hCDP;

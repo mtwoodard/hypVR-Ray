@@ -104,31 +104,46 @@ function updateUniformsFromUI()
 	// sphereRad
 	g_sphereRad = midrad - hOffset;
 
+  // Calculate a point we need for the vertex sphere calc.
   var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-  if(r < 5){
-    var midEdge =  midEdgeDir.normalize().multiplyScalar(g_sphereRad);
+  var midEdge = null;
+  switch( g_geometry )
+  {
+  case Geometry.Spherical:
+    midEdge = constructSpherePoint(midEdgeDir, g_sphereRad);
+    break;
+
+  case Geometry.Euclidean:
+    midEdge =  midEdgeDir.normalize().multiplyScalar(g_sphereRad);
     midEdge = new THREE.Vector4(midEdge.x, midEdge.y, midEdge.z, 1);
-  }
-  else{
-    var midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
+    break;
+
+  case Geometry.Hyperbolic:
+    midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
+    break;
   }
 
-  // vertex variables.
+  // Vertex location and sphere size.
   g_vertexPosition = new THREE.Vector4( hCWK, hCWK, hCWK, 1.0 ); 
   if( g_geometry != Geometry.Euclidean )
-  g_vertexPosition.geometryNormalize( g_geometry );
-  if( g_cut4 === Geometry.Spherical) {
-    // WRONG for spherical case! Can't do this with Klein vertices.
+    g_vertexPosition.geometryNormalize( g_geometry );
+
+  switch( g_cut4 )
+  {
+  case Geometry.Spherical:
     var distToMidEdge = midEdge.geometryDistance(g_geometry, g_vertexPosition);
     g_vertexSurfaceOffset = distToMidEdge;
-  }
-  else if( g_cut4 === Geometry.Euclidean) {
+    break;
+
+  case Geometry.Euclidean:
     var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
     g_vertexPosition = idealCubeCornerKlein;
     g_vertexSurfaceOffset = -(g_sphereRad - distToMidEdge);
-  }
-  else{ // hyperbolic
+    break;
+
+  case Geometry.Hyperbolic:
     g_vertexSurfaceOffset = geodesicPlaneHSDF(midEdge, g_vertexPosition, 0);
+    break;
   }
 
   initValues(g_geometry);

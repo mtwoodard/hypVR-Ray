@@ -94,26 +94,28 @@ THREE.Matrix4.prototype.add = function (m) {
 };
 
 THREE.Matrix4.prototype.gramSchmidt = function(g){
-	if(g === Geometry.Hyperbolic){ //Only necessary in hyperbolic space
-		var m = this.transpose(); 
-		var n = m.elements; //elements are stored in column major order we need row major
-		var temp = new THREE.Vector4();
-		var temp2 = new THREE.Vector4();
-		for (var i = 0; i<4; i++) {  ///normalize row
-			var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
-			for (var l = 0; l<4; l++) {
-				n[4*i + l] = n[4*i + l] * invRowNorm;
-			}
-			for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
-				var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
-				for (var l = 0; l<4; l++) {
-					n[4*j + l] -= component * n[4*i + l];
-				}
-			}
-		}
-		m.elements = n;
-		this.elements = m.transpose().elements;
-	}
+
+  if( g === Geometry.Euclidean )
+    return;
+
+  var m = this.transpose(); 
+  var n = m.elements; //elements are stored in column major order we need row major
+  var temp = new THREE.Vector4();
+  var temp2 = new THREE.Vector4();
+  for (var i = 0; i<4; i++) {  ///normalize row
+    var invRowNorm = 1.0 / temp.fromArray(n.slice(4*i, 4*i+4)).geometryLength(g);
+    for (var l = 0; l<4; l++) {
+      n[4*i + l] = n[4*i + l] * invRowNorm;
+    }
+    for (var j = i+1; j<4; j++) { // subtract component of ith vector from later vectors
+      var component = temp.fromArray(n.slice(4*i, 4*i+4)).geometryDot(g, temp2.fromArray(n.slice(4*j, 4*j+4)));
+      for (var l = 0; l<4; l++) {
+        n[4*j + l] -= component * n[4*i + l];
+      }
+    }
+  }
+  m.elements = n;
+  this.elements = m.transpose().elements;
 }
 
 //----------------------------------------------------------------------
@@ -129,6 +131,15 @@ function getUpVector() {
 	return new THREE.Vector3(0,1,0);
 }
 
+// Constructs a point on the sphere from a direction and a spherical distance.
+function constructSpherePoint(direction, distance){
+	var w = Math.cos(distance);
+	var magSquared = 1 - w * w;
+	direction.normalize();
+	direction.multiplyScalar(Math.sqrt(magSquared));
+	return new THREE.Vector4(direction.x, direction.y, direction.z, w);
+}
+
 // Constructs a point on the hyperboloid from a direction and a hyperbolic distance.
 function constructHyperboloidPoint(direction, distance){
 	var w = Math.cosh(distance);
@@ -142,9 +153,12 @@ function constructHyperboloidPoint(direction, distance){
 //	Matrix - Generators
 //----------------------------------------------------------------------
 function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spaces app
-  	var dx = v.x; var dy = v.y; var dz = v.z;
-	var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  var dx = v.x; var dy = v.y; var dz = v.z;
+  var len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  if( len == 0 ) 
+    return new THREE.Matrix4().identity();
 
+  dx /= len; dy /= len; dz /= len;
 	var m03 = dx; var m13 = dy; var m23 = dz;
 	var c1 = Math.sinh(len);
 	var c2 = Math.cosh(len) - 1;
@@ -154,32 +168,23 @@ function translateByVector(g,v) { // trickery stolen from Jeff Weeks' Curved Spa
 		c1 = len;
 	}
 	else if( g == Geometry.Spherical ){
-		m03 = -m03; m13 = -m13; m23 = -m23;
+		m03 = -dx; m13 = -dy; m23 = -dz;
 		c1 = Math.sin(len);
 		c2 = 1.0 - Math.cos(len);
 	}
-	else{ 
-		m03 /= len; m13 /= len; m23 /= len; 
-	} 
-  	
-  	if (len == 0) return new THREE.Matrix4().identity();
-  	else{
-      dx /= len;
-      dy /= len;
-      dz /= len;
-      var m = new THREE.Matrix4().set(
-        0, 0, 0, m03,
-        0, 0, 0, m13,
-        0, 0, 0, m23,
-        dx,dy,dz, 0.0);
-      var m2 = new THREE.Matrix4().copy(m).multiply(m);
-      m.multiplyScalar(c1);
-      m2.multiplyScalar(c2);
-      var result = new THREE.Matrix4().identity();
-      result.add(m);
-      result.add(m2);
-      return result;
-    }
+  
+  var m = new THREE.Matrix4().set(
+    0, 0, 0, m03,
+    0, 0, 0, m13,
+    0, 0, 0, m23,
+    dx,dy,dz, 0.0);
+  var m2 = new THREE.Matrix4().copy(m).multiply(m);
+  m.multiplyScalar(c1);
+  m2.multiplyScalar(c2);
+  var result = new THREE.Matrix4().identity();
+  result.add(m);
+  result.add(m2);
+  return result;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------

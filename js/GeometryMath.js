@@ -37,7 +37,7 @@ Math.sphericalToStereographic = function(s){
 
 // Steregraphic norm to gnomonic norm.
 Math.stereographicToGnomonic = function(s){
-	var mag = 1/(1-s*s);
+	var mag = 2/(1-s*s);
 	return s*mag;
 }
 

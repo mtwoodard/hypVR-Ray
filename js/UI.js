@@ -131,16 +131,24 @@ function updateUniformsFromUI()
     break;
   }
 
-  // I higher than this value for hyperbolic we run into floating point errors
+  // Higher than this value for hyperbolic we run into floating point errors
   var maxDist = 10.0;
   if( g_geometry == Geometry.Euclidean )
-    maxDist = 50.0; // Needs to be larger for euclidean, i
+    maxDist = 50.0; // Needs to be larger for euclidean.
   if( g_geometry == Geometry.Spherical )
     maxDist = Math.PI; // Only go to antipode.
 
   initValues(g_geometry);
   initLights(g_geometry);
+  g_material.uniforms.lightPositions.value = lightPositions;
+  g_material.uniforms.lightIntensities.value = lightIntensities;
   initObjects(g_geometry);
+  g_material.uniforms.globalObjectBoosts.value = globalObjectBoosts;
+  g_material.uniforms.invGlobalObjectBoosts.value = invGlobalObjectBoosts;
+  g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
+  g_material.uniforms.globalObjectTypes.value = globalObjectTypes;
+  
+  g_material.uniforms.objec
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
   g_material.uniforms.halfCubeDualPoints.value = hCDP;

@@ -159,7 +159,7 @@ var initObjects = function(g){
   invGlobalObjectBoosts = [];
   globalObjectRadii = [];
   globalObjectTypes = [];
-  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
+  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.2); // geometry, position, radius/radii
   EllipsoidObject(g, new THREE.Vector3(-0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
   for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
     EmptyObject();

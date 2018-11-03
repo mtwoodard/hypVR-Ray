@@ -22,6 +22,101 @@ function GetGeometry2D(p,q)
 	return Geometry.Hyperbolic;
 }
 
+// Get the length of the side of a triangle opposite alpha, given the three angles of the triangle.
+// NOTE: This does not work in Euclidean geometry!
+function GetTriangleSide( g, alpha, beta, gamma )
+{
+  switch( g )
+  {
+    case Geometry.Spherical:
+      {
+        // Spherical law of cosines
+        return Math.acos( ( Math.cos( alpha ) + Math.cos( beta ) * Math.cos( gamma ) ) / ( Math.sin( beta ) * Math.sin( gamma ) ) );
+      }
+    case Geometry.Euclidean:
+      {
+        // Not determined in this geometry.
+        return 0.0;
+      }
+    case Geometry.Hyperbolic:
+      {
+        // Hyperbolic law of cosines
+        // http://en.wikipedia.org/wiki/Hyperbolic_law_of_cosines
+        return Math.acosh( ( Math.cos( alpha ) + Math.cos( beta ) * Math.cos( gamma ) ) / ( Math.sin( beta ) * Math.sin( gamma ) ) );
+      }
+  }
+
+  return 0.0;
+}
+
+/// In the induced geometry.
+function GetTriangleHypotenuse( p, q )
+{
+  let g = Geometry2D.GetGeometry( p, q );
+  if( g == Geometry.Euclidean )
+    return EuclideanHypotenuse;
+
+  // We have a 2,q,p triangle, where the right angle alpha 
+  // is opposite the hypotenuse (the length we want).
+  let alpha = Math.PI / 2;
+  let beta = PiOverNSafe( q );
+  let gamma = PiOverNSafe( p );
+  return GetTriangleSide( g, alpha, beta, gamma );
+}
+
+/// Get the side length opposite angle PI/P,
+/// In the induced geometry.
+function GetTrianglePSide( p, q )
+{
+  let g = Geometry2D.GetGeometry( p, q );
+
+  let alpha = Math.PI / 2;
+  let beta = PiOverNSafe( q );
+  let gamma = PiOverNSafe( p );	// The one we want.
+  if( g == Geometry.Euclidean )
+    return EuclideanHypotenuse * Math.sin( gamma );
+  return GetTriangleSide( g, gamma, beta, alpha );
+}
+
+/// Get the side length opposite angle PI/Q,
+/// In the induced geometry.
+function GetTriangleQSide( p, q )
+{
+  let g = Geometry2D.GetGeometry( p, q );
+
+  let alpha = Math.PI / 2;
+  let beta = PiOverNSafe( q );	// The one we want.
+  let gamma = PiOverNSafe( p );
+  if( g == Geometry.Euclidean )
+    return EuclideanHypotenuse * Math.sin( beta );
+  return GetTriangleSide( g, beta, gamma, alpha );
+}
+
+var EuclideanHypotenuse = 1.0/3;
+var DiskRadius = 1;
+function TilingNormalizedCircumRadius( p, q )
+{
+  let hypot = GetTriangleHypotenuse( p, q );
+  switch( GetGeometry2D( p, q ) )
+  {
+    case Geometry.Spherical:
+      return Math.sphericalToSterographic( hypot ) * DiskRadius;
+
+    case Geometry.Euclidean:
+      return EuclideanHypotenuse;
+
+    case Geometry.Hyperbolic:
+    {
+      if( hypot = Number.POSITIVE_INFINITY )
+        return DiskRadius;
+
+      return Math.hyperbolicToPoincare( hypot ) * DiskRadius;
+    }
+  }
+
+  return 1;
+}
+
 // Returns the geometry induced by a {p,q} polyhedron, r meeting at each edge.
 function GetGeometry(p, q, r)
 {
@@ -68,7 +163,7 @@ function InRadius(p, q, r)
 		case Geometry.Hyperbolic:
 			return Math.acosh( inRadius );
 		case Geometry.Euclidean:
-			return 1.0 * m_euclideanScale;
+			return m_euclideanScale;
 		case Geometry.Spherical:
 			return Math.acos( inRadius );
 	}

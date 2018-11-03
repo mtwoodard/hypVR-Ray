@@ -24,6 +24,11 @@ Math.hyperbolicToPoincare = function(h){
 	return Math.tanh(0.5 * h);
 }
 
+// Poincare norm to hyperbolic norm.
+Math.poincareToHyperbolic = function(p){
+  return 2*Math.atanh(p);
+}
+
 // Poincare norm to klein norm.
 Math.poincareToKlein = function(p){
 	var mag = 2/(1+p*p);
@@ -33,6 +38,11 @@ Math.poincareToKlein = function(p){
 // Spherical norm to steregraphic norm.
 Math.sphericalToStereographic = function(s){
 	return Math.tan(0.5 * s);
+}
+
+// Steregraphic norm to spherical norm.
+Math.stereographicToSpherical = function(s){
+  return 2 * Math.atan(s);
 }
 
 // Steregraphic norm to gnomonic norm.

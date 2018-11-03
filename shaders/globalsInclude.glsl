@@ -53,6 +53,12 @@ uniform float tubeRad;
 uniform vec4 vertexPosition;
 uniform float vertexSurfaceOffset;
 
+// These are the planar mirrors of the fundamental simplex in the Klein (or analagous) model.
+// Order is mirrors opposite: vertex, edge, face, cell.
+// The xyz components of a vector give the unit normal of the mirror. The sense will be that the normal points outside of the simplex.
+// The w component is the offset from the origin.
+uniform vec4 simplexMirrorsKlein[4];
+
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.
 // We'll need more of these later when we support more symmetry groups.

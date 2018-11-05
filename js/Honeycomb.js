@@ -52,7 +52,7 @@ function GetTriangleSide( g, alpha, beta, gamma )
 /// In the induced geometry.
 function GetTriangleHypotenuse( p, q )
 {
-  let g = Geometry2D.GetGeometry( p, q );
+  let g = GetGeometry2D( p, q );
   if( g == Geometry.Euclidean )
     return EuclideanHypotenuse;
 
@@ -68,7 +68,7 @@ function GetTriangleHypotenuse( p, q )
 /// In the induced geometry.
 function GetTrianglePSide( p, q )
 {
-  let g = Geometry2D.GetGeometry( p, q );
+  let g = GetGeometry2D( p, q );
 
   let alpha = Math.PI / 2;
   let beta = PiOverNSafe( q );
@@ -82,7 +82,7 @@ function GetTrianglePSide( p, q )
 /// In the induced geometry.
 function GetTriangleQSide( p, q )
 {
-  let g = Geometry2D.GetGeometry( p, q );
+  let g = GetGeometry2D( p, q );
 
   let alpha = Math.PI / 2;
   let beta = PiOverNSafe( q );	// The one we want.
@@ -100,7 +100,7 @@ function TilingNormalizedCircumRadius( p, q )
   switch( GetGeometry2D( p, q ) )
   {
     case Geometry.Spherical:
-      return Math.sphericalToSterographic( hypot ) * DiskRadius;
+      return Math.sphericalToStereographic( hypot ) * DiskRadius;
 
     case Geometry.Euclidean:
       return EuclideanHypotenuse;

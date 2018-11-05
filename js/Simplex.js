@@ -60,10 +60,8 @@ class Sphere
 // Utility functions
 //
 
-// Move an origin based sphere to a new location
-// Works in all geometries
-// center: http://www.wolframalpha.com/input/?i=%28+%28+%28+r+%2B+p+%29+%2F+%28+1+-+r*p+%29+%29+%2B+%28+%28+-r+%2B+p+%29+%2F+%28+1+%2B+r*p+%29+%29++%29+%2F+2
-// radius: http://www.wolframalpha.com/input/?i=%28+%28+%28+r+%2B+p+%29+%2F+%28+1+-+r*p+%29+%29+-+%28+%28+-r+%2B+p+%29+%2F+%28+1+%2B+r*p+%29+%29++%29+%2F+2
+// Move an origin based sphere to a new location, in the conformal models.
+// Works in all geometries.
 function MoveSphere( g, vNonEuclidean, radiusEuclideanOrigin )
 {
   if( g == Geometry.Euclidean )
@@ -88,7 +86,7 @@ function MoveSphere( g, vNonEuclidean, radiusEuclideanOrigin )
 
   let center = p * numeratorCenter / ( 1 - p * p * r * r );
   radiusEuclidean = r * numeratorRadius / ( 1 - p * p * r * r );
-  centerEuclidean = vNonEuclidean * center;
+  centerEuclidean = vNonEuclidean.clone().normalize().multiplyScalar( center );
   return new Sphere( centerEuclidean, radiusEuclidean, null, null );
 }
 
@@ -97,17 +95,32 @@ function MoveSphere( g, vNonEuclidean, radiusEuclideanOrigin )
 // 
 
 // Helper to construct some points we need for calculating simplex facets for a {p,q,r} honeycomb.
-function TilePoints( p, q )
+// NOTE: This construction is intentionally for the dual {q,p} tiling, hence the reversing of input args.
+function TilePoints( q, p )
 {
   let circum = TilingNormalizedCircumRadius( p, q );
-  let p1 = new Three.Vector3( circum, 0, 0 );
+  let start = new THREE.Vector3( circum, 0, 0 );
+  let end = start.clone();
+  let axis = new THREE.Vector3( 0, 0, 1 );
+  end.applyAxisAngle( axis, 2 * Math.PI / p );
 
-  p2 = seg.Midpoint;
-  p3 = p2;
-  p3.RotateXY( -Math.PI / 2 );
+  // Center/radius of curved standard tile segment in the conformal model.
+  let piq = PiOverNSafe( q );
+  let t1 = Math.PI / p;
+  let t2 = Math.PI / 2 - piq - t1;
+  let factor = ( Math.tan( t1 ) / Math.tan( t2 ) + 1 ) / 2;
+  let center = start.clone().add( end ).multiplyScalar( factor );
+  let radius = center.clone().sub( start ).length();
 
-  
-  return [ p1, p2, p3 ]
+  let mag = center.length() - radius;
+  let segMidpoint = center.clone().normalize();
+  segMidpoint.multiplyScalar( mag );
+
+  p2 = segMidpoint;
+  p3 = p2.clone();
+  p3.applyAxisAngle( axis, -Math.PI / 2 );
+
+  return [ start, p2, p3, center, radius ];
 }
 
 /// Calculates the 3 mirrors connected to the cell center.
@@ -116,11 +129,14 @@ function InteriorMirrors( p, q )
 {
   // Some construction points we need.
   let tilePoints = TilePoints( p, q );
+  let p1 = tilePoints[0];
+  let p2 = tilePoints[1];
+  let p3 = tilePoints[2];
 
   let cellGeometry = GetGeometry2D( p, q );
 
   // XZ-plane
-  let s1 = new Sphere( null, Number.POSITIVE_INFINITY, new Vector3D( 0, 1, 0 ), 0 );
+  let s1 = new Sphere( null, Number.POSITIVE_INFINITY, new THREE.Vector3( 0, 1, 0 ), 0 );
 
   let s2 = null;
   if( cellGeometry == Geometry.Euclidean )
@@ -131,12 +147,12 @@ function InteriorMirrors( p, q )
     cellGeometry == Geometry.Spherical ||
     cellGeometry == Geometry.Hyperbolic )
   {
-    s2 = new Sphere( seg.Center, seg.Radius, null, null );
+    s2 = new Sphere( tilePoints[3], tilePoints[4], null, null );
   }
 
   let s3 = new Sphere( null, Number.POSITIVE_INFINITY, p3, 0 );
 
-  return [ s1, s2, s3 ];
+  return [ s2, s1, s3 ];
 }
 
 // Get the simplex facets for a {p,q,r} honeycomb
@@ -150,6 +166,9 @@ function SimplexFacetsUHS( p, q, r  )
 
   // Some construction points we need.
   let tilePoints = TilePoints( p, q );
+  let p1 = tilePoints[0];
+  let p2 = tilePoints[1];
+  let p3 = tilePoints[2];
 
   //
   // Construct in UHS
@@ -160,12 +179,12 @@ function SimplexFacetsUHS( p, q, r  )
   if( cellGeometry == Geometry.Spherical )
   {
     // Spherical trig
-    let halfSide = Geometry2D.GetTrianglePSide( q, p );
+    let halfSide = GetTrianglePSide( q, p );
     let mag = Math.sin( halfSide ) / Math.cos( PiOverNSafe( r ) );
     mag = Math.asin( mag );
 
     // Move mag to p1.
-    mag = Spherical2D.s2eNorm( mag );
+    mag = Math.sphericalToStereographic( mag );
     cellMirror = MoveSphere( Geometry.Spherical, p1, mag );
   }
   else if( cellGeometry == Geometry.Euclidean )
@@ -176,11 +195,16 @@ function SimplexFacetsUHS( p, q, r  )
   }
   else if( cellGeometry == Geometry.Hyperbolic )
   {
-    let halfSide = Geometry2D.GetTrianglePSide( q, p );
+    let halfSide = GetTrianglePSide( q, p );
     let mag = Math.asinh( Math.sinh( halfSide ) / Math.cos( PiOverNSafe( r ) ) );	// hyperbolic trig
     cellMirror = MoveSphere( p1, DonHatch.h2eNorm( mag ) );
   }
 
   let interior = InteriorMirrors( p, q );
   return [ interior[0], interior[1], interior[2], cellMirror ];
+}
+
+function CreateSimplexGenerators( p, q, r )
+{
+  let facets = SimplexFacetsUHS( p, q, r );
 }

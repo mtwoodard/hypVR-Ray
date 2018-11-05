@@ -29,17 +29,17 @@ class Sphere
   // Returns signed distance depending on which side of the plane we are on.
   DistancePointPlane( normal, offset, point )
   {
-    let planePoint = normal * offset;
-		return ( point - planePoint ).dot( normalVector );
+    let planePoint = normal.clone().multiplyScalar( offset );
+		return point.clone().sub( planePoint ).dot( normal );
   }
 
   ReflectPoint( p )
   {
-    if( IsPlane )
+    if( this.IsPlane() )
     {
-      let dist = DistancePointPlane( this.Normal, this.Offset, p );
-      let offset = this.Normal * dist * -2;
-      return p + offset;
+      let dist = this.DistancePointPlane( this.Normal, this.Offset, p );
+      let offset = this.Normal.clone().multiplyScalar( dist * -2 );
+      return p.clone().add( offset );
     }
     else
     {
@@ -48,10 +48,11 @@ class Sphere
       if( p.x === Number.POSITIVE_INFINITY )
         return this.Center;
 
-      let v = p - this.Center;
+      let v = p.clone().sub( this.Center );
       let d = v.length();
       v.normalize();
-      return this.Center + v * ( this.Radius * this.Radius / d );
+      return this.Center.clone().add(
+        v.clone().multiplyScalar( this.Radius * this.Radius / d ) );
     }
   }
 }
@@ -156,7 +157,7 @@ function InteriorMirrors( p, q )
 }
 
 // Get the simplex facets for a {p,q,r} honeycomb
-function SimplexFacetsUHS( p, q, r  )
+function SimplexFacetsUHS( p, q, r )
 {
   let g = GetGeometry( p, q, r );
 
@@ -204,7 +205,52 @@ function SimplexFacetsUHS( p, q, r  )
   return [ interior[0], interior[1], interior[2], cellMirror ];
 }
 
-function CreateSimplexGenerators( p, q, r )
+// These are the planar mirrors of the fundamental simplex in the Klein (or analagous) model.
+// Order is mirrors opposite: vertex, edge, face, cell.
+// The xyz components of a vector give the unit normal of the mirror. The sense will be that the normal points outside of the simplex.
+// The w component is the offset from the origin.
+function SimplexFacetsKlein( p, q, r )
+{
+  let facetsUHS = SimplexFacetsUHS( p, q, r );
+  
+}
+
+// Reflect a point in the hyperboloid model in one of our simplex facets.
+function ReflectInFacet( f, vHyperboloid )
+{
+  let vUHS = HyperboloidToUHS( vHyperboloid );
+  let reflected = f.ReflectPoint( vUHS );
+  return UHSToHyperboloid( reflected );
+}
+
+// Get one generator defined by a facet (and its inverse) as matrices.
+function OneInverseGen( f )
+{
+  let e1 = new THREE.Vector4( 1, 0, 0, 0 );
+  let e2 = new THREE.Vector4( 0, 1, 0, 0 );
+  let e3 = new THREE.Vector4( 0, 0, 1, 0 );
+  let e4 = new THREE.Vector4( 0, 0, 0, 1 );
+
+  let e1r = ReflectInFacet( f );
+  let e2r = ReflectInFacet( f );
+  let e3r = ReflectInFacet( f );
+  let e4r = ReflectInFacet( f );
+
+  var m = new THREE.Matrix4().set( 
+    e1r.x, e1r.y, e1r.z, e1r.w,
+    e2r.x, e2r.y, e2r.z, e2r.w,
+    e3r.x, e3r.y, e3r.z, e3r.w,
+    e4r.x, e4r.y, e4r.z, e4r.w
+  );
+  return m;
+}
+
+function SimplexInverseGenerators( p, q, r )
 {
   let facets = SimplexFacetsUHS( p, q, r );
+  return [
+    OneInverseGen( facets[0] ), 
+    OneInverseGen( facets[1] ), 
+    OneInverseGen( facets[2] ), 
+    OneInverseGen( facets[3] ) ]; 
 }

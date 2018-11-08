@@ -60,8 +60,11 @@ vec4 pointOnGeodesicAtInfinity(vec4 u, vec4 vPrime)
   return projectToKlein(u + vPrime);
 }
 
-float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 direction, vec4 cylinderCorePoint, float radius)
+float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 cylinderCorePoint, vec4 direction, float radius)
 {
+  cylinderCorePoint = halfCubeDualPoints[0] + halfCubeDualPoints[1];
+  direction = halfCubeDualPoints[2];
+
   vec4 pos = (samplePoint - cylinderCorePoint);
   return length(pos.xyz - geometryDot(pos, direction) * direction.xyz) - radius;
 }

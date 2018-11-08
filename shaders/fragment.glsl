@@ -1,11 +1,11 @@
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
 float globalSceneSDF(vec4 samplePoint){
   vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
-  float distance = MAX_DIST;
+  float distance = maxDist;
   //Light Objects
   for(int i=0; i<NUM_LIGHTS; i++){
     float objDist;
-    if(lightIntensities[i].w == 0.0) { objDist = MAX_DIST; }
+    if(lightIntensities[i].w == 0.0) { objDist = maxDist; }
     else{
       objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
       distance = min(distance, objDist);
@@ -33,11 +33,11 @@ float globalSceneSDF(vec4 samplePoint){
   //Global Objects
   for(int i=0; i<NUM_OBJECTS; i++) {
     float objDist;
-    if(length(globalObjectRadii[i]) == 0.0){ objDist = MAX_DIST;}
+    if(length(globalObjectRadii[i]) == 0.0){ objDist = maxDist;}
     else{
-      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(absoluteSamplePoint, globalObjectBoosts[i][3], globalObjectRadii[i].x); }
+      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(geometryNormalize(absoluteSamplePoint * globalObjectBoosts[i], false), ORIGIN, globalObjectRadii[i].x); }
       else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint, globalObjectBoosts[i]);}
-      else { objDist = MAX_DIST; }
+      else { objDist = maxDist; }
       distance = min(distance, objDist);
       if(distance < EPSILON){
         hitWhich = 2;
@@ -84,7 +84,6 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ra
 }
 
 // This function is intended to be geometry-agnostic.
-// We should update some of the variable names.
 bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   if(kleinSamplePoint.x > halfCubeWidthKlein){
@@ -114,6 +113,20 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   return false;
 }
 
+bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  for(int i=0; i<4; i++){
+    vec4 normal = simplexMirrorsKlein[i];
+    normal.w = 0.0;
+    kleinSamplePoint -= normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+    if( dot(kleinSamplePoint, normal) > 0.0 ) {
+      fixMatrix = invGenerators[i];
+      return true;
+    }
+  }
+  return false;
+}
+
 void raymarch(vec4 rO, vec4 rD){
   int fakeI = 0;
   float globalDepth = MIN_DIST;
@@ -124,7 +137,7 @@ void raymarch(vec4 rO, vec4 rD){
   
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps || globalDepth >= MAX_DIST){
+    if(fakeI >= maxSteps || globalDepth >= maxDist){
       //when we break it's as if we reached our max marching steps
       break;
     }
@@ -150,7 +163,7 @@ void raymarch(vec4 rO, vec4 rD){
   }
   
   // Set localDepth to our new max tracing distance:
-  localDepth = min(globalDepth, MAX_DIST);
+  localDepth = min(globalDepth, maxDist);
   globalDepth = MIN_DIST;
   fakeI = 0;
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
@@ -161,7 +174,7 @@ void raymarch(vec4 rO, vec4 rD){
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     float globalDist = globalSceneSDF(globalEndPoint);
     if(globalDist < EPSILON){
-      // hitWhich has now been set
+      // hitWhich has been set by globalSceneSDF
       sampleEndPoint = globalEndPoint;
       sampleTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
       return;

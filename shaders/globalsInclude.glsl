@@ -3,14 +3,8 @@
 //--------------------------------------------
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const vec4 ORIGIN = vec4(0,0,0,1);
-//--------------------------------------------
-//Generated Constants
-//--------------------------------------------
-const float halfIdealCubeWidthKlein = 0.5773502692;
-const vec4 idealCubeCornerKlein = vec4(halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, halfIdealCubeWidthKlein, 1.0);
 //--------------------------------------------
 //Global Variables
 //--------------------------------------------
@@ -34,6 +28,7 @@ uniform mat4 rightCurrentBoost;
 uniform mat4 cellBoost; 
 uniform mat4 invCellBoost;
 uniform int maxSteps;
+uniform float maxDist;
 //--------------------------------------------
 //Lighting Variables & Global Object Variables
 //--------------------------------------------
@@ -55,8 +50,14 @@ uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
 uniform float sphereRad;
 uniform float tubeRad;
-uniform float horosphereSize;
-uniform float planeOffset;
+uniform vec4 vertexPosition;
+uniform float vertexSurfaceOffset;
+
+// These are the planar mirrors of the fundamental simplex in the Klein (or analagous) model.
+// Order is mirrors opposite: vertex, edge, face, cell.
+// The xyz components of a vector give the unit normal of the mirror. The sense will be that the normal points outside of the simplex.
+// The w component is the offset from the origin.
+uniform vec4 simplexMirrorsKlein[4];
 
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.

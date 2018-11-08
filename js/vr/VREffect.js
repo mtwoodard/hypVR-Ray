@@ -34,12 +34,12 @@ THREE.VREffect = function ( renderer, done ) {
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
 			var leftEyeRotation = new THREE.Quaternion();
 			var rightEyeRotation = new THREE.Quaternion();
-			if(guiInfo.rotateEyes){
+			/*if(guiInfo.rotateEyes){
 				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
 				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
 				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
 				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
-			}
+			}*/
 		}
 
 		// default some stuff for mobile VR

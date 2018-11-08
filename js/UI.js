@@ -4,34 +4,15 @@
 var g_cut4 = 2;
 var g_sphereRad = 0.996216;
 var g_tubeRad = 0.15;
-var g_horospherSize = -0.951621;
-var g_planeOffset = 0.75;
+var g_vertexPosition = idealCubeCornerKlein;
+var g_vertexSurfaceOffset = -0.951621;
 var g_targetFPS = {value:27.5};
 
 //-------------------------------------------------------
 // UI Variables
 //-------------------------------------------------------
 
-var guiInfo = { //Since dat gui can only modify object values we store variables here.
-  sceneIndex: 0,
-  toggleUI: true,
-  edgeCase:6,
-  edgeThickness:1.5,
-  eToHScale:1.0,
-  fov:90,
-  toggleStereo:false,
-  rotateEyes:false,
-  autoSteps:true,
-  maxSteps: 31,
-  halfIpDistance: 0.03200000151991844,
-  falloffModel: 1,
-  resetPosition: function(){
-    g_currentBoost.identity();
-    g_cellBoost.identity();
-    g_invCellBoost.identity();
-    g_controllerBoosts[0].identity();
-  }
-};
+var guiInfo;
 
 function updateEyes(){
   g_effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
@@ -63,16 +44,16 @@ function updateUniformsFromUI()
 	var p = 4, q = 3;
 	var g = GetGeometry( p, q, r );
 
-	// Check to see if the geometry has changed.
-	// If so, update the shader.
-	if( g !== g_geometry )
-	{
-		g_geometry = g;
+  // Check to see if the geometry has changed.
+  // If so, update the shader.
+  if( g !== g_geometry )
+  {
+    g_geometry = g;
     var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
     g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[guiInfo.sceneIndex]).concat(mainFrag);
     guiInfo.resetPosition();
-	}
+  }
 
 	// Calculate the hyperbolic width of the cube, and the width in the Klein model.
 	var inrad = InRadius(p, q, r);
@@ -86,7 +67,9 @@ function updateUniformsFromUI()
 	if( g == Geometry.Hyperbolic )
 		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
-	// Calculate sphereRad, horosphereSize, and planeOffset
+
+  console.log(hCWK);
+	// Calculate sphereRad and vertexSurfaceOffset
 	//
 	// Picture the truncated honeycomb cells filled with "spheres", made
 	// big enough so that they become tangent at cell faces.
@@ -102,32 +85,92 @@ function updateUniformsFromUI()
 	// sphereRad
 	g_sphereRad = midrad - hOffset;
 
-	// horosphereSize
-	var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-	var midEdge = constructHyperboloidPoint(midEdgeDir, g_sphereRad);
-	var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
-	g_horospherSize = -(g_sphereRad - distToMidEdge);
+  // Calculate a point we need for the vertex sphere calc.
+  var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
+  var midEdge = constructPointInGeometry( g_geometry, midEdgeDir, g_sphereRad );
 
-	// planeOffset
-	var dualPoint = new THREE.Vector4(hCWK, hCWK, hCWK, 1.0).geometryNormalize(g_geometry);
-	var distToMidEdge = geodesicPlaneHSDF(midEdge, dualPoint, 0);
-	g_planeOffset = distToMidEdge;
+  // Vertex location and sphere size.
+  g_vertexPosition = new THREE.Vector4( hCWK, hCWK, hCWK, 1.0 ); 
+  if( g_geometry != Geometry.Euclidean )
+    g_vertexPosition.geometryNormalize( g_geometry );
+
+  switch( g_cut4 )
+  {
+  case Geometry.Spherical:
+    var distToMidEdge = midEdge.geometryDistance(g_geometry, g_vertexPosition);
+    g_vertexSurfaceOffset = distToMidEdge;
+    break;
+
+  case Geometry.Euclidean:
+    var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
+    g_vertexPosition = idealCubeCornerKlein;
+    g_vertexSurfaceOffset = -(g_sphereRad - distToMidEdge);
+    break;
+
+  case Geometry.Hyperbolic:
+    g_vertexSurfaceOffset = geodesicPlaneHSDF(midEdge, g_vertexPosition, 0);
+    break;
+  }
+
+  // Higher than this value for hyperbolic we run into floating point errors
+  var maxDist = 10.0;
+  if( g_geometry == Geometry.Euclidean )
+    maxDist = 50.0; // Needs to be larger for euclidean.
+  if( g_geometry == Geometry.Spherical )
+    maxDist = Math.PI; // Only go to antipode.
 
   initValues(g_geometry);
+  initLights(g_geometry);
+  g_material.uniforms.lightPositions.value = lightPositions;
+  g_material.uniforms.lightIntensities.value = lightIntensities;
+  initObjects(g_geometry);
+  g_material.uniforms.globalObjectBoosts.value = globalObjectBoosts;
+  g_material.uniforms.invGlobalObjectBoosts.value = invGlobalObjectBoosts;
+  g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
+  g_material.uniforms.globalObjectTypes.value = globalObjectTypes;
+  
+  g_material.uniforms.objec
   g_material.uniforms.geometry.value = g;
-	g_material.uniforms.invGenerators.value = invGens;
-	g_material.uniforms.halfCubeDualPoints.value = hCDP;
+  g_material.uniforms.invGenerators.value = invGens;
+  g_material.uniforms.halfCubeDualPoints.value = hCDP;
   g_material.uniforms.halfCubeWidthKlein.value = hCWK;
-	g_material.uniforms.cut4.value = g_cut4;
-	g_material.uniforms.sphereRad.value = g_sphereRad;
-	g_material.uniforms.tubeRad.value = g_tubeRad;
-	g_material.uniforms.horosphereSize.value = g_horospherSize;
-	g_material.uniforms.planeOffset.value = g_planeOffset;
-	g_material.uniforms.attnModel.value = guiInfo.falloffModel;
+  g_material.uniforms.cut4.value = g_cut4;
+  g_material.uniforms.sphereRad.value = g_sphereRad;
+  g_material.uniforms.tubeRad.value = g_tubeRad;
+  g_material.uniforms.vertexPosition.value = g_vertexPosition;
+  g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
+  g_material.uniforms.attnModel.value = guiInfo.falloffModel;
+  g_material.uniforms.maxDist.value = maxDist;
 }
 
 //What we need to init our dat GUI
 var initGui = function(){
+  guiInfo = { //Since dat gui can only modify object values we store variables here.
+    sceneIndex: 0,
+    toggleUI: true,
+    edgeCase:6,
+    edgeThickness:1.5,
+    eToHScale:1.0,
+    fov:90,
+    toggleStereo:false,
+    rotateEyes:false,
+    autoSteps:true,
+    maxSteps: 31,
+    halfIpDistance: 0.03200000151991844,
+    falloffModel: 1,
+    screenshotWidth: g_screenShotResolution.x,
+    screenshotHeight: g_screenShotResolution.y,
+    resetPosition: function(){
+      g_currentBoost.identity();
+      g_cellBoost.identity();
+      g_invCellBoost.identity();
+      g_controllerBoosts[0].identity();
+    },
+    TakeSS: function(){
+      takeScreenshot();
+    }
+  };
+
   var gui = new dat.GUI();
   gui.close();
   //scene settings ---------------------------------
@@ -138,6 +181,10 @@ var initGui = function(){
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
+  var screenshotFolder = gui.addFolder('Screenshot');
+  var widthController = screenshotFolder.add(guiInfo, 'screenshotWidth');
+  var heightController = screenshotFolder.add(guiInfo, 'screenshotHeight');
+  screenshotFolder.add(guiInfo, 'TakeSS').name("Take Screenshot");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -152,9 +199,17 @@ var initGui = function(){
   // ------------------------------
   // UI Controllers
   // ------------------------------
+  widthController.onFinishChange(function(value){
+    g_screenShotResolution.x = value;
+  });
+
+  heightController.onFinishChange(function(value){
+    g_screenShotResolution.y = value;
+  })
+
   lightFalloffController.onFinishChange(function(value){
     updateUniformsFromUI();
-  })
+  });
 
   edgeController.onFinishChange(function(value) {
 	  updateUniformsFromUI();

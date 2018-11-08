@@ -13,6 +13,7 @@ var g_rightCurrentBoost;
 var g_cellBoost;
 var g_invCellBoost;
 var g_screenResolution;
+var g_screenShotResolution;
 var g_controllerBoosts = [];
 var g_controllerDualPoints = [];
 
@@ -25,6 +26,7 @@ var camera;
 var mesh;
 var geom;
 var maxSteps = 50;
+var maxDist = 10.0;
 var textFPS;
 var time;
 
@@ -93,10 +95,16 @@ var hCDP = [];
 
 var initValues = function(g){
 	g_geometry = g;
-	var invHCWK = 1.0/hCWK;
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0).geometryNormalize(g_geometry);
-	hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0).geometryNormalize(g_geometry);
+  var invHCWK = 1.0/hCWK;
+  
+	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0);
+	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0);
+  hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0);
+  if( g != Geometry.Euclidean ) {
+    for( var i=0; i<3; i++ )
+      hCDP[i].geometryNormalize(g_geometry);
+  }
+
 	gens = createGenerators(g_geometry);
   invGens = invGenerators(gens);
   for(var i = 0; i<6; i++){
@@ -126,11 +134,13 @@ var lightPositions = [];
 var lightIntensities = [];
 var attnModel = 1;
 
-var initLights = function(){
-  PointLightObject(new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,1));
-  PointLightObject(new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,1));
-  PointLightObject(new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,1));
-  PointLightObject(new THREE.Vector3(-1,-1,-1), new THREE.Vector4(1,1,1,1));
+var initLights = function(g){
+  lightPositions = [];
+  lightIntensities = [];
+  PointLightObject(g, new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,1));
+  PointLightObject(g, new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,1));
+  PointLightObject(g, new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,1));
+  PointLightObject(g, new THREE.Vector3(-1,-1,-1), new THREE.Vector4(1,1,1,1));
   //Add light info for controllers
   lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
   lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 2));
@@ -146,7 +156,11 @@ var globalObjectTypes = [];
 
 //TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
-  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
+  globalObjectBoosts = [];
+  invGlobalObjectBoosts = [];
+  globalObjectRadii = [];
+  globalObjectTypes = [];
+  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.2); // geometry, position, radius/radii
   EllipsoidObject(g, new THREE.Vector3(-0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
   for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
     EmptyObject();
@@ -164,6 +178,7 @@ var init = function(){
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
   g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
   g_effect = new THREE.VREffect(renderer);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
@@ -178,7 +193,7 @@ var init = function(){
   g_invCellBoost = new THREE.Matrix4();
   g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
 	initValues(g_geometry);
-  initLights();
+  initLights(g_geometry);
   initObjects(g_geometry);
 	//We need to load the shaders from file
   //since web is async we need to wait on this to finish
@@ -240,10 +255,11 @@ var finishInit = function(fShader){
       cellBoost:{type:"m4", value:g_cellBoost},
       invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
+      maxDist:{type:"f", value:maxDist},
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
-      texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete.jpg")},
+      texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
@@ -256,8 +272,8 @@ var finishInit = function(fShader){
 	  	cut4:{type:"i", value:g_cut4},
       sphereRad:{type:"f", value:g_sphereRad},
       tubeRad:{type:"f", value:g_tubeRad},
-      horosphereSize:{type:"f", value:g_horospherSize},
-      planeOffset:{type:"f", value:g_planeOffset}
+      vertexPosition:{type:"v4", value:g_vertexPosition},
+      vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset}
     },
     defines: {
       NUM_LIGHTS: lightPositions.length,

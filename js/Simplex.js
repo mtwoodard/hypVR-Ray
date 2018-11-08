@@ -20,6 +20,15 @@ class Sphere
     this.Offset = offset;
   }
 
+  SetPlaneFrom3Points( a, b, c )
+  {
+    this.Center = null;
+    this.Radius = Number.POSITIVE_INFINITY;
+
+    this.Normal = b.clone().sub( a ).cross( c.clone().sub( a ) ).normalize();
+    this.Offset = this.DistancePointPlane( this.Normal, 0, a );
+  }
+
   IsPlane()
   {
     return this.Normal != null;
@@ -198,11 +207,32 @@ function SimplexFacetsUHS( p, q, r )
   {
     let halfSide = GetTrianglePSide( q, p );
     let mag = Math.asinh( Math.sinh( halfSide ) / Math.cos( PiOverNSafe( r ) ) );	// hyperbolic trig
-    cellMirror = MoveSphere( p1, DonHatch.h2eNorm( mag ) );
+    cellMirror = MoveSphere( Geometry.Hyperbolic, p1, Math.hyperbolicToPoincare( mag ) );
   }
 
   let interior = InteriorMirrors( p, q );
   return [ interior[0], interior[1], interior[2], cellMirror ];
+}
+
+function CirclePoints( cen, rad )
+{
+  let a = 2*Math.PI/3;
+  let p1 = cen.clone().add( new THREE.Vector3( 1, 0, 0 ) );
+  let p2 = cen.clone().add( new THREE.Vector3( Math.cos( a ), Math.sin( a ), 0 ) );
+  let p3 = cen.clone().add( new THREE.Vector3( Math.cos( 2*a ), Math.sin( 2*a ), 0 ) );
+  return [p1, p2 ,p3];
+}
+
+function KleinFromUHS( f )
+{
+  let points = CirclePoints( f.Center, f.Radius );
+  let plane = new Sphere();
+  plane.SetPlaneFrom3Points( 
+    UHSToKlein( points[0] ),
+    UHSToKlein( points[1] ),
+    UHSToKlein( points[2] )
+   );
+   return new THREE.Vector4( plane.Normal.x, plane.Normal.y, plane.Normal.z, plane.Offset );
 }
 
 // These are the planar mirrors of the fundamental simplex in the Klein (or analagous) model.
@@ -213,6 +243,12 @@ function SimplexFacetsKlein( p, q, r )
 {
   let facetsUHS = SimplexFacetsUHS( p, q, r );
   
+  let vertexFacet = KleinFromUHS( facetsUHS[0] ); // FIXME: Doesn't work for Euclidean cells.
+  let edgeFacet = facetsUHS[1];
+  let faceFacet = facetsUHS[2];
+  let cellFacet = KleinFromUHS( facetsUHS[1] );
+
+  return [vertexFacet, edgeFacet, faceFacet, cellFacet];
 }
 
 // Reflect a point in the hyperboloid model in one of our simplex facets.

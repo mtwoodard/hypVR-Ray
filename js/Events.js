@@ -143,3 +143,24 @@ var mobileCheck = function(){
     }
     return check;
 }
+
+//--------------------------------------------------------------------
+// Check if mobile
+// From - https://jsfiddle.net/art388yv/477/
+//--------------------------------------------------------------------
+function takeScreenshot() {
+    // open in new window like this
+    var w = window.open('', '');
+    w.document.title = "Screenshot";
+    //w.document.body.style.backgroundColor = "red";
+    var img = new Image();
+    // Without 'preserveDrawingBuffer' set to true, we must render now
+    g_material.uniforms.screenResolution.value.x = g_screenShotResolution.x;
+    g_material.uniforms.screenResolution.value.y = g_screenShotResolution.y;
+    g_effect.setSize(g_screenShotResolution.x, g_screenShotResolution.y);
+    g_effect.render(scene, camera, animate);
+    //renderer.render(scene, camera);
+    img.src = renderer.domElement.toDataURL();
+    w.document.body.appendChild(img);
+    onResize(); //Resets us back to window size
+}

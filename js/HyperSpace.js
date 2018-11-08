@@ -13,6 +13,7 @@ var g_rightCurrentBoost;
 var g_cellBoost;
 var g_invCellBoost;
 var g_screenResolution;
+var g_screenShotResolution;
 var g_controllerBoosts = [];
 var g_controllerDualPoints = [];
 
@@ -177,6 +178,7 @@ var init = function(){
   renderer = new THREE.WebGLRenderer();
   document.body.appendChild(renderer.domElement);
   g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
   g_effect = new THREE.VREffect(renderer);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
   g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);

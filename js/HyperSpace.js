@@ -260,6 +260,7 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
+      // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},

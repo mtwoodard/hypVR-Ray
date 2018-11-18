@@ -217,14 +217,20 @@ function SimplexFacetsUHS( p, q, r )
 function CirclePoints( cen, rad )
 {
   let a = 2*Math.PI/3;
-  let p1 = cen.clone().add( new THREE.Vector3( 1, 0, 0 ) );
-  let p2 = cen.clone().add( new THREE.Vector3( Math.cos( a ), Math.sin( a ), 0 ) );
-  let p3 = cen.clone().add( new THREE.Vector3( Math.cos( 2*a ), Math.sin( 2*a ), 0 ) );
+  let p1 = cen.clone().add( new THREE.Vector3( rad, 0, 0 ) );
+  let p2 = cen.clone().add( new THREE.Vector3( rad * Math.cos( a ), rad * Math.sin( a ), 0 ) );
+  let p3 = cen.clone().add( new THREE.Vector3( rad * Math.cos( 2*a ), rad * Math.sin( 2*a ), 0 ) );
   return [p1, p2 ,p3];
 }
 
 function KleinFromUHS( f )
 {
+  if( f.Radius === Number.POSITIVE_INFINITY )
+  {
+    // NOTE: This is not correct in general, but it will work with our construction.
+    return new THREE.Vector4( f.Normal.x, f.Normal.y, f.Normal.z, 0.0 );
+  }
+
   let points = CirclePoints( f.Center, f.Radius );
   let plane = new Sphere();
   plane.SetPlaneFrom3Points( 
@@ -244,33 +250,52 @@ function SimplexFacetsKlein( p, q, r )
   let facetsUHS = SimplexFacetsUHS( p, q, r );
   
   let vertexFacet = KleinFromUHS( facetsUHS[0] ); // FIXME: Doesn't work for Euclidean cells.
-  let edgeFacet = facetsUHS[1];
-  let faceFacet = facetsUHS[2];
-  let cellFacet = KleinFromUHS( facetsUHS[1] );
+  let edgeFacet = KleinFromUHS( facetsUHS[1] );
+  let faceFacet = KleinFromUHS( facetsUHS[2] );
+  let cellFacet = KleinFromUHS( facetsUHS[3] );
 
   return [vertexFacet, edgeFacet, faceFacet, cellFacet];
 }
 
-// Reflect a point in the hyperboloid model in one of our simplex facets.
-function ReflectInFacet( f, vHyperboloid )
+function PlaneDualPoint( g, fKlein )
 {
+  if( Math.abs( fKlein.w ) < 1e-8 )
+  {
+    return new THREE.Vector4( fKlein.x, fKlein.y, fKlein.z, 0.0 );
+  }
+
+  let inv = 1.0/fKlein.w;
+  let dual = new THREE.Vector4( fKlein.x*inv, fKlein.y*inv, fKlein.z*inv, 1.0 );
+  dual.geometryNormalize( g );
+  return dual;
+}
+
+// Reflect a Minkowski space point in one of our (Klein) simplex facets.
+function ReflectInFacet( g, fKlein, vMinkowski )
+{
+  let plane = PlaneDualPoint( g, fKlein );
+  let reflected = vMinkowski.clone().sub( plane.clone().multiplyScalar( 
+    2 * plane.geometryDot( g, vMinkowski ) / plane.geometryDot( g, plane ) ) );
+  return reflected;
+
+  /* First attempt, unfortunately doesn't work for points not on the hyperboloid.
   let vUHS = HyperboloidToUHS( vHyperboloid );
-  let reflected = f.ReflectPoint( vUHS );
-  return UHSToHyperboloid( reflected );
+  let reflected = fUHS.ReflectPoint( vUHS );
+  return UHSToHyperboloid( reflected );*/
 }
 
 // Get one generator defined by a facet (and its inverse) as matrices.
-function OneInverseGen( f )
+function OneInverseGen( g, f )
 {
-  let e1 = new THREE.Vector4( 1, 0, 0, 0 );
-  let e2 = new THREE.Vector4( 0, 1, 0, 0 );
-  let e3 = new THREE.Vector4( 0, 0, 1, 0 );
-  let e4 = new THREE.Vector4( 0, 0, 0, 1 );
+  let e1 = new THREE.Vector4( 1, 0, 0, 0 ).geometryNormalize( g );
+  let e2 = new THREE.Vector4( 0, 1, 0, 0 ).geometryNormalize( g );
+  let e3 = new THREE.Vector4( 0, 0, 1, 0 ).geometryNormalize( g );
+  let e4 = new THREE.Vector4( 0, 0, 0, 1 ).geometryNormalize( g );
 
-  let e1r = ReflectInFacet( f );
-  let e2r = ReflectInFacet( f );
-  let e3r = ReflectInFacet( f );
-  let e4r = ReflectInFacet( f );
+  let e1r = ReflectInFacet( g, f, e1 );
+  let e2r = ReflectInFacet( g, f, e2 );
+  let e3r = ReflectInFacet( g, f, e3 );
+  let e4r = ReflectInFacet( g, f, e4 );
 
   var m = new THREE.Matrix4().set( 
     e1r.x, e1r.y, e1r.z, e1r.w,
@@ -283,10 +308,11 @@ function OneInverseGen( f )
 
 function SimplexInverseGenerators( p, q, r )
 {
-  let facets = SimplexFacetsUHS( p, q, r );
+  let g = GetGeometry( p, q, r );
+  let facets = SimplexFacetsKlein( p, q, r );
   return [
-    OneInverseGen( facets[0] ), 
-    OneInverseGen( facets[1] ), 
-    OneInverseGen( facets[2] ), 
-    OneInverseGen( facets[3] ) ]; 
+    OneInverseGen( g, facets[0] ), 
+    OneInverseGen( g, facets[1] ), 
+    OneInverseGen( g, facets[2] ), 
+    OneInverseGen( g, facets[3] ) ]; 
 }

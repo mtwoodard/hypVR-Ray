@@ -83,8 +83,26 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ra
   return p;
 }
 
+bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  for(int i=0; i<4; i++){
+    vec4 normal = simplexMirrorsKlein[i];
+    normal.w = 0.0;
+    kleinSamplePoint -= normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+    if( dot(kleinSamplePoint, normal) > 0.0 ) {
+      fixMatrix = invGenerators[i];
+      return true;
+    }
+  }
+  return false;
+}
+
 // This function is intended to be geometry-agnostic.
 bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+  if( useSimplex ) {
+    return isOutsideSimplex( samplePoint, fixMatrix );
+  }
+
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   if(kleinSamplePoint.x > halfCubeWidthKlein){
     fixMatrix = invGenerators[0];
@@ -109,20 +127,6 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   if(kleinSamplePoint.z < -halfCubeWidthKlein){
     fixMatrix = invGenerators[5];
     return true;
-  }
-  return false;
-}
-
-bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
-  vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  for(int i=0; i<4; i++){
-    vec4 normal = simplexMirrorsKlein[i];
-    normal.w = 0.0;
-    kleinSamplePoint -= normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
-    if( dot(kleinSamplePoint, normal) > 0.0 ) {
-      fixMatrix = invGenerators[i];
-      return true;
-    }
   }
   return false;
 }

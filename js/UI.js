@@ -60,8 +60,10 @@ function updateUniformsFromUI()
 {
 	// Get the number of cubes around each edge.
 	var r = guiInfo.edgeCase;
-	var p = 4, q = 3;
-	var g = GetGeometry( p, q, r );
+  var p = 4, q = 3;
+  // p = 5; r = 4;  // Testing simplex domains.
+  var g = GetGeometry( p, q, r );
+  var isCubical = p == 4 && q == 3;
 
   // Check to see if the geometry has changed.
   // If so, update the shader.
@@ -86,8 +88,6 @@ function updateUniformsFromUI()
 	if( g == Geometry.Hyperbolic )
 		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
-
-  console.log(hCWK);
 	// Calculate sphereRad and vertexSurfaceOffset
 	//
 	// Picture the truncated honeycomb cells filled with "spheres", made
@@ -138,7 +138,7 @@ function updateUniformsFromUI()
   if( g_geometry == Geometry.Spherical )
     maxDist = Math.PI; // Only go to antipode.
 
-  initValues(g_geometry);
+  initGenerators(p,q,r);
   initLights(g_geometry);
   g_material.uniforms.lightPositions.value = lightPositions;
   g_material.uniforms.lightIntensities.value = lightIntensities;
@@ -148,7 +148,6 @@ function updateUniformsFromUI()
   g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
   g_material.uniforms.globalObjectTypes.value = globalObjectTypes;
   
-  g_material.uniforms.objec
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
   g_material.uniforms.halfCubeDualPoints.value = hCDP;
@@ -160,6 +159,9 @@ function updateUniformsFromUI()
   g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
   g_material.uniforms.attnModel.value = guiInfo.falloffModel;
   g_material.uniforms.maxDist.value = maxDist;
+
+  g_material.uniforms.useSimplex.value = !isCubical;
+  g_material.uniforms.simplexMirrorsKlein.value = simplexMirrors;
 }
 
 //What we need to init our dat GUI

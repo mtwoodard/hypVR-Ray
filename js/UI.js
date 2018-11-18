@@ -12,26 +12,7 @@ var g_targetFPS = {value:27.5};
 // UI Variables
 //-------------------------------------------------------
 
-var guiInfo = { //Since dat gui can only modify object values we store variables here.
-  sceneIndex: 0,
-  toggleUI: true,
-  edgeCase:6,
-  edgeThickness:1.5,
-  eToHScale:1.0,
-  fov:90,
-  toggleStereo:false,
-  rotateEyes:false,
-  autoSteps:true,
-  maxSteps: 31,
-  halfIpDistance: 0.03200000151991844,
-  falloffModel: 1,
-  resetPosition: function(){
-    g_currentBoost.identity();
-    g_cellBoost.identity();
-    g_invCellBoost.identity();
-    g_controllerBoosts[0].identity();
-  }
-};
+var guiInfo;
 
 function updateEyes(){
   g_effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
@@ -166,6 +147,32 @@ function updateUniformsFromUI()
 
 //What we need to init our dat GUI
 var initGui = function(){
+  guiInfo = { //Since dat gui can only modify object values we store variables here.
+    sceneIndex: 0,
+    toggleUI: true,
+    edgeCase:6,
+    edgeThickness:1.5,
+    eToHScale:1.0,
+    fov:90,
+    toggleStereo:false,
+    rotateEyes:false,
+    autoSteps:true,
+    maxSteps: 31,
+    halfIpDistance: 0.03200000151991844,
+    falloffModel: 1,
+    screenshotWidth: g_screenShotResolution.x,
+    screenshotHeight: g_screenShotResolution.y,
+    resetPosition: function(){
+      g_currentBoost.identity();
+      g_cellBoost.identity();
+      g_invCellBoost.identity();
+      g_controllerBoosts[0].identity();
+    },
+    TakeSS: function(){
+      takeScreenshot();
+    }
+  };
+
   var gui = new dat.GUI();
   gui.close();
   //scene settings ---------------------------------
@@ -176,6 +183,10 @@ var initGui = function(){
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
+  var screenshotFolder = gui.addFolder('Screenshot');
+  var widthController = screenshotFolder.add(guiInfo, 'screenshotWidth');
+  var heightController = screenshotFolder.add(guiInfo, 'screenshotHeight');
+  screenshotFolder.add(guiInfo, 'TakeSS').name("Take Screenshot");
   //debug settings ---------------------------------
   var debugFolder = gui.addFolder('Debug');
   var stereoFolder = debugFolder.addFolder('Stereo');
@@ -190,9 +201,17 @@ var initGui = function(){
   // ------------------------------
   // UI Controllers
   // ------------------------------
+  widthController.onFinishChange(function(value){
+    g_screenShotResolution.x = value;
+  });
+
+  heightController.onFinishChange(function(value){
+    g_screenShotResolution.y = value;
+  })
+
   lightFalloffController.onFinishChange(function(value){
     updateUniformsFromUI();
-  })
+  });
 
   edgeController.onFinishChange(function(value) {
 	  updateUniformsFromUI();

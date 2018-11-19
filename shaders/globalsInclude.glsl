@@ -283,7 +283,7 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal){
     //Lights for Controllers
     for(int i = 0; i<2; i++){
       if(controllerCount == 0) break; //if there are no controllers do nothing
-      else translatedLightPosition = ORIGIN*controllerBoosts[i]*currentBoost;
+      else translatedLightPosition = ORIGIN*controllerBoosts[i]*currentBoost*totalFixMatrix;
       color += lightingCalculations(samplePoint, translatedLightPosition, V, baseColor, lightIntensities[i+4]);
       if(controllerCount == 1) break; //if there is one controller only do one loop
     }

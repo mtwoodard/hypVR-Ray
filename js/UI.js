@@ -111,6 +111,10 @@ function updateUniformsFromUI()
     g_vertexSurfaceOffset = geodesicPlaneHSDF(midEdge, g_vertexPosition, 0);
     break;
   }
+  
+  if( useSimplex ) {
+    g_vertexSurfaceOffset = 0;
+  }
 
   // Higher than this value for hyperbolic we run into floating point errors
   var maxDist = 10.0;

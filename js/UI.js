@@ -112,7 +112,7 @@ function updateUniformsFromUI()
     break;
   }
   
-  if( useSimplex ) {
+  if( !isCubical ) {
     g_vertexSurfaceOffset = 0;
   }
 

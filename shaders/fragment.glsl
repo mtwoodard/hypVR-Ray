@@ -86,10 +86,9 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ra
 bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   for(int i=0; i<4; i++){
-    vec4 normal = simplexMirrorsKlein[i];
-    normal.w = 0.0;
-    kleinSamplePoint -= normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
-    if( dot(kleinSamplePoint, normal) > 0.0 ) {
+    vec3 normal = simplexMirrorsKlein[i].xyz;
+    vec3 offsetSample = kleinSamplePoint.xyz - normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+    if( dot(offsetSample, normal) > 1e-7 ) {
       fixMatrix = invGenerators[i];
       return true;
     }

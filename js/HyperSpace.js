@@ -127,6 +127,8 @@ var initGenerators = function( p, q, r ){
     for(var i = 0; i<2; i++){
       invGens.push(translateByVector(g_geometry, new THREE.Vector3(0.0,0.0,0.0)));
     }
+
+    gens = invGens;
   }
 
   for(var i = 0; i<6; i++){

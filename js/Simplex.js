@@ -25,7 +25,7 @@ class Sphere
     this.Center = null;
     this.Radius = Number.POSITIVE_INFINITY;
 
-    this.Normal = b.clone().sub( a ).cross( c.clone().sub( a ) ).normalize();
+    this.Normal = c.clone().sub( a ).cross( b.clone().sub( a ) ).normalize();
     this.Offset = this.DistancePointPlane( this.Normal, 0, a );
   }
 
@@ -146,12 +146,12 @@ function InteriorMirrors( p, q )
   let cellGeometry = GetGeometry2D( p, q );
 
   // XZ-plane
-  let s1 = new Sphere( null, Number.POSITIVE_INFINITY, new THREE.Vector3( 0, 1, 0 ), 0 );
+  let s1 = new Sphere( null, Number.POSITIVE_INFINITY, new THREE.Vector3( 0, -1, 0 ), 0 );
 
   let s2 = null;
   if( cellGeometry == Geometry.Euclidean )
   {
-    s2 = new Sphere( null, Number.POSITIVE_INFINITY, -p2, p2.length() );
+    s2 = new Sphere( null, Number.POSITIVE_INFINITY, p2.negate(), p2.length() );
   }
   else if(
     cellGeometry == Geometry.Spherical ||
@@ -160,7 +160,7 @@ function InteriorMirrors( p, q )
     s2 = new Sphere( tilePoints[3], tilePoints[4], null, null );
   }
 
-  let s3 = new Sphere( null, Number.POSITIVE_INFINITY, p3, 0 );
+  let s3 = new Sphere( null, Number.POSITIVE_INFINITY, p3.negate(), 0 );
 
   return [ s2, s1, s3 ];
 }
@@ -231,35 +231,41 @@ function KleinFromUHS( f )
     return new THREE.Vector4( f.Normal.x, f.Normal.y, f.Normal.z, 0.0 );
   }
 
-  let points = CirclePoints( f.Center, f.Radius );
+  let idealPoints = CirclePoints( f.Center, f.Radius );
   let plane = new Sphere();
   plane.SetPlaneFrom3Points( 
-    UHSToKlein( points[0] ),
-    UHSToKlein( points[1] ),
-    UHSToKlein( points[2] )
-   );
-   return new THREE.Vector4( plane.Normal.x, plane.Normal.y, plane.Normal.z, plane.Offset );
+    UHSToPoincare( idealPoints[0] ), // ok to go to Poincare because these are ideal points.
+    UHSToPoincare( idealPoints[1] ),
+    UHSToPoincare( idealPoints[2] )
+  );
+
+  return new THREE.Vector4( plane.Normal.x, plane.Normal.y, plane.Normal.z, plane.Offset );
+}
+
+function NegateKleinFacet( f )
+{
+  return new THREE.Vector4( -f.x, -f.y, -f.z, f.w );
 }
 
 // These are the planar mirrors of the fundamental simplex in the Klein (or analagous) model.
 // Order is mirrors opposite: vertex, edge, face, cell.
-// The xyz components of a vector give the unit normal of the mirror. The sense will be that the normal points outside of the simplex.
+// The xyz components of a vector give the unit normal of the mirror. The sense will be that the normal points to the outside of the simplex.
 // The w component is the offset from the origin.
 function SimplexFacetsKlein( p, q, r )
 {
   let facetsUHS = SimplexFacetsUHS( p, q, r );
   
-  let vertexFacet = KleinFromUHS( facetsUHS[0] ); // FIXME: Doesn't work for Euclidean cells.
-  let edgeFacet = KleinFromUHS( facetsUHS[1] );
-  let faceFacet = KleinFromUHS( facetsUHS[2] );
-  let cellFacet = KleinFromUHS( facetsUHS[3] );
+  let vertexFacet = NegateKleinFacet( KleinFromUHS( facetsUHS[0] ) ); // FIXME: Doesn't work for Euclidean cells.
+  let edgeFacet = ( KleinFromUHS( facetsUHS[1] ) );
+  let faceFacet = ( KleinFromUHS( facetsUHS[2] ) );
+  let cellFacet = ( KleinFromUHS( facetsUHS[3] ) );
 
   return [vertexFacet, edgeFacet, faceFacet, cellFacet];
 }
 
 function PlaneDualPoint( g, fKlein )
 {
-  if( Math.abs( fKlein.w ) < 1e-8 )
+  if( Math.abs( fKlein.w ) < 1e-7 )
   {
     return new THREE.Vector4( fKlein.x, fKlein.y, fKlein.z, 0.0 );
   }
@@ -284,13 +290,14 @@ function ReflectInFacet( g, fKlein, vMinkowski )
   return UHSToHyperboloid( reflected );*/
 }
 
-// Get one generator defined by a facet (and its inverse) as matrices.
-function OneInverseGen( g, f )
+// Get one generator defined by a facet as matrices.
+// NOTE: Since these are reflections, they are their own inverse.
+function OneGen( g, f )
 {
-  let e1 = new THREE.Vector4( 1, 0, 0, 0 ).geometryNormalize( g );
-  let e2 = new THREE.Vector4( 0, 1, 0, 0 ).geometryNormalize( g );
-  let e3 = new THREE.Vector4( 0, 0, 1, 0 ).geometryNormalize( g );
-  let e4 = new THREE.Vector4( 0, 0, 0, 1 ).geometryNormalize( g );
+  let e1 = new THREE.Vector4( 1, 0, 0, 0 );
+  let e2 = new THREE.Vector4( 0, 1, 0, 0 );
+  let e3 = new THREE.Vector4( 0, 0, 1, 0 );
+  let e4 = new THREE.Vector4( 0, 0, 0, 1 );
 
   let e1r = ReflectInFacet( g, f, e1 );
   let e2r = ReflectInFacet( g, f, e2 );
@@ -298,11 +305,12 @@ function OneInverseGen( g, f )
   let e4r = ReflectInFacet( g, f, e4 );
 
   var m = new THREE.Matrix4().set( 
-    e1r.x, e1r.y, e1r.z, e1r.w,
-    e2r.x, e2r.y, e2r.z, e2r.w,
-    e3r.x, e3r.y, e3r.z, e3r.w,
-    e4r.x, e4r.y, e4r.z, e4r.w
+    e1r.x, e2r.x, e3r.x, e4r.x,
+    e1r.y, e2r.y, e3r.y, e4r.y,
+    e1r.z, e2r.z, e3r.z, e4r.z,
+    e1r.w, e2r.w, e3r.w, e4r.w
   );
+
   return m;
 }
 
@@ -311,8 +319,8 @@ function SimplexInverseGenerators( p, q, r )
   let g = GetGeometry( p, q, r );
   let facets = SimplexFacetsKlein( p, q, r );
   return [
-    OneInverseGen( g, facets[0] ), 
-    OneInverseGen( g, facets[1] ), 
-    OneInverseGen( g, facets[2] ), 
-    OneInverseGen( g, facets[3] ) ]; 
+    OneGen( g, facets[0] ), 
+    OneGen( g, facets[1] ), 
+    OneGen( g, facets[2] ), 
+    OneGen( g, facets[3] ) ]; 
 }

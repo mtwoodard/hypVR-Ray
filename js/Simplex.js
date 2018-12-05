@@ -311,6 +311,7 @@ function OneGen( g, f )
     e1r.w, e2r.w, e3r.w, e4r.w
   );
 
+  m.transpose();  // GLSL constructs matrices with column inputs.
   return m;
 }
 

@@ -39,10 +39,10 @@ function getGeometryFrag()
 // gI is the guiInfo object from initGui
 function updateUniformsFromUI()
 {
-	// Get the number of cubes around each edge.
-	var r = guiInfo.edgeCase;
-  var p = 4, q = 3;
-  // p = 5; r = 4;  // Testing simplex domains.
+  // Get the number of cubes around each edge.
+  var p = guiInfo.p;
+  var q = guiInfo.q;
+	var r = guiInfo.r;
   var g = GetGeometry( p, q, r );
   var isCubical = p == 4 && q == 3;
 
@@ -114,6 +114,7 @@ function updateUniformsFromUI()
   
   if( !isCubical ) {
     g_vertexSurfaceOffset = 0;
+    g_cut4 = -1;
   }
 
   // Higher than this value for hyperbolic we run into floating point errors
@@ -154,7 +155,9 @@ var initGui = function(){
   guiInfo = { //Since dat gui can only modify object values we store variables here.
     sceneIndex: 0,
     toggleUI: true,
-    edgeCase:6,
+    p:4,
+    q:3,
+    r:6,
     edgeThickness:1.5,
     eToHScale:1.0,
     fov:90,
@@ -181,7 +184,9 @@ var initGui = function(){
   gui.close();
   //scene settings ---------------------------------
   var sceneController = gui.add(guiInfo, 'sceneIndex',{Simplex_cuts: 0, Edge_tubes: 1, Medial_surface: 2, Cube_planes: 3}).name("Scene");
-  var edgeController = gui.add(guiInfo, 'edgeCase', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12}).name("Edge Degree");
+  var pController = gui.add(guiInfo, 'p', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12, "30":30}).name("P");
+  var qController = gui.add(guiInfo, 'q', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12, "30":30}).name("Q");
+  var rController = gui.add(guiInfo, 'r', {"3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10, "11":11, "12":12, "30":30}).name("R");
   var thicknessController = gui.add(guiInfo, 'edgeThickness', 0, 5).name("Edge Thickness");
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
@@ -217,7 +222,15 @@ var initGui = function(){
     updateUniformsFromUI();
   });
 
-  edgeController.onFinishChange(function(value) {
+  pController.onFinishChange(function(value) {
+	  updateUniformsFromUI();
+  });
+
+  qController.onFinishChange(function(value) {
+	  updateUniformsFromUI();
+  });
+
+  rController.onFinishChange(function(value) {
 	  updateUniformsFromUI();
   });
 

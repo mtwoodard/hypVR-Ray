@@ -115,6 +115,10 @@ function updateUniformsFromUI()
   if( !isCubical ) {
     g_vertexSurfaceOffset = 0;
     g_cut4 = -1;
+
+    // Simplex drawing is more expensive, so let's live with a lower frame rate.
+    g_targetFPS.value = 17.0;
+    maxSteps = 55;
   }
 
   // Higher than this value for hyperbolic we run into floating point errors

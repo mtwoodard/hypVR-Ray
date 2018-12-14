@@ -48,8 +48,9 @@ uniform int globalObjectTypes[4];
 //--------------------------------------------
 uniform vec4 halfCubeDualPoints[3];
 uniform float halfCubeWidthKlein;
-uniform float sphereRad;
 uniform float tubeRad;
+uniform vec4 cellPosition;
+uniform float cellSurfaceOffset;
 uniform vec4 vertexPosition;
 uniform float vertexSurfaceOffset;
 
@@ -63,6 +64,7 @@ uniform vec4 simplexMirrorsKlein[4];
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.
 // We'll need more of these later when we support more symmetry groups.
+uniform int cut1;
 uniform int cut4;
 
 //Quaternion Math

@@ -1,9 +1,11 @@
 //-------------------------------------------------------
 // Global Variables
 //-------------------------------------------------------
+var g_cut1 = 1;
 var g_cut4 = 2;
-var g_sphereRad = 0.996216;
 var g_tubeRad = 0.15;
+var g_cellPosition = new THREE.Vector4(0, 0, 0, 1);
+var g_cellSurfaceOffset = 0.996216;
 var g_vertexPosition = idealCubeCornerKlein;
 var g_vertexSurfaceOffset = -0.951621;
 var g_targetFPS = {value:27.5};
@@ -69,25 +71,41 @@ function updateUniformsFromUI()
 	if( g == Geometry.Hyperbolic )
 		hCWK = Math.poincareToKlein(Math.hyperbolicToPoincare(inrad));
 
-	// Calculate sphereRad and vertexSurfaceOffset
+	// Tube Radius
+	g_tubeRad = guiInfo.edgeThickness/10;
+
+	// Calculate cellSurfaceOffset and vertexSurfaceOffset
 	//
 	// Picture the truncated honeycomb cells filled with "spheres", made
 	// big enough so that they become tangent at cell faces.
 	// We want them to be slightly bigger than that so that they intersect.
 	// hOffset controls the thickness of edges at their smallest neck.
 	// (zero is a reasonable value, and good for testing.)
-	g_cut4 = GetGeometry2D( q, r );
+  g_cut1 = GetGeometry2D( p, q );
+  g_cut4 = GetGeometry2D( q, r );
 	var hOffset = guiInfo.edgeThickness / 10;
 
-	//Tube Radius
-	g_tubeRad = guiInfo.edgeThickness/10;
+  // cellSurfaceOffset
+  switch( g_cut1 )
+  {
+  case Geometry.Spherical:
+    g_cellPosition = new THREE.Vector4(0,0,0,1);
+    g_cellSurfaceOffset = midrad - hOffset;
+    break;
 
-	// sphereRad
-	g_sphereRad = midrad - hOffset;
+  case Geometry.Euclidean:
+    g_cellPosition = new THREE.Vector4(0,0,1,1);  // North pole of Klein model.
+    g_cellSurfaceOffset = (Math.poincareToHyperbolic( Math.kleinToPoincare(0.95) ) - hOffset);
+    break;
+
+  case Geometry.Hyperbolic:
+    // Implement me.
+    break;
+  }
 
   // Calculate a point we need for the vertex sphere calc.
   var midEdgeDir = new THREE.Vector3(Math.cos(Math.PI / 4), Math.cos(Math.PI / 4), 1);
-  var midEdge = constructPointInGeometry( g_geometry, midEdgeDir, g_sphereRad );
+  var midEdge = constructPointInGeometry( g_geometry, midEdgeDir, g_cellSurfaceOffset );
 
   // Vertex location and sphere size.
   g_vertexPosition = new THREE.Vector4( hCWK, hCWK, hCWK, 1.0 ); 
@@ -102,9 +120,9 @@ function updateUniformsFromUI()
     break;
 
   case Geometry.Euclidean:
-    var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_sphereRad);
+    var distToMidEdge = horosphereHSDF(midEdge, idealCubeCornerKlein, -g_cellSurfaceOffset);
     g_vertexPosition = idealCubeCornerKlein;
-    g_vertexSurfaceOffset = -(g_sphereRad - distToMidEdge);
+    g_vertexSurfaceOffset = -(g_cellSurfaceOffset - distToMidEdge);
     break;
 
   case Geometry.Hyperbolic:
@@ -112,7 +130,11 @@ function updateUniformsFromUI()
     break;
   }
   
-  if( !isCubical ) {
+  if( isCubical ) {
+    g_targetFPS.value = 27.5;
+    maxSteps = 31;
+  }
+  else {
     g_vertexSurfaceOffset = 0;
     g_cut4 = -1;
 
@@ -142,9 +164,11 @@ function updateUniformsFromUI()
   g_material.uniforms.invGenerators.value = invGens;
   g_material.uniforms.halfCubeDualPoints.value = hCDP;
   g_material.uniforms.halfCubeWidthKlein.value = hCWK;
+  g_material.uniforms.cut1.value = g_cut1;
   g_material.uniforms.cut4.value = g_cut4;
-  g_material.uniforms.sphereRad.value = g_sphereRad;
   g_material.uniforms.tubeRad.value = g_tubeRad;
+  g_material.uniforms.cellPosition.value = g_cellPosition;
+  g_material.uniforms.cellSurfaceOffset.value = g_cellSurfaceOffset;
   g_material.uniforms.vertexPosition.value = g_vertexPosition;
   g_material.uniforms.vertexSurfaceOffset.value = g_vertexSurfaceOffset;
   g_material.uniforms.attnModel.value = guiInfo.falloffModel;

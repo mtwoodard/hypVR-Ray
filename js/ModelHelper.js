@@ -90,10 +90,8 @@ function PoincareToKlein( vPoincare )
 // vKlein is a THREE.Vector3
 function KleinToPoincare( vKlein )
 {
-  let dot = vKlein.dot( vKlein );
-  if(dot > 1)
-    dot = 1;
-  return vKlein.clone().multiplyScalar( (1 - Math.sqrt( 1 - dot )) / dot );
+  let mag = Math.kleinToPoincare( vKlein.length() );
+  return vKlein.clone().normalize().multiplyScalar( mag );
 }
 
 // NOTE! This should only be used if m is a transform that preserves the imaginary axis!

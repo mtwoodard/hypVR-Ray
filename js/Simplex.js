@@ -108,23 +108,34 @@ function MoveSphere( g, vNonEuclidean, radiusEuclideanOrigin )
 // NOTE: This construction is intentionally for the dual {q,p} tiling, hence the reversing of input args.
 function TilePoints( q, p )
 {
+  let cellGeometry = GetGeometry2D( p, q ); 
   let circum = TilingNormalizedCircumRadius( p, q );
   let start = new THREE.Vector3( circum, 0, 0 );
   let end = start.clone();
   let axis = new THREE.Vector3( 0, 0, 1 );
   end.applyAxisAngle( axis, 2 * Math.PI / p );
 
-  // Center/radius of curved standard tile segment in the conformal model.
-  let piq = PiOverNSafe( q );
-  let t1 = Math.PI / p;
-  let t2 = Math.PI / 2 - piq - t1;
-  let factor = ( Math.tan( t1 ) / Math.tan( t2 ) + 1 ) / 2;
-  let center = start.clone().add( end ).multiplyScalar( factor );
-  let radius = center.clone().sub( start ).length();
+  let segMidpoint = null;
+  let center = null;
+  let radius = 0;
+  if( cellGeometry == Geometry.Euclidean )
+  {
+    segMidpoint = start.clone().add( end ).divideScalar( 2 );
+  }
+  else
+  {
+    // Center/radius of curved standard tile segment in the conformal model.
+    let piq = PiOverNSafe( q );
+    let t1 = Math.PI / p;
+    let t2 = Math.PI / 2 - piq - t1;
+    let factor = ( Math.tan( t1 ) / Math.tan( t2 ) + 1 ) / 2;
+    center = start.clone().add( end ).multiplyScalar( factor );
+    radius = center.clone().sub( start ).length();
 
-  let mag = center.length() - radius;
-  let segMidpoint = center.clone().normalize();
-  segMidpoint.multiplyScalar( mag );
+    let mag = center.length() - radius;
+    segMidpoint = center.clone().normalize();
+    segMidpoint.multiplyScalar( mag );
+  }
 
   p2 = segMidpoint;
   p3 = p2.clone();
@@ -151,7 +162,7 @@ function InteriorMirrors( p, q )
   let s2 = null;
   if( cellGeometry == Geometry.Euclidean )
   {
-    s2 = new Sphere( null, Number.POSITIVE_INFINITY, p2.negate(), p2.length() );
+    s2 = new Sphere( null, Number.POSITIVE_INFINITY, p2, p2.length() );
   }
   else if(
     cellGeometry == Geometry.Spherical ||
@@ -200,7 +211,7 @@ function SimplexFacetsUHS( p, q, r )
   else if( cellGeometry == Geometry.Euclidean )
   {
     center = p1;
-    radius = p1.dist( p2 ) / Math.cos( PiOverNSafe( r ) );
+    radius = p1.distanceTo( p2 ) / Math.cos( PiOverNSafe( r ) );
     cellMirror = new Sphere( center, radius, null, null );
   }
   else if( cellGeometry == Geometry.Hyperbolic )
@@ -214,6 +225,16 @@ function SimplexFacetsUHS( p, q, r )
   return [ interior[0], interior[1], interior[2], cellMirror ];
 }
 
+function PlanePoints( f )
+{
+  let mid = f.Normal.clone().multiplyScalar( f.Offset );
+  let axis = new THREE.Vector3( 0, 0, 1 );
+  let offset = f.Normal.clone().applyAxisAngle( axis, Math.PI / 2 );
+  let start = mid.clone().add( offset );
+  let end = mid.clone().sub( offset );
+  return [start, mid, end];
+}
+
 function CirclePoints( cen, rad )
 {
   let a = 2*Math.PI/3;
@@ -225,13 +246,22 @@ function CirclePoints( cen, rad )
 
 function KleinFromUHS( f )
 {
-  if( f.Radius === Number.POSITIVE_INFINITY )
+  if( f.Radius === Number.POSITIVE_INFINITY && f.Offset < 1e-7 )
   {
     // NOTE: This is not correct in general, but it will work with our construction.
     return new THREE.Vector4( f.Normal.x, f.Normal.y, f.Normal.z, 0.0 );
   }
 
-  let idealPoints = CirclePoints( f.Center, f.Radius );
+  let idealPoints = null;
+  if( f.Radius == Number.POSITIVE_INFINITY )
+  {
+    idealPoints = PlanePoints( f )
+  }
+  else
+  {
+    idealPoints = CirclePoints( f.Center, f.Radius );
+  }
+
   let plane = new Sphere();
   plane.SetPlaneFrom3Points( 
     UHSToPoincare( idealPoints[0] ), // ok to go to Poincare because these are ideal points.
@@ -255,10 +285,14 @@ function SimplexFacetsKlein( p, q, r )
 {
   let facetsUHS = SimplexFacetsUHS( p, q, r );
   
-  let vertexFacet = NegateKleinFacet( KleinFromUHS( facetsUHS[0] ) ); // FIXME: Doesn't work for Euclidean cells.
-  let edgeFacet = ( KleinFromUHS( facetsUHS[1] ) );
-  let faceFacet = ( KleinFromUHS( facetsUHS[2] ) );
-  let cellFacet = ( KleinFromUHS( facetsUHS[3] ) );
+  let vertexFacet = KleinFromUHS( facetsUHS[0] ) 
+  let edgeFacet = KleinFromUHS( facetsUHS[1] );
+  let faceFacet = KleinFromUHS( facetsUHS[2] );
+  let cellFacet = KleinFromUHS( facetsUHS[3] );
+
+  let cellGeometry = GetGeometry( p, q );
+  if( cellGeometry == Geometry.Spherical )
+    vertexFacet = NegateKleinFacet( vertexFacet );
 
   return [vertexFacet, edgeFacet, faceFacet, cellFacet];
 }
@@ -283,11 +317,6 @@ function ReflectInFacet( g, fKlein, vMinkowski )
   let reflected = vMinkowski.clone().sub( plane.clone().multiplyScalar( 
     2 * plane.geometryDot( g, vMinkowski ) / plane.geometryDot( g, plane ) ) );
   return reflected;
-
-  /* First attempt, unfortunately doesn't work for points not on the hyperboloid.
-  let vUHS = HyperboloidToUHS( vHyperboloid );
-  let reflected = fUHS.ReflectPoint( vUHS );
-  return UHSToHyperboloid( reflected );*/
 }
 
 // Get one generator defined by a facet as matrices.

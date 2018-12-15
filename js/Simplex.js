@@ -20,13 +20,18 @@ class Sphere
     this.Offset = offset;
   }
 
+  static PlaneFromKleinFacet( f )
+  {
+    return new Sphere( null, null, new THREE.Vector3( f.x, f.y, f.z ), f.w );
+  }
+
   SetPlaneFrom3Points( a, b, c )
   {
     this.Center = null;
     this.Radius = Number.POSITIVE_INFINITY;
 
     this.Normal = c.clone().sub( a ).cross( b.clone().sub( a ) ).normalize();
-    this.Offset = this.DistancePointPlane( this.Normal, 0, a );
+    this.Offset = Sphere.DistancePointPlane( this.Normal, 0, a );
   }
 
   IsPlane()
@@ -36,7 +41,7 @@ class Sphere
 
   // normal must be unit length!
   // Returns signed distance depending on which side of the plane we are on.
-  DistancePointPlane( normal, offset, point )
+  static DistancePointPlane( normal, offset, point )
   {
     let planePoint = normal.clone().multiplyScalar( offset );
 		return point.clone().sub( planePoint ).dot( normal );
@@ -46,7 +51,7 @@ class Sphere
   {
     if( this.IsPlane() )
     {
-      let dist = this.DistancePointPlane( this.Normal, this.Offset, p );
+      let dist = Sphere.DistancePointPlane( this.Normal, this.Offset, p );
       let offset = this.Normal.clone().multiplyScalar( dist * -2 );
       return p.clone().add( offset );
     }
@@ -290,7 +295,7 @@ function SimplexFacetsKlein( p, q, r )
   let faceFacet = KleinFromUHS( facetsUHS[2] );
   let cellFacet = KleinFromUHS( facetsUHS[3] );
 
-  let cellGeometry = GetGeometry( p, q );
+  let cellGeometry = GetGeometry2D( p, q );
   if( cellGeometry == Geometry.Spherical )
     vertexFacet = NegateKleinFacet( vertexFacet );
 
@@ -344,13 +349,11 @@ function OneGen( g, f )
   return m;
 }
 
-function SimplexInverseGenerators( p, q, r )
+function SimplexInverseGenerators( g, kleinFacets )
 {
-  let g = GetGeometry( p, q, r );
-  let facets = SimplexFacetsKlein( p, q, r );
   return [
-    OneGen( g, facets[0] ), 
-    OneGen( g, facets[1] ), 
-    OneGen( g, facets[2] ), 
-    OneGen( g, facets[3] ) ]; 
+    OneGen( g, kleinFacets[0] ), 
+    OneGen( g, kleinFacets[1] ), 
+    OneGen( g, kleinFacets[2] ), 
+    OneGen( g, kleinFacets[3] ) ]; 
 }

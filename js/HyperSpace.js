@@ -121,7 +121,7 @@ var initGenerators = function( p, q, r ){
   else
   {
     simplexMirrors = SimplexFacetsKlein( p, q, r );
-    invGens = SimplexInverseGenerators( p, q, r );
+    invGens = SimplexInverseGenerators( g_geometry, simplexMirrors );
 
     // invGens needs to be length-6;
     for(var i = 0; i<2; i++){

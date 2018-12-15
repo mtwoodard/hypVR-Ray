@@ -42,9 +42,9 @@ function getGeometryFrag()
 function updateUniformsFromUI()
 {
   // Get the number of cubes around each edge.
-  var p = guiInfo.p;
-  var q = guiInfo.q;
-	var r = guiInfo.r;
+  var p = Number(guiInfo.p);
+  var q = Number(guiInfo.q);
+	var r = Number(guiInfo.r);
   var g = GetGeometry( p, q, r );
   var isCubical = p == 4 && q == 3;
 
@@ -99,7 +99,9 @@ function updateUniformsFromUI()
     break;
 
   case Geometry.Hyperbolic:
-    // Implement me.
+    let facetsKlein = SimplexFacetsKlein( p, q, r );
+    g_cellPosition = new THREE.Vector4(0,0,1,0);  // Just the direction.
+    g_cellSurfaceOffset = (Math.poincareToHyperbolic( Math.kleinToPoincare(0.95) ) - hOffset);
     break;
   }
 

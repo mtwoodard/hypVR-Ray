@@ -94,8 +94,15 @@ function updateUniformsFromUI()
     break;
 
   case Geometry.Euclidean:
+    let facetsUHS = SimplexFacetsUHS( p, q, r );
     g_cellPosition = new THREE.Vector4(0,0,1,1);  // North pole of Klein model.
-    g_cellSurfaceOffset = (Math.poincareToHyperbolic( Math.kleinToPoincare(0.95) ) - hOffset);
+
+    let a = facetsUHS[0].Offset * Math.tan( Math.PI/q );
+    let h = facetsUHS[3].Radius;
+    let b = Math.sqrt( h*h - a*a );
+    let vUHS = new THREE.Vector3( 0, 0, b );
+    let vPoincare = UHSToPoincare( vUHS );
+    g_cellSurfaceOffset = Math.poincareToHyperbolic( -vPoincare.z ) - hOffset;
     break;
 
   case Geometry.Hyperbolic:

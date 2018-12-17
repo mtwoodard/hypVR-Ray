@@ -94,22 +94,33 @@ function updateUniformsFromUI()
     break;
 
   case Geometry.Euclidean:
-    let facetsUHS = SimplexFacetsUHS( p, q, r );
-    g_cellPosition = new THREE.Vector4(0,0,1,1);  // North pole of Klein model.
+    {
+      // North pole of Klein model.
+      g_cellPosition = new THREE.Vector4(0,0,1,1);
 
-    let a = facetsUHS[0].Offset * Math.tan( Math.PI/q );
-    let h = facetsUHS[3].Radius;
-    let b = Math.sqrt( h*h - a*a );
-    let vUHS = new THREE.Vector3( 0, 0, b );
-    let vPoincare = UHSToPoincare( vUHS );
-    g_cellSurfaceOffset = Math.poincareToHyperbolic( -vPoincare.z ) - hOffset;
-    break;
+      let facetsUHS = SimplexFacetsUHS( p, q, r );
+      let a = GetTrianglePSide( q, p );
+      let c = facetsUHS[3].Radius;
+      let b = Math.sqrt( c*c - a*a );
+      let vUHS = new THREE.Vector3( 0, 0, b );
+      let vPoincare = UHSToPoincare( vUHS );
+      g_cellSurfaceOffset = Math.poincareToHyperbolic( -vPoincare.z ) - hOffset;
+      break;
+    }
 
   case Geometry.Hyperbolic:
-    let facetsKlein = SimplexFacetsKlein( p, q, r );
-    g_cellPosition = new THREE.Vector4(0,0,1,0);  // Just the direction.
-    g_cellSurfaceOffset = (Math.poincareToHyperbolic( Math.kleinToPoincare(0.95) ) - hOffset);
-    break;
+    {
+      // Just the direction (dual point infinitely far away).
+      g_cellPosition = new THREE.Vector4(0,0,1,0);
+
+      let a = GetTrianglePSide( q, p );
+      let c = Math.asinh( Math.sinh( a ) / Math.cos( PiOverNSafe( r ) ) );
+      let b = Math.acosh( Math.cosh( c ) / Math.cosh( a ) );
+      let vUHS = new THREE.Vector3( 0, 0, Math.hyperbolicToPoincare( b ) );
+      let vPoincare = UHSToPoincare( vUHS );
+      g_cellSurfaceOffset = Math.poincareToHyperbolic( -vPoincare.z ) - hOffset;
+      break;
+    }
   }
 
   // Calculate a point we need for the vertex sphere calc.

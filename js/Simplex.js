@@ -181,12 +181,32 @@ function InteriorMirrors( p, q )
   return [ s2, s1, s3 ];
 }
 
+function MirrorsSpherical( p, q, r )
+{
+  // Some construction points we need.
+  let tilePoints = TilePoints( p, q );
+  let p1 = tilePoints[0];
+
+  // This will be unit length.
+  let pFaceDirection = UHSToPoincare( p1 );
+
+  // In-radius is in conformal model
+  let inRadius = Math.sphericalToStereographic( InRadius( p, q, r ) );
+  let centerOfSphereNE = ( 1 - inRadius ) / ( 1 + inRadius );
+  let cellMirror = MoveSphere( Geometry.Spherical, pFaceDirection.negate().multiplyScalar( centerOfSphereNE ), 1.0 /*geodesic circle*/ );
+
+  let interior = InteriorMirrors( p, q );
+  return [ interior[0], interior[1], interior[2], cellMirror ];
+}
+
 // Get the simplex facets for a {p,q,r} honeycomb
 function SimplexFacetsUHS( p, q, r )
 {
   let g = GetGeometry( p, q, r );
 
-  // TODO: Support Euclidean/Spherical
+  if( g == Geometry.Spherical )
+    return MirrorsSpherical( p, q, r );
+
   if( g != Geometry.Hyperbolic )
     return null;
 

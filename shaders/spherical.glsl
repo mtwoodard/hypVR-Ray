@@ -53,3 +53,7 @@ float geodesicPlaneHSDF(vec4 samplePoint, vec4 dualPoint, float offset){
 float horosphereHSDF(vec4 samplePoint, vec4 lightPoint, float offset){
   return 0.0;
 }
+
+float geodesicCylinderHSDFplanes(vec4 samplePoint, vec4 dualPoint1, vec4 dualPoint2, float radius){
+  return 0.0;
+}

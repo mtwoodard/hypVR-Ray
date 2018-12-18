@@ -93,6 +93,7 @@ var gens;
 var invGens;
 var hCDP = [];
 var simplexMirrors = [];
+var simplexDualPoints = [];
 
 var initGenerators = function( p, q, r ){
   g_geometry = GetGeometry( p, q, r );
@@ -114,13 +115,20 @@ var initGenerators = function( p, q, r ){
     invGens = invCubeGenerators(gens);
 
     simplexMirrors = [];
+    simplexDualPoints = [];
     for(var i = 0; i<4; i++){
       simplexMirrors.push(new THREE.Vector4());
+      simplexDualPoints.push(new THREE.Vector4());
     }
   }
   else
   {
     simplexMirrors = SimplexFacetsKlein( p, q, r );
+    simplexDualPoints = [];
+    for(var i = 0; i<4; i++){
+      simplexDualPoints.push( PlaneDualPoint( g_geometry, simplexMirrors[i]) );
+    }
+
     invGens = SimplexInverseGenerators( g_geometry, simplexMirrors );
 
     // invGens needs to be length-6;
@@ -302,7 +310,8 @@ var finishInit = function(fShader){
       vertexPosition:{type:"v4", value:g_vertexPosition},
       vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset},
       useSimplex:{type:"b", value:false},
-      simplexMirrorsKlein:{type:"v4v", value:simplexMirrors}
+      simplexMirrorsKlein:{type:"v4v", value:simplexMirrors},
+      simplexDualPoints:{type:"v4v", value:simplexDualPoints}
     },
     defines: {
       NUM_LIGHTS: lightPositions.length,

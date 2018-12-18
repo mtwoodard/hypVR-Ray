@@ -60,6 +60,7 @@ uniform float vertexSurfaceOffset;
 // The w component is the offset from the origin.
 uniform bool useSimplex;
 uniform vec4 simplexMirrorsKlein[4];
+uniform vec4 simplexDualPoints[4];
 
 // The type of cut (1=sphere, 2=horosphere, 3=plane) for the vertex opposite the fundamental simplex's 4th mirror.
 // These integers match our values for the geometry of the honeycomb vertex figure.

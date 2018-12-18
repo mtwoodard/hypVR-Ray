@@ -284,7 +284,7 @@ THREE.VRController.prototype.update = function(){
 	//We need to construct a hyperbolic point for calculating dual points
 	//Currently hardcoded for hyperbolic space
 	//var hyperPos = new THREE.Vector4(0,0,0,1).applyMatrix4(g_controllerBoosts[gamepad.index]).applyMatrix4(g_currentBoost);
-	//We need to initialize the translateByVector values in initValues
+	//We need to initialize the translateByVector values in initGenerators
 	//Since they remain constant
 	/*if(gamepad.index === 0){
 		g_controllerDualPoints[0] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.1, 0.0, 0.0))));

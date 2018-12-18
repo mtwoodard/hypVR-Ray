@@ -90,10 +90,8 @@ function PoincareToKlein( vPoincare )
 // vKlein is a THREE.Vector3
 function KleinToPoincare( vKlein )
 {
-  let dot = vKlein.dot( vKlein );
-  if(dot > 1)
-    dot = 1;
-  return vKlein.clone().multiplyScalar( (1 - Math.sqrt( 1 - dot )) / dot );
+  let mag = Math.kleinToPoincare( vKlein.length() );
+  return vKlein.clone().normalize().multiplyScalar( mag );
 }
 
 // NOTE! This should only be used if m is a transform that preserves the imaginary axis!
@@ -102,7 +100,7 @@ function TransformHelper( v, m )
   let spherical = SphericalCoords.CartesianToSpherical( v );
   let c1 = math.type.Complex.fromPolar( spherical.x, Math.PI/2 - spherical.y );
   let c2 = m.Apply( c1 ).toPolar();
-  let s2 = new THREE.Vector3( c2.r, Math.PI/2 - c2.phi, spherical.Z );
+  let s2 = new THREE.Vector3( c2.r, Math.PI/2 - c2.phi, spherical.z );
   return SphericalCoords.SphericalToCartesian( s2 );
 }
 
@@ -130,19 +128,19 @@ function PoincareToHyperboloid( vPoincare )
 {
   let temp = vPoincare.dot( vPoincare );
   return new THREE.Vector4(
-    2*planePoint.X / ( 1 - temp ),
-    2*planePoint.Y / ( 1 - temp ),
-    2*planePoint.Z / ( 1 - temp ),
+    2*vPoincare.x / ( 1 - temp ),
+    2*vPoincare.y / ( 1 - temp ),
+    2*vPoincare.z / ( 1 - temp ),
     ( 1 + temp ) / ( 1 - temp ) );
 }
 
 function HyperboloidToPoincare( vHyperboloid )
 {
-  let t = vHyperboloid.W;
+  let t = vHyperboloid.w;
   return new THREE.Vector3(
-    vHyperboloid.X / ( 1 + t ),
-    vHyperboloid.Y / ( 1 + t ),
-    vHyperboloid.Z / ( 1 + t ) );
+    vHyperboloid.x / ( 1 + t ),
+    vHyperboloid.y / ( 1 + t ),
+    vHyperboloid.z / ( 1 + t ) );
 }
 
 function HyperboloidToUHS( vHyperboloid )

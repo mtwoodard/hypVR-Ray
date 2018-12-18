@@ -107,7 +107,7 @@ function TilingNormalizedCircumRadius( p, q )
 
     case Geometry.Hyperbolic:
     {
-      if( hypot = Number.POSITIVE_INFINITY )
+      if( hypot == Number.POSITIVE_INFINITY )
         return DiskRadius;
 
       return Math.hyperbolicToPoincare( hypot ) * DiskRadius;

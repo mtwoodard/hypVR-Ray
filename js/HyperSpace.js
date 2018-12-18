@@ -92,27 +92,51 @@ var hCWK = 0.5773502692;
 var gens;
 var invGens;
 var hCDP = [];
+var simplexMirrors = [];
 
-var initValues = function(g){
-	g_geometry = g;
-  var invHCWK = 1.0/hCWK;
-  
-	hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0);
-	hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0);
-  hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0);
-  if( g != Geometry.Euclidean ) {
-    for( var i=0; i<3; i++ )
-      hCDP[i].geometryNormalize(g_geometry);
+var initGenerators = function( p, q, r ){
+  g_geometry = GetGeometry( p, q, r );
+  var isCubical = p == 4 && q == 3;
+
+  if( isCubical )
+  {
+    var invHCWK = 1.0/hCWK;
+    
+    hCDP[0] = new THREE.Vector4(invHCWK,0.0,0.0,1.0);
+    hCDP[1] = new THREE.Vector4(0.0,invHCWK,0.0,1.0);
+    hCDP[2] = new THREE.Vector4(0.0,0.0,invHCWK,1.0);
+    if( g_geometry != Geometry.Euclidean ) {
+      for( var i=0; i<3; i++ )
+        hCDP[i].geometryNormalize(g_geometry);
+    }
+
+    gens = createCubeGenerators(g_geometry);
+    invGens = invCubeGenerators(gens);
+
+    simplexMirrors = [];
+    for(var i = 0; i<4; i++){
+      simplexMirrors.push(new THREE.Vector4());
+    }
+  }
+  else
+  {
+    simplexMirrors = SimplexFacetsKlein( p, q, r );
+    invGens = SimplexInverseGenerators( g_geometry, simplexMirrors );
+
+    // invGens needs to be length-6;
+    for(var i = 0; i<2; i++){
+      invGens.push(translateByVector(g_geometry, new THREE.Vector3(0.0,0.0,0.0)));
+    }
+
+    gens = invGens;
   }
 
-	gens = createGenerators(g_geometry);
-  invGens = invGenerators(gens);
   for(var i = 0; i<6; i++){
     g_controllerDualPoints.push(new THREE.Vector4());
   }
 }
 
-var createGenerators = function(g){
+var createCubeGenerators = function(g){
   var gen0 = translateByVector(g, new THREE.Vector3(2.0*hCWH,0.0,0.0));
   var gen1 = translateByVector(g, new THREE.Vector3(-2.0*hCWH,0.0,0.0));
   var gen2 = translateByVector(g, new THREE.Vector3(0.0,2.0*hCWH,0.0));
@@ -122,7 +146,7 @@ var createGenerators = function(g){
   return [gen0, gen1, gen2, gen3, gen4, gen5];
 }
 
-var invGenerators = function(genArr){
+var invCubeGenerators = function(genArr){
   return [genArr[1],genArr[0],genArr[3],genArr[2],genArr[5],genArr[4]];
 }
 
@@ -192,7 +216,7 @@ var init = function(){
   g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
   g_invCellBoost = new THREE.Matrix4();
   g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
-	initValues(g_geometry);
+	initGenerators(4,3,6);
   initLights(g_geometry);
   initObjects(g_geometry);
 	//We need to load the shaders from file
@@ -260,6 +284,7 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
+      // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
@@ -269,11 +294,15 @@ var finishInit = function(fShader){
       globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
+      cut1:{type:"i", value:g_cut1},
 	  	cut4:{type:"i", value:g_cut4},
-      sphereRad:{type:"f", value:g_sphereRad},
       tubeRad:{type:"f", value:g_tubeRad},
+      cellPosition:{type:"v4", value:g_cellPosition},
+      cellSurfaceOffset:{type:"f", value:g_cellSurfaceOffset},
       vertexPosition:{type:"v4", value:g_vertexPosition},
-      vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset}
+      vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset},
+      useSimplex:{type:"b", value:false},
+      simplexMirrorsKlein:{type:"v4v", value:simplexMirrors}
     },
     defines: {
       NUM_LIGHTS: lightPositions.length,

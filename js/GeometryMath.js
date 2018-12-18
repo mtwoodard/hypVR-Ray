@@ -29,10 +29,19 @@ Math.poincareToHyperbolic = function(p){
   return 2*Math.atanh(p);
 }
 
-// Poincare norm to klein norm.
+// Poincare norm to Klein norm.
 Math.poincareToKlein = function(p){
 	var mag = 2/(1+p*p);
 	return p*mag;
+}
+
+// Klein norm to Poincare norm.
+Math.kleinToPoincare = function(k){
+  var dot = k*k;
+  if(dot > 1)
+    dot = 1;
+	var mag = (1 - Math.sqrt( 1 - dot )) / dot;
+	return k*mag;
 }
 
 // Spherical norm to steregraphic norm.
@@ -97,6 +106,7 @@ THREE.Vector4.prototype.geometryDistance = function(g, v){
 		return diff3.length();
 	}
 }
+
 //----------------------------------------------------------------------
 //	Matrix Operations
 //----------------------------------------------------------------------
@@ -232,8 +242,6 @@ function sphereSDF(samplePoint, center, radius){
 // and go through the origin. Negative offsets will "shrink" it.
 function horosphereHSDF( samplePoint, lightPoint, offset )
 {
-	// Why is sign of lorentzDot opposite here and in glsl?
-	//var dot = -samplePoint.lorentzDot(lightPoint);
 	var dot = -samplePoint.geometryDot(g_geometry, lightPoint);
 	return Math.log( dot ) - offset;
 }
@@ -259,7 +267,7 @@ function fakeDist( v ){  //good enough for comparison of distances on the hyperb
 ////////check if we are still inside the central fund dom...
 function fixOutsideCentralCell( mat ) { 
 	//assume first in Gens is identity, should probably fix when we get a proper list of matrices
-	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central
+	var cPos = new THREE.Vector4(0,0,0,1).applyMatrix4( mat ); //central  // fixme: need to make simplex center in simplex case.
 	var bestDist = fakeDist(cPos);
 	var bestIndex = -1;
 	for (var i=0; i < gens.length; i++){

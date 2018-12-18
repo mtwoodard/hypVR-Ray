@@ -19,8 +19,8 @@ float globalSceneSDF(vec4 samplePoint){
   //Controller Objects
   for(int i=0; i<2; i++){
     if(controllerCount != 0){
-      //float objDist = sphereSDF(absoluteSamplePoint, ORIGIN*controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
-      float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i-4]*currentBoost, 1.0/(10.0 * lightIntensities[i].w));
+      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
+      //float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
       distance = min(distance, objDist);
       if(distance < EPSILON){
         hitWhich = 1;
@@ -83,8 +83,25 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ra
   return p;
 }
 
+bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  for(int i=0; i<4; i++){
+    vec3 normal = simplexMirrorsKlein[i].xyz;
+    vec3 offsetSample = kleinSamplePoint.xyz - normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+    if( dot(offsetSample, normal) > 1e-7 ) {
+      fixMatrix = invGenerators[i];
+      return true;
+    }
+  }
+  return false;
+}
+
 // This function is intended to be geometry-agnostic.
 bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+  if( useSimplex ) {
+    return isOutsideSimplex( samplePoint, fixMatrix );
+  }
+
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
   if(kleinSamplePoint.x > halfCubeWidthKlein){
     fixMatrix = invGenerators[0];
@@ -109,20 +126,6 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   if(kleinSamplePoint.z < -halfCubeWidthKlein){
     fixMatrix = invGenerators[5];
     return true;
-  }
-  return false;
-}
-
-bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
-  vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  for(int i=0; i<4; i++){
-    vec4 normal = simplexMirrorsKlein[i];
-    normal.w = 0.0;
-    kleinSamplePoint -= normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
-    if( dot(kleinSamplePoint, normal) > 0.0 ) {
-      fixMatrix = invGenerators[i];
-      return true;
-    }
   }
   return false;
 }

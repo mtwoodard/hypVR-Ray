@@ -8,8 +8,7 @@ var g_controls;
 var g_geometry;
 var g_rotation;
 var g_currentBoost;
-var g_leftCurrentBoost;
-var g_rightCurrentBoost;
+var g_stereoBoosts = [];
 var g_cellBoost;
 var g_invCellBoost;
 var g_screenResolution;
@@ -282,8 +281,7 @@ var finishInit = function(fShader){
       fov:{type:"f", value:g_virtCamera.fov},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
-      leftCurrentBoost:{type:"m4", value:g_leftCurrentBoost},
-      rightCurrentBoost:{type:"m4",value:g_rightCurrentBoost},
+      stereoBoosts:{type:"m4v", value:g_stereoBoosts},
       cellBoost:{type:"m4", value:g_cellBoost},
       invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},

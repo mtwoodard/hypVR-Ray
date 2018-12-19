@@ -74,13 +74,24 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
     }
   }
 
-vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
+/*vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
   if(isStereo != 0) { resolution.x = resolution.x * 0.5; }
   if(isStereo == 1) { fragCoord.x = fragCoord.x - resolution.x; }
   vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
   float z = 0.1/tan(radians(fov*0.5));
   vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
   return p;
+}*/
+
+vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a point that our ray will go through
+    if(isStereo == 1){
+      resolution.x = resolution.x * 0.5;
+      if(isRight) { fragCoord.x = fragCoord.x - resolution.x; }
+    }
+    vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
+    float z = 0.1/tan(radians(fov*0.5));
+    vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
+    return p;
 }
 
 bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
@@ -132,11 +143,9 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 
 void raymarch(vec4 rO, vec4 rD){
   int fakeI = 0;
-  float globalDepth = MIN_DIST;
-  float localDepth = globalDepth;
+  float globalDepth = MIN_DIST; float localDepth = globalDepth;
+  vec4 localrO = rO; vec4 localrD = rD;
   mat4 fixMatrix = mat4(1.0);
-  vec4 localrO = rO;
-  vec4 localrD = rD;
   
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
@@ -191,23 +200,23 @@ void raymarch(vec4 rO, vec4 rD){
 
 void main(){
   vec4 rayOrigin = ORIGIN;
-  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
-  //camera position must be translated in hyperboloid ------------------------
-
-  //TODO: remove the leftCurrentBoost and rightCurrentBoost in favor of 
-  //stereoBoost which we can set at the time of render on the JS side
-  //this can be seen in the hypTest file in my mtwoodard.github.io repo
   
-  if(isStereo != 0){ //move left or right for stereo
-    if(isStereo == -1){
-      rayOrigin *= leftCurrentBoost;
-      rayDirV *= leftCurrentBoost;
+  //stereo translations
+  bool isRight = gl_FragCoord.x/screenResolution.x > 0.5;
+  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy, isRight);
+  
+  if(isStereo == 1){
+    if(isRight){
+      rayOrigin *= stereoBoosts[1];
+      rayDirV *= stereoBoosts[1];
     }
     else{
-      rayOrigin *= rightCurrentBoost;
-      rayDirV *= rightCurrentBoost;
+      rayOrigin *= stereoBoosts[0];
+      rayDirV *= stereoBoosts[0];
     }
+    
   }
+
   rayOrigin *= currentBoost;
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------

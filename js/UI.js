@@ -20,11 +20,10 @@ function updateEyes(){
   g_effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
   g_effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
 
-  g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
-  g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
+  g_stereoBoosts[0] = translateByVector(g_geometry,g_effect.leftEyeTranslation);
+  g_stereoBoosts[1] = translateByVector(g_geometry,g_effect.rightEyeTranslation);
   g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-  g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
-  g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
+  g_material.uniforms.stereoBoosts.value = g_stereoBoosts;
 }
 
 function getGeometryFrag()
@@ -327,11 +326,15 @@ var initGui = function(){
     var crosshairRight = document.getElementById("crosshairRight");
     if(guiInfo.toggleUI){
       if(value){
+        g_material.uniforms.isStereo.value = 1;
         crosshairLeft.style.visibility = 'visible';
         crosshairRight.style.visibility = 'visible';
         crosshair.style.visibility = 'hidden';
       }
       else{
+        g_material.uniforms.isStereo.value = 0;
+        g_material.uniforms.screenResolution.value.x = window.innerWidth;
+        g_material.uniforms.screenResolution.value.y = window.innerHeight;
         crosshairLeft.style.visibility = 'hidden';
         crosshairRight.style.visibility = 'hidden';
         crosshair.style.visibility = 'visible';

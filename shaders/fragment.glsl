@@ -72,16 +72,7 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
           true
       );
     }
-  }
-
-/*vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
-  if(isStereo != 0) { resolution.x = resolution.x * 0.5; }
-  if(isStereo == 1) { fragCoord.x = fragCoord.x - resolution.x; }
-  vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
-  float z = 0.1/tan(radians(fov*0.5));
-  vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
-  return p;
-}*/
+}
 
 vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a point that our ray will go through
     if(isStereo == 1){

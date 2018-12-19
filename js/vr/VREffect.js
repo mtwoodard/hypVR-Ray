@@ -128,17 +128,14 @@ THREE.VREffect = function ( renderer, done ) {
 	this.render = function ( scene, camera, animate ) {
 		var renderer = this._renderer;
 		var vrHMD = this._vrHMD;
-		renderer.setScissorTest( false );
 		// VR render mode if HMD is available
 		if ( vrHMD ) {
 			g_material.uniforms.isStereo.value = 1;
 			vrHMD.requestAnimationFrame(animate);
-			//this.renderStereo.apply( this, [scene, camera] );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
 				// vrHMD.getAnimationFrame(frameData);
 				vrHMD.submitFrame();
 			}
-			//return;
 		}
 
 		requestAnimationFrame(animate);
@@ -148,34 +145,6 @@ THREE.VREffect = function ( renderer, done ) {
 		}
 
 		renderer.render.apply( this._renderer, [scene, camera]  );
-	};
-
-	this.renderStereo = function( scene, camera, renderTarget, forceClear ) {
-		var renderer = this._renderer;
-		var size = renderer.getSize();
-		var rendererWidth = size.width;
-		var rendererHeight = size.height;
-		var eyeDivisionLine = rendererWidth / 2;
-
-		renderer.setScissorTest( true );
-		renderer.clear();
-
-		if ( camera.parent === null ) {
-			camera.updateMatrixWorld();
-		}
-
-		// render left eye
-		g_material.uniforms.isStereo.value = -1;
-		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
-		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, camera );
-
-		//render right eye
-		g_material.uniforms.isStereo.value = 1;
-		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
-		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, camera );
-
 	};
 
 	this.setSize = function( width, height ) {

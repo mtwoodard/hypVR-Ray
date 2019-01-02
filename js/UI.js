@@ -22,7 +22,7 @@ function updateEyes(){
 
   g_stereoBoosts[0] = translateByVector(g_geometry,g_effect.leftEyeTranslation);
   g_stereoBoosts[1] = translateByVector(g_geometry,g_effect.rightEyeTranslation);
-  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
+  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x, guiInfo.rotateEyes);
   g_material.uniforms.stereoBoosts.value = g_stereoBoosts;
 }
 
@@ -291,7 +291,6 @@ var initGui = function(){
   });
 
   fovController.onChange(function(value){
-    g_virtCamera.fov = value;
     g_material.uniforms.fov.value = value;
   });
 

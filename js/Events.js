@@ -78,12 +78,6 @@ var onResize = function(){
 document.body.addEventListener('click', function(event){
     if(event.target.id === "vr-icon"){
         event.target.style.display = "none";
-        g_effect.phoneVR.setVRMode(!renderer.phoneVR.isVRMode);
-    }
-    if(g_effect.phoneVR.orientationIsAvailable()){
-        g_effect.setFullScreen(true);
-        if(typeof window.screen.orientation !== 'undefined' && typeof window.screen.orientation.lock === 'function')
-            window.screen.orientation.lock('landscape-primary');
     }
 });
 

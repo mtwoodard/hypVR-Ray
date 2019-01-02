@@ -114,6 +114,16 @@ THREE.Matrix4.prototype.add = function (m) {
   	this.set.apply(this, [].map.call(this.elements, function (c, i) { return c + m.elements[i] }));
 };
 
+THREE.Matrix4.prototype.round = function(zeroPrecision){
+	var precision = Math.pow(10, zeroPrecision);
+	for(var i = 0; i<4; i++){
+		for(var j = 0; j<4; j++){
+			this.elements[i*4+j] = Math.round(this.elements[i*4+j] * precision ) / precision;
+		}
+	}
+	console.log(this.elements)
+}
+
 THREE.Matrix4.prototype.gramSchmidt = function(g){
 
   if( g === Geometry.Euclidean )

@@ -30,20 +30,19 @@ THREE.VREffect = function ( renderer, done ) {
 	this._init = function() {
 		var self = this;
 
-		self.getEyeRotation = function(translationDistance){
+		self.getEyeRotation = function(translationDistance, rotateEyes){
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
 			var leftEyeRotation = new THREE.Quaternion();
 			var rightEyeRotation = new THREE.Quaternion();
-			/*if(guiInfo.rotateEyes){
+			if(rotateEyes){
 				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
 				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
 				g_stereoBoosts[0].multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
 				g_stereoBoosts[1].multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
-			}*/
+			}
 		}
 
 		// default some stuff for mobile VR
-		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
 		g_stereoBoosts[0] = translateByVector(g_geometry, self.leftEyeTranslation);
@@ -139,7 +138,7 @@ THREE.VREffect = function ( renderer, done ) {
 		}
 
 		requestAnimationFrame(animate);
-		if (iconHidden && this.phoneVR.orientationIsAvailable()) {
+		if (iconHidden) {
 			iconHidden = false;
 			document.getElementById("vr-icon").style.display = "block";
 		}

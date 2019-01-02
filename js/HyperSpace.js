@@ -2,7 +2,6 @@
 // Global Variables
 //-------------------------------------------------------
 var g_effect;
-var g_virtCamera;
 var g_material;
 var g_controls;
 var g_geometry;
@@ -22,8 +21,6 @@ var g_controllerDualPoints = [];
 var scene;
 var renderer;
 var camera;
-var mesh;
-var geom;
 var maxSteps = 50;
 var maxDist = 10.0;
 var textFPS;
@@ -212,9 +209,6 @@ var init = function(){
   g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
   g_effect = new THREE.VREffect(renderer);
   camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  g_virtCamera = new THREE.PerspectiveCamera(90,1,0.1,1);
-  g_virtCamera.position.z = 0.1;
-  cameraOffset = new THREE.Vector3();
   g_controls = new THREE.Controls();
   g_rotation = new THREE.Quaternion();
   g_controllerBoosts.push(new THREE.Matrix4());
@@ -278,7 +272,7 @@ var finishInit = function(fShader){
       isStereo:{type: "i", value: 0},
       geometry:{type: "i", value: 3},
       screenResolution:{type:"v2", value:g_screenResolution},
-      fov:{type:"f", value:g_virtCamera.fov},
+      fov:{type:"f", value:90},
       invGenerators:{type:"m4v", value:invGens},
       currentBoost:{type:"m4", value:g_currentBoost},
       stereoBoosts:{type:"m4v", value:g_stereoBoosts},
@@ -319,11 +313,13 @@ var finishInit = function(fShader){
     fragmentShader: fShader,
     transparent:true
   });
+
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
+
   //Setup a "quad" to render on-------------------------
-  geom = new THREE.BufferGeometry();
+  var geom = new THREE.BufferGeometry();
   var vertices = new Float32Array([
     -1.0, -1.0, 0.0,
      1.0, -1.0, 0.0,
@@ -334,17 +330,8 @@ var finishInit = function(fShader){
     -1.0,  1.0, 0.0
   ]);
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
-  mesh = new THREE.Mesh(geom, g_material);
+  var mesh = new THREE.Mesh(geom, g_material);
   scene.add(mesh);
-  var scaleMatrix = new THREE.Matrix4().set(
-		0.8, 0, 0, 0,
-		0, 0.8, 0, 0,
-		0, 0, 0.4, 0,
-		0, 0, 0, 1
-  );
-  
-  //Generator for controllerScaleMatrix on the glsl side
-  //console.log(translateByVector(g_geometry, new THREE.Vector3(0,0,0.2)).multiply(scaleMatrix));
 
   animate();
 }
@@ -353,12 +340,12 @@ var finishInit = function(fShader){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
-  g_controls.update();
-	//lightPositions[0] = constructHyperboloidPoint(new THREE.Vector3(0,0,1), 0.5 + 0.3*Math.sin((Date.now()-time)/1000));
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
-  THREE.VRController.update();
   g_material.uniforms.maxSteps.value = maxSteps;
-  g_material.uniforms.controllerCount.value = THREE.VRController.controllers.length;
+
+  g_controls.update();
+  THREE.VRController.update();
+
   g_effect.render(scene, camera, animate);
 }
 

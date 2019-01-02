@@ -5,7 +5,6 @@
  */
 
 THREE.Controls = function(done){
-    this.phoneVR = new PhoneVR();
     var speed = 0.2;
     this._oldVRState;
     this.defaultPosition = new THREE.Vector3();
@@ -155,10 +154,6 @@ THREE.Controls = function(done){
                     pos.fromArray(framedata.pose.position);
 				}
             }
-        }
-        else if(this.phoneVR.rotationQuat()){
-            orientation.fromArray(this.phoneVR.rotationQuat());
-			pos = this._defaultPosition;
         }
 
         else return null;

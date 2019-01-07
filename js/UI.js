@@ -215,6 +215,7 @@ var initGui = function(){
     maxSteps: 31,
     halfIpDistance: 0.03200000151991844,
     falloffModel: 1,
+    renderShadows: 0,
     screenshotWidth: g_screenShotResolution.x,
     screenshotHeight: g_screenShotResolution.y,
     resetPosition: function(){
@@ -239,6 +240,7 @@ var initGui = function(){
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
+  var shadowController = gui.add(guiInfo, 'renderShadows', {NoShadows: 0, Local: 1, Global: 2, LocalAndGlobal: 3}).name("Shadows");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
   var screenshotFolder = gui.addFolder('Screenshot');
   var widthController = screenshotFolder.add(guiInfo, 'screenshotWidth');
@@ -268,6 +270,26 @@ var initGui = function(){
 
   lightFalloffController.onFinishChange(function(value){
     updateUniformsFromUI();
+  });
+
+  shadowController.onFinishChange(function(value){
+    if(value == 0){
+      g_material.uniforms.renderShadows.value[0] = false;
+      g_material.uniforms.renderShadows.value[1] = false;
+
+    }
+    else if(value == 1){ //Local
+      g_material.uniforms.renderShadows.value[0] = true;
+      g_material.uniforms.renderShadows.value[1] = false;
+    }
+    else if(value == 2){ //Global
+      g_material.uniforms.renderShadows.value[0] = false;
+      g_material.uniforms.renderShadows.value[1] = true;
+    }
+    else{ //Local and Global
+      g_material.uniforms.renderShadows.value[0] = true;
+      g_material.uniforms.renderShadows.value[1] = true;
+    }
   });
 
   pController.onFinishChange(function(value) {

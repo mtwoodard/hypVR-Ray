@@ -188,8 +188,8 @@ var initObjects = function(g){
   invGlobalObjectBoosts = [];
   globalObjectRadii = [];
   globalObjectTypes = [];
-  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.2); // geometry, position, radius/radii
-  EllipsoidObject(g, new THREE.Vector3(-0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
+  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
+  EllipsoidObject(g, new THREE.Vector3(0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
   for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
     EmptyObject();
   }
@@ -283,6 +283,7 @@ var finishInit = function(fShader){
 			lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
+      renderShadows:{type:"bv", value:[false, false]},
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
       // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},

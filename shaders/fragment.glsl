@@ -135,6 +135,7 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
 void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
   float globalDepth = MIN_DIST; float localDepth = globalDepth;
   vec4 localrO = rO; vec4 localrD = rD;
+  totalFixMatrix = mat4(1.0);
   mat4 fixMatrix = mat4(1.0);
   int fakeI = 0;
   

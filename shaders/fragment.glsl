@@ -35,9 +35,7 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
     float objDist;
     if(length(globalObjectRadii[i]) == 0.0){ objDist = maxDist;}
     else{
-      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(samplePoint, globalObjectBoosts[i][3] * globalTransMatrix, globalObjectRadii[i].x); }
-      else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(samplePoint, globalObjectBoosts[i], globalTransMatrix);}
-      else { objDist = maxDist; }
+      objDist = sphereSDF(samplePoint, globalObjectBoosts[i][3] * globalTransMatrix, globalObjectRadii[i].x);
       distance = min(distance, objDist);
       if(distance < EPSILON){
         hitWhich = 2;

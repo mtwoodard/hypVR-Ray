@@ -189,7 +189,7 @@ var initObjects = function(g){
   globalObjectRadii = [];
   globalObjectTypes = [];
   SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
-  EllipsoidObject(g, new THREE.Vector3(0.5,0,0), new THREE.Vector3(1.0,0.7,0.5)); //radii must be less than one!
+  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.05); //radii must be less than one!
   for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
     EmptyObject();
   }
@@ -226,6 +226,7 @@ var init = function(){
 }
 
 var globalsFrag;
+var lightingFrag;
 var geometryFrag = [];
 var mainFrag;
 var scenesFrag = [];
@@ -236,13 +237,15 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   loader.load('shaders/fragment.glsl',function(main){
     loader.load('shaders/simplexCuts.glsl', function(scene){
       loader.load('shaders/hyperbolic.glsl', function(hyperbolic){
-        loader.load('shaders/globalsInclude.glsl', function(globals){
+        loader.load('shaders/lighting.glsl', function(lighting){
+          loader.load('shaders/globalsInclude.glsl', function(globals){
           //pass full shader string to finish our init
           globalsFrag = globals;
+          lightingFrag = lighting;
           geometryFrag.push(hyperbolic);
           scenesFrag.push(scene);
           mainFrag = main;
-          finishInit(globals.concat(hyperbolic).concat(scene).concat(main));
+          finishInit(globals.concat(lighting).concat(hyperbolic).concat(scene).concat(main));
         loader.load('shaders/edgeTubes.glsl', function(tubes){
             loader.load('shaders/medialSurfaces.glsl', function(medial){
               loader.load('shaders/cubeSides.glsl', function(cubes){
@@ -259,6 +262,7 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
             });
           });
         });
+      });
       });
     });
   });
@@ -284,6 +288,7 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       renderShadows:{type:"bv", value:[false, false]},
+      shadSoft:{type:"f", value:128.0},
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
       // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
@@ -292,7 +297,6 @@ var finishInit = function(fShader){
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
-      globalObjectTypes:{type:"iv1", value: globalObjectTypes},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
       cut1:{type:"i", value:g_cut1},

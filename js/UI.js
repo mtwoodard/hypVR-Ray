@@ -242,7 +242,7 @@ var initGui = function(){
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
   var shadowController = gui.add(guiInfo, 'renderShadows', {NoShadows: 0, Local: 1, Global: 2, LocalAndGlobal: 3}).name("Shadows");
-  //var sSoftnessController = gui.add(guiInfo, 'shadowSoftness', 0,0.5).name("Shadow Softness");
+  var softnessController = gui.add(guiInfo, 'shadowSoftness', 0,0.25).name("Shadow Softness");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
   var screenshotFolder = gui.addFolder('Screenshot');
   var widthController = screenshotFolder.add(guiInfo, 'screenshotWidth');
@@ -290,6 +290,15 @@ var initGui = function(){
     else{ //Local and Global
       g_material.uniforms.renderShadows.value[0] = true;
       g_material.uniforms.renderShadows.value[1] = true;
+    }
+  });
+
+  softnessController.onChange(function(value){
+    if(value === 0.0){
+      g_material.uniforms.shadSoft.value = 128.0;
+    }
+    else{
+      g_material.uniforms.shadSoft.value = 1.0/value;
     }
   });
 
@@ -375,6 +384,6 @@ var initGui = function(){
   sceneController.onFinishChange(function(index){
 	  var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
-    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
+    g_material.fragmentShader = globalsFrag.concat(lightingFrag).concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

@@ -177,7 +177,6 @@ function updateUniformsFromUI()
   g_material.uniforms.globalObjectBoosts.value = globalObjectBoosts;
   g_material.uniforms.invGlobalObjectBoosts.value = invGlobalObjectBoosts;
   g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
-  g_material.uniforms.globalObjectTypes.value = globalObjectTypes;
   
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;

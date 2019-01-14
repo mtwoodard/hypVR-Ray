@@ -1,33 +1,33 @@
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
-float globalSceneSDF(vec4 samplePoint){
-  vec4 absoluteSamplePoint = samplePoint * cellBoost; // correct for the fact that we have been moving
+float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithLights){
   float distance = maxDist;
-  //Light Objects
-  for(int i=0; i<NUM_LIGHTS; i++){
-    float objDist;
-    if(lightIntensities[i].w == 0.0) { objDist = maxDist; }
-    else{
-      objDist = sphereSDF(absoluteSamplePoint, lightPositions[i], 1.0/(10.0*lightIntensities[i].w));
-      distance = min(distance, objDist);
-      if(distance < EPSILON){
-        hitWhich = 1;
-        globalLightColor = lightIntensities[i];
-        return distance;
+  if(collideWithLights){
+    //Light Objects
+    for(int i=0; i<NUM_LIGHTS; i++){
+      float objDist;
+      if(lightIntensities[i].w == 0.0) { objDist = maxDist; }
+      else{
+        objDist = sphereSDF(samplePoint, lightPositions[i]*globalTransMatrix, 1.0/(10.0*lightIntensities[i].w));
+        distance = min(distance, objDist);
+        if(distance < EPSILON){
+          hitWhich = 1;
+          globalLightColor = lightIntensities[i];
+          return distance;
+        }
       }
     }
-  }
-  //Controller Objects
-  for(int i=0; i<2; i++){
-    if(controllerCount != 0){
-      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
-      //float objDist = controllerSDF(absoluteSamplePoint, controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
-      distance = min(distance, objDist);
-      if(distance < EPSILON){
-        hitWhich = 1;
-        globalLightColor = lightIntensities[i+4];
-        return distance;
+    //Controller Objects
+    for(int i=0; i<2; i++){
+      if(controllerCount != 0){
+        float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
+        distance = min(distance, objDist);
+        if(distance < EPSILON){
+          hitWhich = 1;
+          globalLightColor = lightIntensities[i+4];
+          return distance;
+        }
+        if(controllerCount == 1) break;
       }
-      if(controllerCount == 1) break;
     }
   }
   //Global Objects
@@ -35,9 +35,7 @@ float globalSceneSDF(vec4 samplePoint){
     float objDist;
     if(length(globalObjectRadii[i]) == 0.0){ objDist = maxDist;}
     else{
-      if(globalObjectTypes[i] == 0) { objDist = sphereSDF(geometryNormalize(absoluteSamplePoint * globalObjectBoosts[i], false), ORIGIN, globalObjectRadii[i].x); }
-      else if(globalObjectTypes[i] == 1) { objDist = sortOfEllipsoidSDF(absoluteSamplePoint, globalObjectBoosts[i]);}
-      else { objDist = maxDist; }
+      objDist = sphereSDF(samplePoint, globalObjectBoosts[i][3] * globalTransMatrix, globalObjectRadii[i].x);
       distance = min(distance, objDist);
       if(distance < EPSILON){
         hitWhich = 2;
@@ -58,9 +56,9 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
     basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
     if(hitWhich == 1 || hitWhich == 2){ //global light scene
       return geometryNormalize( //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
-          basis_x * (globalSceneSDF(p + newEp*basis_x) - globalSceneSDF(p - newEp*basis_x)) +
-          basis_y * (globalSceneSDF(p + newEp*basis_y) - globalSceneSDF(p - newEp*basis_y)) +
-          basis_z * (globalSceneSDF(p + newEp*basis_z) - globalSceneSDF(p - newEp*basis_z)),
+          basis_x * (globalSceneSDF(p + newEp*basis_x, invCellBoost, true) - globalSceneSDF(p - newEp*basis_x, invCellBoost, true)) +
+          basis_y * (globalSceneSDF(p + newEp*basis_y, invCellBoost, true) - globalSceneSDF(p - newEp*basis_y, invCellBoost, true)) +
+          basis_z * (globalSceneSDF(p + newEp*basis_z, invCellBoost, true) - globalSceneSDF(p - newEp*basis_z, invCellBoost, true)),
           true
       );
     }
@@ -72,15 +70,17 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
           true
       );
     }
-  }
+}
 
-vec4 getRayPoint(vec2 resolution, vec2 fragCoord){ //creates a point that our ray will go through
-  if(isStereo != 0) { resolution.x = resolution.x * 0.5; }
-  if(isStereo == 1) { fragCoord.x = fragCoord.x - resolution.x; }
-  vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
-  float z = 0.1/tan(radians(fov*0.5));
-  vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
-  return p;
+vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a point that our ray will go through
+    if(isStereo == 1){
+      resolution.x = resolution.x * 0.5;
+      if(isRight) { fragCoord.x = fragCoord.x - resolution.x; }
+    }
+    vec2 xy = 0.2*((fragCoord - 0.5*resolution)/resolution.x);
+    float z = 0.1/tan(radians(fov*0.5));
+    vec4 p =  geometryNormalize(vec4(xy,-z,1.0), false);
+    return p;
 }
 
 bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
@@ -130,13 +130,12 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   return false;
 }
 
-void raymarch(vec4 rO, vec4 rD){
-  int fakeI = 0;
-  float globalDepth = MIN_DIST;
-  float localDepth = globalDepth;
+void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
+  float globalDepth = MIN_DIST; float localDepth = globalDepth;
+  vec4 localrO = rO; vec4 localrD = rD;
+  totalFixMatrix = mat4(1.0);
   mat4 fixMatrix = mat4(1.0);
-  vec4 localrO = rO;
-  vec4 localrD = rD;
+  int fakeI = 0;
   
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
@@ -175,9 +174,10 @@ void raymarch(vec4 rO, vec4 rD){
     }
     fakeI++;
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
-    float globalDist = globalSceneSDF(globalEndPoint);
+    float globalDist = globalSceneSDF(globalEndPoint, invCellBoost, true);
     if(globalDist < EPSILON){
       // hitWhich has been set by globalSceneSDF
+      totalFixMatrix = mat4(1.0);
       sampleEndPoint = globalEndPoint;
       sampleTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
       return;
@@ -191,29 +191,30 @@ void raymarch(vec4 rO, vec4 rD){
 
 void main(){
   vec4 rayOrigin = ORIGIN;
-  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy);
-  //camera position must be translated in hyperboloid ------------------------
-
-  //TODO: remove the leftCurrentBoost and rightCurrentBoost in favor of 
-  //stereoBoost which we can set at the time of render on the JS side
-  //this can be seen in the hypTest file in my mtwoodard.github.io repo
   
-  if(isStereo != 0){ //move left or right for stereo
-    if(isStereo == -1){
-      rayOrigin *= leftCurrentBoost;
-      rayDirV *= leftCurrentBoost;
+  //stereo translations
+  bool isRight = gl_FragCoord.x/screenResolution.x > 0.5;
+  vec4 rayDirV = getRayPoint(screenResolution, gl_FragCoord.xy, isRight);
+  
+  if(isStereo == 1){
+    if(isRight){
+      rayOrigin *= stereoBoosts[1];
+      rayDirV *= stereoBoosts[1];
     }
     else{
-      rayOrigin *= rightCurrentBoost;
-      rayDirV *= rightCurrentBoost;
+      rayOrigin *= stereoBoosts[0];
+      rayDirV *= stereoBoosts[0];
     }
+    
   }
+
   rayOrigin *= currentBoost;
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  raymarch(rayOrigin, rayDirVPrime);
+  mat4 totalFixMatrix = mat4(1.0);
+  raymarch(rayOrigin, rayDirVPrime, totalFixMatrix);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
@@ -227,10 +228,11 @@ void main(){
   else{ // objects
     N = estimateNormal(sampleEndPoint);
     vec3 color;
+    mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
     if(hitWhich == 2){ // global objects
-      color = phongModel(invGlobalObjectBoosts[0], true);
+      color = phongModel(invGlobalObjectBoosts[0], true, globalTransMatrix);
     }else{ // local objects
-      color = phongModel(mat4(1.0), false);
+      color = phongModel(mat4(1.0), false, globalTransMatrix);
     }
     gl_FragColor = vec4(color, 1.0);
   }

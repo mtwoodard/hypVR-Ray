@@ -30,24 +30,23 @@ THREE.VREffect = function ( renderer, done ) {
 	this._init = function() {
 		var self = this;
 
-		self.getEyeRotation = function(translationDistance){
+		self.getEyeRotation = function(translationDistance, rotateEyes){
 			var turningAngle = Math.PI/2.0 - Math.asin(1.0/Math.cosh(Math.abs(translationDistance)));
 			var leftEyeRotation = new THREE.Quaternion();
 			var rightEyeRotation = new THREE.Quaternion();
-			/*if(guiInfo.rotateEyes){
+			if(rotateEyes){
 				leftEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), turningAngle);
 				rightEyeRotation.setFromAxisAngle(new THREE.Vector3(0,1,0), -turningAngle);
-				g_leftCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
-				g_rightCurrentBoost.multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
-			}*/
+				g_stereoBoosts[0].multiply(new THREE.Matrix4().makeRotationFromQuaternion(leftEyeRotation));
+				g_stereoBoosts[1].multiply(new THREE.Matrix4().makeRotationFromQuaternion(rightEyeRotation));
+			}
 		}
 
 		// default some stuff for mobile VR
-		self.phoneVR = new PhoneVR();
 		self.leftEyeTranslation = { x: -0.03200000151991844, y: -0, z: -0, w: 0 };
 		self.rightEyeTranslation = { x: 0.03200000151991844, y: -0, z: -0, w: 0 };
-		g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
-		g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
+		g_stereoBoosts[0] = translateByVector(g_geometry, self.leftEyeTranslation);
+		g_stereoBoosts[1] = translateByVector(g_geometry, self.rightEyeTranslation);
 		self.getEyeRotation(self.leftEyeTranslation.x);
 
 		if (!navigator.getVRDisplays && !navigator.mozGetVRDevices && !navigator.getVRDevices) {
@@ -63,8 +62,8 @@ THREE.VREffect = function ( renderer, done ) {
 			//we need these to be objects instead of arrays in order to process the information correctly
 			self.leftEyeTranslation = {x: self.leftEyeTranslation[0], y:self.leftEyeTranslation[1], z:self.leftEyeTranslation[2], w:0 };
 			self.rightEyeTranslation = {x: self.rightEyeTranslation[0], y:self.rightEyeTranslation[1], z:self.rightEyeTranslation[2], w:0}
-			g_leftCurrentBoost = translateByVector(g_geometry, self.leftEyeTranslation);
-			g_rightCurrentBoost = translateByVector(g_geometry, self.rightEyeTranslation);
+			g_stereoBoosts[0] = translateByVector(g_geometry, self.leftEyeTranslation);
+			g_stereoBoosts[1] = translateByVector(g_geometry, self.rightEyeTranslation);
 			self.getEyeRotation(self.leftEyeTranslation.x);
 		}
 
@@ -128,74 +127,23 @@ THREE.VREffect = function ( renderer, done ) {
 	this.render = function ( scene, camera, animate ) {
 		var renderer = this._renderer;
 		var vrHMD = this._vrHMD;
-		renderer.setScissorTest( false );
 		// VR render mode if HMD is available
 		if ( vrHMD ) {
+			g_material.uniforms.isStereo.value = 1;
 			vrHMD.requestAnimationFrame(animate);
-			this.renderStereo.apply( this, [scene, camera] );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
 				// vrHMD.getAnimationFrame(frameData);
 				vrHMD.submitFrame();
 			}
-			return;
 		}
 
 		requestAnimationFrame(animate);
-		if (iconHidden && this.phoneVR.orientationIsAvailable()) {
+		if (iconHidden) {
 			iconHidden = false;
 			document.getElementById("vr-icon").style.display = "block";
 		}
 
-		if ( this.phoneVR.isVRMode === true && this.phoneVR.orientationIsAvailable()) { //default to stereo render for devices with orientation sensor, like mobile
-			this.renderStereo.apply( this, [scene, camera] );
-			return;
-		}
-
-		if ( guiInfo.toggleStereo ) { //change this to true to debug stereo render
-			fixLeaveStereo = true;
-			this.renderStereo.apply( this, [scene, camera] );
-			return;
-		}
-
-		if(fixLeaveStereo && !guiInfo.toggleStereo){
-			fixLeaveStereo = false;
-			var size = renderer.getSize();
-			renderer.setScissorTest(false);
-			renderer.clear();
-			renderer.setViewport(0,0,size.width, size.height);
-		}
-
-		// Regular render mode if not HMD
-		g_material.uniforms.isStereo.value = 0;
 		renderer.render.apply( this._renderer, [scene, camera]  );
-	};
-
-	this.renderStereo = function( scene, camera, renderTarget, forceClear ) {
-		var renderer = this._renderer;
-		var size = renderer.getSize();
-		var rendererWidth = size.width;
-		var rendererHeight = size.height;
-		var eyeDivisionLine = rendererWidth / 2;
-
-		renderer.setScissorTest( true );
-		renderer.clear();
-
-		if ( camera.parent === null ) {
-			camera.updateMatrixWorld();
-		}
-
-		// render left eye
-		g_material.uniforms.isStereo.value = -1;
-		renderer.setViewport( 0, 0, eyeDivisionLine, rendererHeight );
-		renderer.setScissor( 0, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, camera );
-
-		//render right eye
-		g_material.uniforms.isStereo.value = 1;
-		renderer.setViewport( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
-		renderer.setScissor( eyeDivisionLine, 0, eyeDivisionLine, rendererHeight );
-		renderer.render( scene, camera );
-
 	};
 
 	this.setSize = function( width, height ) {

@@ -297,6 +297,7 @@ THREE.VRController.prototype.update = function(){
 		g_controllerDualPoints[5] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.0, 0.1))));
 	}*/
 	 
+	g_material.uniforms.controllerCount.value = this.controllers.length;
 	this.pollForChanges()
 	this.applyVibes()
 	if( typeof this.updateCallback === 'function' ) this.updateCallback()

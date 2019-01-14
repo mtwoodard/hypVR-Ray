@@ -20,11 +20,10 @@ function updateEyes(){
   g_effect.leftEyeTranslation.x = guiInfo.eToHScale * guiInfo.halfIpDistance;
   g_effect.rightEyeTranslation.x = guiInfo.eToHScale * -guiInfo.halfIpDistance;
 
-  g_leftCurrentBoost = translateByVector(g_geometry,g_effect.leftEyeTranslation);
-  g_rightCurrentBoost = translateByVector(g_geometry,g_effect.rightEyeTranslation);
-  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x);
-  g_material.uniforms.leftCurrentBoost.value = g_leftCurrentBoost;
-  g_material.uniforms.rightCurrentBoost.value = g_rightCurrentBoost;
+  g_stereoBoosts[0] = translateByVector(g_geometry,g_effect.leftEyeTranslation);
+  g_stereoBoosts[1] = translateByVector(g_geometry,g_effect.rightEyeTranslation);
+  g_effect.getEyeRotation(g_effect.leftEyeTranslation.x, guiInfo.rotateEyes);
+  g_material.uniforms.stereoBoosts.value = g_stereoBoosts;
 }
 
 function getGeometryFrag()
@@ -178,7 +177,6 @@ function updateUniformsFromUI()
   g_material.uniforms.globalObjectBoosts.value = globalObjectBoosts;
   g_material.uniforms.invGlobalObjectBoosts.value = invGlobalObjectBoosts;
   g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
-  g_material.uniforms.globalObjectTypes.value = globalObjectTypes;
   
   g_material.uniforms.geometry.value = g;
   g_material.uniforms.invGenerators.value = invGens;
@@ -216,6 +214,8 @@ var initGui = function(){
     maxSteps: 31,
     halfIpDistance: 0.03200000151991844,
     falloffModel: 1,
+    renderShadows: 0,
+    shadowSoftness: 0,
     screenshotWidth: g_screenShotResolution.x,
     screenshotHeight: g_screenShotResolution.y,
     resetPosition: function(){
@@ -240,6 +240,8 @@ var initGui = function(){
   var scaleController = gui.add(guiInfo, 'eToHScale', 0.25,4).name("Euclid To Hyp");
   var fovController = gui.add(guiInfo, 'fov',40,180).name("FOV");
   var lightFalloffController = gui.add(guiInfo, 'falloffModel', {InverseLinear: 1, InverseSquare:2, InverseCube:3, Physical: 4, None:5}).name("Light Falloff");
+  var shadowController = gui.add(guiInfo, 'renderShadows', {NoShadows: 0, Local: 1, Global: 2, LocalAndGlobal: 3}).name("Shadows");
+  var softnessController = gui.add(guiInfo, 'shadowSoftness', 0,0.25).name("Shadow Softness");
   gui.add(guiInfo, 'resetPosition').name("Reset Position");
   var screenshotFolder = gui.addFolder('Screenshot');
   var widthController = screenshotFolder.add(guiInfo, 'screenshotWidth');
@@ -271,6 +273,34 @@ var initGui = function(){
     updateUniformsFromUI();
   });
 
+  shadowController.onFinishChange(function(value){
+    if(value == 0){
+      g_material.uniforms.renderShadows.value[0] = false;
+      g_material.uniforms.renderShadows.value[1] = false;
+    }
+    else if(value == 1){ //Local
+      g_material.uniforms.renderShadows.value[0] = true;
+      g_material.uniforms.renderShadows.value[1] = false;
+    }
+    else if(value == 2){ //Global
+      g_material.uniforms.renderShadows.value[0] = false;
+      g_material.uniforms.renderShadows.value[1] = true;
+    }
+    else{ //Local and Global
+      g_material.uniforms.renderShadows.value[0] = true;
+      g_material.uniforms.renderShadows.value[1] = true;
+    }
+  });
+
+  softnessController.onChange(function(value){
+    if(value === 0.0){
+      g_material.uniforms.shadSoft.value = 128.0;
+    }
+    else{
+      g_material.uniforms.shadSoft.value = 1.0/value;
+    }
+  });
+
   pController.onFinishChange(function(value) {
 	  updateUniformsFromUI();
   });
@@ -292,7 +322,6 @@ var initGui = function(){
   });
 
   fovController.onChange(function(value){
-    g_virtCamera.fov = value;
     g_material.uniforms.fov.value = value;
   });
 
@@ -327,11 +356,15 @@ var initGui = function(){
     var crosshairRight = document.getElementById("crosshairRight");
     if(guiInfo.toggleUI){
       if(value){
+        g_material.uniforms.isStereo.value = 1;
         crosshairLeft.style.visibility = 'visible';
         crosshairRight.style.visibility = 'visible';
         crosshair.style.visibility = 'hidden';
       }
       else{
+        g_material.uniforms.isStereo.value = 0;
+        g_material.uniforms.screenResolution.value.x = window.innerWidth;
+        g_material.uniforms.screenResolution.value.y = window.innerHeight;
         crosshairLeft.style.visibility = 'hidden';
         crosshairRight.style.visibility = 'hidden';
         crosshair.style.visibility = 'visible';
@@ -350,6 +383,6 @@ var initGui = function(){
   sceneController.onFinishChange(function(index){
 	  var geoFrag = getGeometryFrag();
     g_material.needsUpdate = true;
-    g_material.fragmentShader = globalsFrag.concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
+    g_material.fragmentShader = globalsFrag.concat(lightingFrag).concat(geoFrag).concat(scenesFrag[index]).concat(mainFrag);
   });
 }

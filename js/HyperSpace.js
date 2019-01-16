@@ -199,30 +199,37 @@ var initObjects = function(g){
 // Sets up the scene
 //-------------------------------------------------------
 var init = function(){
-  //Setup our THREE scene--------------------------------
-	time = Date.now();
-	textFPS = document.getElementById('fps');
-  scene = new THREE.Scene();
-  renderer = new THREE.WebGLRenderer();
-  document.body.appendChild(renderer.domElement);
-  g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
-  g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
-  g_effect = new THREE.VREffect(renderer);
-  camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
-  g_controls = new THREE.Controls();
-  g_rotation = new THREE.Quaternion();
-  g_controllerBoosts.push(new THREE.Matrix4());
-  g_controllerBoosts.push(new THREE.Matrix4());
-  g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
-  g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
-  g_invCellBoost = new THREE.Matrix4();
-  g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
-	initGenerators(4,3,6);
-  initLights(g_geometry);
-  initObjects(g_geometry);
-	//We need to load the shaders from file
-  //since web is async we need to wait on this to finish
-  loadShaders();
+  if(WEBGL.isWebGL2Available() === false){
+    document.body.appendChild(WEBGL.getWebGL2ErrorMessage());
+  }
+  else{
+    //Setup our THREE scene--------------------------------
+	  time = Date.now();
+	  textFPS = document.getElementById('fps');
+    scene = new THREE.Scene();
+    var canvas  = document.createElement('canvas');
+    var context = canvas.getContext('webgl2');
+    renderer = new THREE.WebGLRenderer({canvas: canvas, context: context});
+    document.body.appendChild(renderer.domElement);
+    g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    g_effect = new THREE.VREffect(renderer);
+    camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
+    g_controls = new THREE.Controls();
+    g_rotation = new THREE.Quaternion();
+    g_controllerBoosts.push(new THREE.Matrix4());
+    g_controllerBoosts.push(new THREE.Matrix4());
+    g_currentBoost = new THREE.Matrix4(); // boost for camera relative to central cell
+    g_cellBoost = new THREE.Matrix4(); // boost for the cell that we are in relative to where we started
+    g_invCellBoost = new THREE.Matrix4();
+    g_geometry = Geometry.Hyperbolic; // we start off hyperbolic
+	  initGenerators(4,3,6);
+    initLights(g_geometry);
+    initObjects(g_geometry);
+	  //We need to load the shaders from file
+    //since web is async we need to wait on this to finish
+    loadShaders();
+  }
 }
 
 var globalsFrag;

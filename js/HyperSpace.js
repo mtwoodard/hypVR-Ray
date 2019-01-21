@@ -270,7 +270,6 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
 }
 
 var finishInit = function(fShader){
-//  console.log(fShader);
   g_material = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
@@ -288,12 +287,11 @@ var finishInit = function(fShader){
       lightIntensities:{type:"v3v", value:lightIntensities},
       attnModel:{type:"i", value:attnModel},
       renderShadows:{type:"bv", value:[false, false]},
-      shadSoft:{type:"f", value:128.0},
+      shadSoft:{type:"f", value:10000.0},
       texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
       // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
-      //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},

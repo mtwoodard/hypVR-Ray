@@ -135,6 +135,7 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal, mat4 globalTransMatrix){
     if(lightIntensities[i].w != 0.0){
       TLP = lightPositions[i]*globalTransMatrix;
       color += lightingCalculations(SP, TLP, V, baseColor, lightIntensities[i], globalTransMatrix);
+      color += 0.2 * glow[i] * lightIntensities[i].xyz;
     }
   }
 

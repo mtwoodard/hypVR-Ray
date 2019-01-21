@@ -294,7 +294,7 @@ var initGui = function(){
 
   softnessController.onChange(function(value){
     if(value === 0.0){
-      g_material.uniforms.shadSoft.value = 128.0;
+      g_material.uniforms.shadSoft.value = 10000.0;
     }
     else{
       g_material.uniforms.shadSoft.value = 1.0/value;

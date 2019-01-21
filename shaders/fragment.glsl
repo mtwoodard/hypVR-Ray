@@ -1,6 +1,7 @@
 //GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
 float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithLights){
   float distance = maxDist;
+  float glowStrength = 4.0;
   if(collideWithLights){
     //Light Objects
     for(int i=0; i<NUM_LIGHTS; i++){
@@ -13,6 +14,9 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
           hitWhich = 1;
           globalLightColor = lightIntensities[i];
           return distance;
+        }
+        else{
+          glow[i] = max(glow[i], 1.0-(glowStrength*distance));
         }
       }
     }
@@ -212,13 +216,20 @@ void main(){
   rayDirV *= currentBoost;
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
+
+  for(int i = 0; i<NUM_LIGHTS+1; i++){
+    glow[i] = 0.0;
+  }
+
   //get our raymarched distance back ------------------------
   mat4 totalFixMatrix = mat4(1.0);
   raymarch(rayOrigin, rayDirVPrime, totalFixMatrix);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    gl_FragColor = vec4(0.0);
+    for(int i = 0; i<NUM_LIGHTS; i++){
+      gl_FragColor = vec4(0.2 * glow[i] * lightIntensities[i].xyz, 1.0);
+    }
     return;
   }
   else if(hitWhich == 1){ // global lights

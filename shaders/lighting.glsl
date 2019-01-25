@@ -66,9 +66,9 @@ vec4 texcube(vec4 samplePoint, mat4 toOrigin){
     vec3 p = mod(newSP.xyz,1.0);
     vec3 n = geometryNormalize(N*toOrigin, true).xyz; //Very hacky you are warned
     vec3 m = pow(abs(n), vec3(k));
-    vec4 x = texture2D(texture, p.yz);
-    vec4 y = texture2D(texture, p.zx);
-    vec4 z = texture2D(texture, p.xy);
+    vec4 x = texture(tex, p.yz);
+    vec4 y = texture(tex, p.zx);
+    vec4 z = texture(tex, p.xy);
     return (x*m.x + y*m.y + z*m.z) / (m.x+m.y+m.z);
 }
 

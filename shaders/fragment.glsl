@@ -218,11 +218,11 @@ void main(){
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    gl_FragColor = vec4(0.0);
+    out_FragColor = vec4(0.0);
     return;
   }
   else if(hitWhich == 1){ // global lights
-    gl_FragColor = vec4(globalLightColor.rgb, 1.0);
+    out_FragColor = vec4(globalLightColor.rgb, 1.0);
     return;
   }
   else{ // objects
@@ -234,6 +234,6 @@ void main(){
     }else{ // local objects
       color = phongModel(mat4(1.0), false, globalTransMatrix);
     }
-    gl_FragColor = vec4(color, 1.0);
+    out_FragColor = vec4(color, 1.0);
   }
 }

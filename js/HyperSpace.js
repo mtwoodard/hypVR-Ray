@@ -296,11 +296,10 @@ var finishInit = function(fShader){
       attnModel:{type:"i", value:attnModel},
       renderShadows:{type:"bv", value:[false, false]},
       shadSoft:{type:"f", value:128.0},
-      texture:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
-      // texture:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
+      tex:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
+      //tex:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
-      //controllerDualPoints:{type:"v4v", value:g_controllerDualPoints},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
       invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
@@ -354,10 +353,10 @@ var finishInit = function(fShader){
 var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   g_material.uniforms.maxSteps.value = maxSteps;
-
+  
   g_controls.update();
   THREE.VRController.update();
-
+  
   g_effect.render(scene, camera, animate);
 }
 

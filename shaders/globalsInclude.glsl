@@ -10,6 +10,7 @@ const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
 //Global Variables
 //--------------------------------------------
+out vec4 out_FragColor;
 vec4 sampleEndPoint = vec4(1, 1, 1, 1);
 vec4 sampleTangentVector = vec4(1, 1, 1, 1);
 vec4 N = ORIGIN; //normal vector
@@ -37,7 +38,7 @@ uniform vec4 lightIntensities[6]; //w component is the light's attenuation -- 6 
 uniform int attnModel;
 uniform bool renderShadows[2];
 uniform float shadSoft;
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 //uniform vec4 controllerDualPoints[6];
@@ -77,18 +78,6 @@ vec3 qtransform( vec4 q, vec3 v ){
 //Raymarch Functions
 float unionSDF(float d1, float d2){
   return min(d1, d2);
-}
-
-//--------------------------------------------------------------------
-// Hyperbolic Functions
-//--------------------------------------------------------------------
-float cosh(float x){
-  float eX = exp(x);
-  return (0.5 * (eX + 1.0/eX));
-}
-
-float acosh(float x){ //must be more than 1
-  return log(x + sqrt(x*x-1.0));
 }
 
 //--------------------------------------------------------------------

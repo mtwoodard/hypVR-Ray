@@ -25,17 +25,6 @@ vec4 geometryFixDirection(vec4 u, vec4 v, mat4 fixMatrix){
 }
 
 //-------------------------------------------------------
-//Hyperbolic Math functions
-//-------------------------------------------------------
-float sinh(float x){
-  float eX = exp(x);
-  return (0.5 * (eX - 1.0/eX));
-}
-float asinh(float x){
-  return log(x + sqrt(x*x+1.0));
-}
-
-//-------------------------------------------------------
 //Hyperboloid Functions
 //-------------------------------------------------------
 

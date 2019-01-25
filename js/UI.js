@@ -175,7 +175,6 @@ function updateUniformsFromUI()
   g_material.uniforms.lightIntensities.value = lightIntensities;
   initObjects(g_geometry);
   g_material.uniforms.globalObjectBoosts.value = globalObjectBoosts;
-  g_material.uniforms.invGlobalObjectBoosts.value = invGlobalObjectBoosts;
   g_material.uniforms.globalObjectRadii.value = globalObjectRadii;
   
   g_material.uniforms.geometry.value = g;

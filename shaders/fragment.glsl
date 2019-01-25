@@ -135,15 +135,13 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
   vec4 localrO = rO; vec4 localrD = rD;
   totalFixMatrix = mat4(1.0);
   mat4 fixMatrix = mat4(1.0);
-  int fakeI = 0;
   
   // Trace the local scene, then the global scene:
-  for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps || globalDepth >= maxDist){
+  for(int i = 0; i< maxSteps; i++){
+    if(globalDepth >= maxDist){
       //when we break it's as if we reached our max marching steps
       break;
     }
-    fakeI++;
     vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
     if(isOutsideCell(localEndPoint, fixMatrix)){
       totalFixMatrix *= fixMatrix;
@@ -167,12 +165,7 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
   // Set localDepth to our new max tracing distance:
   localDepth = min(globalDepth, maxDist);
   globalDepth = MIN_DIST;
-  fakeI = 0;
-  for(int i = 0; i< MAX_MARCHING_STEPS; i++){
-    if(fakeI >= maxSteps){
-      break;
-    }
-    fakeI++;
+  for(int i = 0; i< maxSteps; i++){
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     float globalDist = globalSceneSDF(globalEndPoint, invCellBoost, true);
     if(globalDist < EPSILON){
@@ -230,7 +223,7 @@ void main(){
     vec3 color;
     mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
     if(hitWhich == 2){ // global objects
-      color = phongModel(invGlobalObjectBoosts[0], true, globalTransMatrix);
+      color = phongModel(inverse(globalObjectBoosts[0]), true, globalTransMatrix);
     }else{ // local objects
       color = phongModel(mat4(1.0), false, globalTransMatrix);
     }

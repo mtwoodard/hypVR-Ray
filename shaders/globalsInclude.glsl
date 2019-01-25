@@ -43,7 +43,6 @@ uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 //uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoosts[4];
-uniform mat4 invGlobalObjectBoosts[4]; 
 uniform vec3 globalObjectRadii[4];
 //--------------------------------------------
 //Scene Dependent Variables
@@ -69,11 +68,6 @@ uniform vec4 simplexDualPoints[4];
 // We'll need more of these later when we support more symmetry groups.
 uniform int cut1;
 uniform int cut4;
-
-//Quaternion Math
-vec3 qtransform( vec4 q, vec3 v ){
-  return v + 2.0*cross(cross(v, -q.xyz ) + q.w*v, -q.xyz);
-}
 
 //Raymarch Functions
 float unionSDF(float d1, float d2){

@@ -178,14 +178,12 @@ var initLights = function(g){
 // Sets up global objects
 //-------------------------------------------------------
 var globalObjectBoosts = [];
-var invGlobalObjectBoosts = [];
 var globalObjectRadii = [];
 var globalObjectTypes = [];
 
 //TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
   globalObjectBoosts = [];
-  invGlobalObjectBoosts = [];
   globalObjectRadii = [];
   globalObjectTypes = [];
   SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
@@ -301,7 +299,6 @@ var finishInit = function(fShader){
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
-      invGlobalObjectBoosts:{type:"m4v", value:invGlobalObjectBoosts},
       globalObjectRadii:{type:"v3v", value:globalObjectRadii},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},

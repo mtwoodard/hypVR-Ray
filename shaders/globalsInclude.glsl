@@ -13,7 +13,6 @@ vec4 sampleTangentVector = vec4(1, 1, 1, 1);
 vec4 N = ORIGIN; //normal vector
 vec4 globalLightColor = ORIGIN;
 int hitWhich = 0;
-float glow[NUM_LIGHTS+1];
 //-------------------------------------------
 //Translation & Utility Variables
 //--------------------------------------------

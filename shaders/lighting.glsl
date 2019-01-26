@@ -131,21 +131,17 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal, mat4 globalTransMatrix){
   //Lighting Calculations
   //--------------------------------------------
   //Standard Light Objects
-  for(int i = 0; i<NUM_LIGHTS; i++){
+  for(int i = 0; i<3; i++){
     if(lightIntensities[i].w != 0.0){
       TLP = lightPositions[i]*globalTransMatrix;
       color += lightingCalculations(SP, TLP, V, baseColor, lightIntensities[i], globalTransMatrix);
     }
   }
 
-  //Lights for Controllers
-  for(int i = 0; i<2; i++){
-    if(controllerCount == 0) break; //if there are no controllers do nothing
-    else TLP = ORIGIN*controllerBoosts[i]*currentBoost*cellBoost*globalTransMatrix;
-
-    color += lightingCalculations(SP, TLP, V, baseColor, lightIntensities[i+4], globalTransMatrix);
-
-    if(controllerCount == 1) break; //if there is one controller only do one loop
+  //Light for Controller
+  if(controllerCount != 0){
+    TLP = ORIGIN*controllerBoosts[0]*currentBoost*cellBoost*globalTransMatrix;
+    color += lightingCalculations(SP, TLP, V, baseColor, lightIntensities[4], globalTransMatrix);
   }
 
   return color;

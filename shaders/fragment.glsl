@@ -3,7 +3,7 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
   float distance = maxDist;
   if(collideWithLights){
     //Light Objects
-    for(int i=0; i<NUM_LIGHTS; i++){
+    for(int i=0; i<3; i++){
       float objDist;
       if(lightIntensities[i].w == 0.0) { objDist = maxDist; }
       else{
@@ -16,18 +16,22 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
         }
       }
     }
-    //Controller Objects
-    for(int i=0; i<2; i++){
-      if(controllerCount != 0){
-        float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[i]*currentBoost, 1.0/(10.0 * lightIntensities[i+NUM_LIGHTS].w));
-        distance = min(distance, objDist);
-        if(distance < EPSILON){
-          hitWhich = 1;
-          globalLightColor = lightIntensities[i+4];
-          return distance;
-        }
-        if(controllerCount == 1) break;
+    if(controllerCount != 0){
+      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[0]*currentBoost, 1.0/(10.0 * lightIntensities[4].w));
+      distance = min(distance, objDist);
+      if(distance < EPSILON){
+        hitWhich = 1;
+        globalLightColor = lightIntensities[4];
+        return distance;
       }
+    }
+  }
+  if(controllerCount == 2){
+    float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[1]*currentBoost, 1.0/(10.0 * lightIntensities[4].w));
+    distance = min(distance, objDist);
+    if(distance < EPSILON){
+      hitWhich = 2;
+      return distance;
     }
   }
   //Global Objects

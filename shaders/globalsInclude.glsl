@@ -31,14 +31,13 @@ uniform float maxDist;
 //Lighting Variables & Global Object Variables
 //--------------------------------------------
 uniform vec4 lightPositions[4];
-uniform vec4 lightIntensities[6]; //w component is the light's attenuation -- 6 since we need controllers
+uniform vec4 lightIntensities[5]; //w component is the light's attenuation -- 5 for our controller
 uniform int attnModel;
 uniform bool renderShadows[2];
 uniform float shadSoft;
 uniform sampler2D texture;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
-//uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoosts[4];
 uniform mat4 invGlobalObjectBoosts[4]; 
 uniform vec3 globalObjectRadii[4];

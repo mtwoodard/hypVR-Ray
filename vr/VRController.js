@@ -73,9 +73,9 @@ THREE.VRController = function( gamepad ){
 			})
 		}
 		if( supported.buttons !== undefined ){
-			supported.buttons.forEach( function( buttonName, i ){
-				buttons[ i ].name = buttonName
-			})
+			//supported.buttons.forEach( function( buttonName, i ){
+			//	buttons[ i ].name = buttonName
+			//})
 		}
 		buttonNamePrimary = supported.primary
 	}
@@ -85,7 +85,7 @@ THREE.VRController = function( gamepad ){
 	})
 
 	if( buttonNamePrimary === undefined ) buttonNamePrimary = gamepad.buttons.length > 1 ? 'button_1' : 'button_0'
-	buttons.byName[ buttonNamePrimary ].isPrimary = true
+	//buttons.byName[ buttonNamePrimary ].isPrimary = true
 
 	//  Let’s make some getters! 
 	this.getHandedness = function(){
@@ -297,7 +297,6 @@ THREE.VRController.prototype.update = function(){
 		g_controllerDualPoints[5] = hyperPos.geometryDirection(g_geometry, hyperPos.applyMatrix4(translateByVector(g_geometry, new THREE.Vector3(0.0, 0.0, 0.1))));
 	}*/
 	 
-	g_material.uniforms.controllerCount.value = this.controllers.length;
 	this.pollForChanges()
 	this.applyVibes()
 	if( typeof this.updateCallback === 'function' ) this.updateCallback()
@@ -420,7 +419,7 @@ THREE.VRController.onGamepadDisconnect = function( gamepad ){
 
 THREE.VRController.update = function(){
 	var gamepads, gamepad, i
-
+	
 	if( navigator.getGamepads === undefined ) return
 	gamepads = navigator.getGamepads()
 	for( i = 0; i < gamepads.length; i ++ ){

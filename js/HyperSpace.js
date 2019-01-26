@@ -171,7 +171,6 @@ var initLights = function(g){
   PointLightObject(g, new THREE.Vector3(0,-1.1,0), new THREE.Vector4(1,1,1,1));
   //Add light info for controllers
   lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
-  lightIntensities.push(new THREE.Vector4(1.0, 0.404, 0.19, 2));
 }
 
 //-------------------------------------------------------
@@ -188,9 +187,8 @@ var initObjects = function(g){
   invGlobalObjectBoosts = [];
   globalObjectRadii = [];
   globalObjectTypes = [];
-  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
-  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.05); //radii must be less than one!
-  for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
+  SphereObject(g, new THREE.Vector3(0,-0.7,0), 0.2); // geometry, position, radius/radii
+  for(var i = 1; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
     EmptyObject();
   }
 }

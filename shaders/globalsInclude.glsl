@@ -1,3 +1,11 @@
+//NOTE:
+//This is the first part of the shader, the rest of the shader code is contained in the various
+//different .glsl files. Since we are trying to involve various geometries, we reassemble
+//the shader code via javascript when needed. For reference here is the order of the files
+//globalsInclude.glsl -> lighting.glsl -> [hyperbolic | euclidean | spherical].glsl -> 
+//[simplexCuts | edgeTubes | medialSurfaces.glsl | cubeSides].glsl -> fragment.glsl
+
+
 //--------------------------------------------
 //Global Constants
 //--------------------------------------------

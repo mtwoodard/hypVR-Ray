@@ -177,20 +177,12 @@ var initLights = function(g){
 //-------------------------------------------------------
 // Sets up global objects
 //-------------------------------------------------------
-var globalObjectBoosts = [];
-var globalObjectRadii = [];
-var globalObjectTypes = [];
+var globalObjectBoost;
+var globalObjectRadius;
 
 //TODO: CREATE GLOBAL OBJECT CONSTRUCTORS
 var initObjects = function(g){
-  globalObjectBoosts = [];
-  globalObjectRadii = [];
-  globalObjectTypes = [];
-  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius/radii
-  SphereObject(g, new THREE.Vector3(0.5,0,0), 0.05); //radii must be less than one!
-  for(var i = 2; i<4; i++){ // We need to fill out our arrays with empty objects for glsl to be happy
-    EmptyObject();
-  }
+  SphereObject(g, new THREE.Vector3(-0.5,0,0), 0.2); // geometry, position, radius
 }
 
 //-------------------------------------------------------
@@ -298,8 +290,8 @@ var finishInit = function(fShader){
       //tex:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
-      globalObjectBoosts:{type:"m4v", value:globalObjectBoosts},
-      globalObjectRadii:{type:"v3v", value:globalObjectRadii},
+      globalObjectBoost:{type:"m4v", value:globalObjectBoost},
+      globalObjectRadius:{type:"v3v", value:globalObjectRadius},
 			halfCubeDualPoints:{type:"v4v", value:hCDP},
       halfCubeWidthKlein:{type:"f", value: hCWK},
       cut1:{type:"i", value:g_cut1},
@@ -315,7 +307,6 @@ var finishInit = function(fShader){
     },
     defines: {
       NUM_LIGHTS: lightPositions.length,
-      NUM_OBJECTS: globalObjectBoosts.length
     },
     vertexShader: document.getElementById('vertexShader').textContent,
     fragmentShader: fShader,

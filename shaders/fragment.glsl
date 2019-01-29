@@ -31,16 +31,14 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
     }
   }
   //Global Objects
-  for(int i=0; i<NUM_OBJECTS; i++) {
-    float objDist;
-    if(length(globalObjectRadii[i]) == 0.0){ objDist = maxDist;}
-    else{
-      objDist = sphereSDF(samplePoint, globalObjectBoosts[i][3] * globalTransMatrix, globalObjectRadii[i].x);
-      distance = min(distance, objDist);
-      if(distance < EPSILON){
-        hitWhich = 2;
-      }
-    }
+  float objDist;
+  if(length(globalObjectRadius) == 0.0){ objDist = maxDist;}
+  else{
+    objDist = sphereSDF(samplePoint, globalObjectBoost[3] * globalTransMatrix, globalObjectRadius);
+    distance = min(distance, objDist);
+    if(distance < EPSILON){
+      hitWhich = 2;
+     }
   }
   return distance;
 }
@@ -223,7 +221,7 @@ void main(){
     vec3 color;
     mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
     if(hitWhich == 2){ // global objects
-      color = phongModel(inverse(globalObjectBoosts[0]), true, globalTransMatrix);
+      color = phongModel(inverse(globalObjectBoost), true, globalTransMatrix);
     }else{ // local objects
       color = phongModel(mat4(1.0), false, globalTransMatrix);
     }

@@ -306,29 +306,8 @@ var PointLightObject = function(g, pos, colorInt){ //position is a euclidean Vec
   lightIntensities.push(colorInt);
 }
 
-var EmptyObject = function(){
-  globalObjectBoosts.push(new THREE.Matrix4());
-  globalObjectRadii.push(new THREE.Vector3(0,0,0));
-  globalObjectTypes.push(-1);
-}
-
-var SphereObject = function(g, pos, radii){
+var SphereObject = function(g, pos, radius){
   var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
-  globalObjectBoosts.push(objMat);
-  globalObjectRadii.push(new THREE.Vector3(radii, radii, radii));
-  globalObjectTypes.push(0);
-}
-
-var EllipsoidObject = function(g, pos, radii){
-  var objMat = new THREE.Matrix4().multiply(translateByVector(g, pos));
-  var scaleMatrix = new THREE.Matrix4().set(
-    radii.x, 0, 0, 0,
-    0, radii.y, 0, 0,
-    0, 0, radii.z, 0,
-    0, 0, 0, 1
-  );
-  objMat.multiply(scaleMatrix);
-  globalObjectBoosts.push(objMat);
-  globalObjectRadii.push(radii);
-  globalObjectTypes.push(1);
+  globalObjectBoost = objMat;
+  globalObjectRadius = radius
 }

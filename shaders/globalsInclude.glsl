@@ -42,8 +42,8 @@ uniform sampler2D tex;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 //uniform vec4 controllerDualPoints[6];
-uniform mat4 globalObjectBoosts[4];
-uniform vec3 globalObjectRadii[4];
+uniform mat4 globalObjectBoost;
+uniform float globalObjectRadius;
 //--------------------------------------------
 //Scene Dependent Variables
 //--------------------------------------------

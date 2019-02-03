@@ -5,7 +5,7 @@ Hyperbolic VR using Raymarching.
 
 Based on the websperience  by Vi Hart, Andrea Hawksley, Sabetta Matsumoto and Henry Segerman featured over at https://github.com/hawksley/hypVR. This project seeks to improve upon the original by using raymarching as a technique to improve the visible depth of the environment. HypVR-Ray is being worked by Michael Woodard, Henry Segerman, and Roice Nelson and is helped by the work of Jeff Week's Curved Spaces, Mozilla's webVR framework for THREEjs, and Jamie Wong's Ray Marching and Signed Distance Functions.
 
-This project is partially supported by NSF grant DMS-1708239.
+This material is based upon work supported by the National Science Foundation under Grant No. DMS-1708239. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
 
 Check out this project at www.michaelwoodard.net/hypVR-Ray/ 
 

@@ -20,16 +20,17 @@ var onResize = function(){
     console.log(controller.inspect());  
     controller.addEventListener('primary press began', function(){ g_controllerMove = true; });
     controller.addEventListener('primary press ended', function(){ g_controllerMove = false; });
+    g_material.uniforms.controllerCount.value++;
 
     //This only works for OpenVR controllers
     //For example the oculus uses thumbstick instead of thumbpad
     controller.addEventListener('thumbpad axes changed', function(event){
         var HueSat = axesToHueSat(event.axes);
-        console.log(HueSat);
+        //console.log(HueSat);
         if(HueSat.x !== 0.5 && HueSat.y !== 0){
             var HSV = new THREE.Vector3(HueSat.x, HueSat.y, 1.0);
             var RGB = HSVtoRGB(HSV);
-            lightIntensities[event.target.gamepad.index + 4] = new THREE.Vector4(RGB.x, RGB.y, RGB.z, 2.0);
+            lightIntensities[4] = new THREE.Vector4(RGB.x, RGB.y, RGB.z, 2.0);
         }
     });
   }
@@ -78,6 +79,10 @@ var onResize = function(){
 document.body.addEventListener('click', function(event){
     if(event.target.id === "vr-icon"){
         event.target.style.display = "none";
+        if (navigator.getVRDisplays) navigator.getVRDisplays().then( g_effect.gotVRDisplay );
+		else if ( navigator.getVRDevices ) navigator.getVRDevices().then( g_effect.gotVRDevices );
+		else navigator.mozGetVRDevices( g_effect.gotVRDevices );
+
     }
 });
 

@@ -54,9 +54,9 @@ THREE.VREffect = function ( renderer, done ) {
 			return;
 		}
 
-		if (navigator.getVRDisplays) navigator.getVRDisplays().then( gotVRDisplay );
-		else if ( navigator.getVRDevices ) navigator.getVRDevices().then( gotVRDevices );
-		else navigator.mozGetVRDevices( gotVRDevices );
+		//if (navigator.getVRDisplays) navigator.getVRDisplays().then( gotVRDisplay );
+		//else if ( navigator.getVRDevices ) navigator.getVRDevices().then( gotVRDevices );
+		//else navigator.mozGetVRDevices( gotVRDevices );
 
 		if(self.leftEyeTranslation.x == undefined){
 			//we need these to be objects instead of arrays in order to process the information correctly
@@ -67,7 +67,7 @@ THREE.VREffect = function ( renderer, done ) {
 			self.getEyeRotation(self.leftEyeTranslation.x);
 		}
 
-		function gotVRDisplay( devices ) {
+		this.gotVRDisplay = function( devices ) {
 			var vrHMD;
 			var error;
 			for ( var i = 0; i < devices.length; ++i ) {
@@ -83,6 +83,7 @@ THREE.VREffect = function ( renderer, done ) {
         			document.getElementById("crosshair").style.visibility = 'hidden';
 					guiInfo.toggleStereo = true;
 					self.getEyeRotation(self.leftEyeTranslation.x);
+					g_material.uniforms.isStereo.value = 1;
 					break; // We keep the first we encounter
 				}
 			}
@@ -93,7 +94,7 @@ THREE.VREffect = function ( renderer, done ) {
 			}
 		}
 
-		function gotVRDevices( devices ) {
+		this.gotVRDevices = function( devices ) {
 			var vrHMD;
 			var error;
 			for ( var i = 0; i < devices.length; ++i ) {
@@ -129,12 +130,13 @@ THREE.VREffect = function ( renderer, done ) {
 		var vrHMD = this._vrHMD;
 		// VR render mode if HMD is available
 		if ( vrHMD ) {
-			g_material.uniforms.isStereo.value = 1;
 			vrHMD.requestAnimationFrame(animate);
+			renderer.render.apply( this._renderer, [scene, camera]  );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
 				// vrHMD.getAnimationFrame(frameData);
 				vrHMD.submitFrame();
 			}
+			return;
 		}
 
 		requestAnimationFrame(animate);

@@ -26,7 +26,7 @@ Running this locally requires a simple web server (to source the shader files at
 Use arrow keys to move and "wasd" to rotate the camera. "q" and "e" roll the camera. To enter VR mode press "v", "enter", or "space".
 
 # Related work
-* Vi Hart, Andrea Hawksley, Elisabetta A. Matsumoto, and Henry Segerman. Non-euclidean virtual reality II: explorations of H3. In Proc. Bridges 2017, pages 33-40. Tessellations Publishing, 2017.
+* Vi Hart, Andrea Hawksley, Elisabetta A. Matsumoto, and Henry Segerman. Non-euclidean virtual reality I: explorations of H3. In Proc. Bridges 2017, pages 33-40. Tessellations Publishing, 2017.
 * Vi Hart, Andrea Hawksley, Elisabetta A. Matsumoto, and Henry Segerman. Non-euclidean virtual reality II: explorations of H2 × E. In Proc. Bridges 2017, pages 41-48. Tessellations Publishing, 2017.
 * Vi Hart, Andrea Hawksley, Henry Segerman, and Marc ten Bosch. Hypernom: Mapping VR headset orientation to S3. In Proc. Bridges 2015, pages 387–390. Tessellations Publishing, 2015.
 * Jeff Weeks. Curved Spaces. a flight simulator for multiconnected universes, available from http://www.geometrygames.org/CurvedSpaces/.

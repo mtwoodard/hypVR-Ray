@@ -23,7 +23,7 @@ Check out this project at www.michaelwoodard.net/hypVR-Ray/
 Running this locally requires a simple web server (to source the shader files at runtime), with the root at the same level as index.html. This can be done in python 3 by running the command "python -m http.server". On Windows, you can set up a server in the Control Panel Administrative Tools, in the IIS Manager (you may need to turn this feature on first). NOTE: The server will need to have a MIME type configuration for .glsl files set to "text/plain".
 
 # Controls
-Use arrow keys to move and "wasd" to rotate the camera. "q" and "e" roll the camera. To enter VR mode press "v", "enter", or "space".
+Use arrow keys to move and "wasd" to rotate the camera. "q" and "e" roll the camera. To enter VR mode first click on the VR icon, then press "v", "enter", or "space" to enable tracking.
 
 # Related work
 * Vi Hart, Andrea Hawksley, Elisabetta A. Matsumoto, and Henry Segerman. Non-euclidean virtual reality I: explorations of H3. In Proc. Bridges 2017, pages 33-40. Tessellations Publishing, 2017.

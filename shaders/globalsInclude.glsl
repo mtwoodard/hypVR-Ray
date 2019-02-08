@@ -20,7 +20,6 @@ int hitWhich = 0;
 //Translation & Utility Variables
 //--------------------------------------------
 uniform int isStereo;
-//uniform int geometry;
 uniform vec2 screenResolution;
 uniform float fov;
 uniform mat4 invGenerators[6];
@@ -41,7 +40,6 @@ uniform float shadSoft;
 uniform sampler2D tex;
 uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
-//uniform vec4 controllerDualPoints[6];
 uniform mat4 globalObjectBoost;
 uniform float globalObjectRadius;
 //--------------------------------------------

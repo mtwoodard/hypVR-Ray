@@ -131,10 +131,12 @@ THREE.VREffect = function ( renderer, done ) {
 		if ( vrHMD ) {
 			g_material.uniforms.isStereo.value = 1;
 			vrHMD.requestAnimationFrame(animate);
+			renderer.render.apply( this._renderer, [scene, camera]  );
 			if (vrHMD.submitFrame !== undefined && this._vrMode) {
 				// vrHMD.getAnimationFrame(frameData);
 				vrHMD.submitFrame();
 			}
+			return;
 		}
 
 		requestAnimationFrame(animate);

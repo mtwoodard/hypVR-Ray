@@ -24,7 +24,6 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
         globalLightColor = lightIntensities[1+NUM_LIGHTS];
         return distance;
       }
-      if(controllerCount == 1) break;
     }
   }
   if(controllerCount == 2){

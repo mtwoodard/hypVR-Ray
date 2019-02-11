@@ -140,6 +140,7 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
   totalFixMatrix = mat4(1.0);
   mat4 fixMatrix = mat4(1.0);
   int fakeI = 0;
+  vec3 seriesRecord = vec3(MIN_DIST, MIN_DIST, MIN_DIST);
   
   // Trace the local scene, then the global scene:
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
@@ -157,6 +158,8 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
     }
     else{
       float localDist = min(0.5,localSceneSDF(localEndPoint));
+      AddToSeriesRecord(seriesRecord, localDist);
+      localDist = GetSeriesDistance(seriesRecord);
       if(localDist < EPSILON){
         hitWhich = 3;
         sampleEndPoint = localEndPoint;
@@ -171,6 +174,7 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
   // Set localDepth to our new max tracing distance:
   localDepth = min(globalDepth, maxDist);
   globalDepth = MIN_DIST;
+  seriesRecord = vec3(MIN_DIST, MIN_DIST, MIN_DIST);
   fakeI = 0;
   for(int i = 0; i< MAX_MARCHING_STEPS; i++){
     if(fakeI >= maxSteps){
@@ -179,6 +183,8 @@ void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
     fakeI++;
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     float globalDist = globalSceneSDF(globalEndPoint, invCellBoost, true);
+    AddToSeriesRecord(seriesRecord, globalDist);
+    globalDist = GetSeriesDistance(seriesRecord);
     if(globalDist < EPSILON){
       // hitWhich has been set by globalSceneSDF
       totalFixMatrix = mat4(1.0);

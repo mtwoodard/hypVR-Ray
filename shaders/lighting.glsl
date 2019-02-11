@@ -14,6 +14,7 @@ float shadowMarch(vec4 origin, vec4 dirToLight, float distToLight, mat4 globalTr
     mat4 fixMatrix = mat4(1.0);
     float k = shadSoft;
     float result = 1.0;
+    vec3 seriesRecord = vec3(MIN_DIST, MIN_DIST, MIN_DIST);
     
     //Local Trace for shadows
     if(renderShadows[0]){
@@ -27,6 +28,8 @@ float shadowMarch(vec4 origin, vec4 dirToLight, float distToLight, mat4 globalTr
         }
         else{
           float localDist = min(0.5,localSceneSDF(localEndPoint));
+          AddToSeriesRecord(seriesRecord, localDist);
+          localDist = GetSeriesDistance(seriesRecord);
           if(localDist < EPSILON){
             return 0.0;
           }
@@ -42,10 +45,13 @@ float shadowMarch(vec4 origin, vec4 dirToLight, float distToLight, mat4 globalTr
 
     //Global Trace for shadows
     if(renderShadows[1]){
+      seriesRecord = vec3(MIN_DIST, MIN_DIST, MIN_DIST);
       globalDepth = EPSILON * 100.0;
       for(int i = 0; i< MAX_MARCHING_STEPS; i++){
         vec4 globalEndPoint = pointOnGeodesic(origin, dirToLight, globalDepth);
         float globalDist = globalSceneSDF(globalEndPoint, globalTransMatrix, false);
+        AddToSeriesRecord(seriesRecord, globalDist);
+        globalDist = GetSeriesDistance(seriesRecord);
         if(globalDist < EPSILON){
           return 0.0;
         }

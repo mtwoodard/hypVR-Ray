@@ -122,3 +122,25 @@ float localSceneSDF(vec4 samplePoint);
 float sphereSDF(vec4 samplePoint, vec4 center, float radius){
   return geometryDistance(samplePoint, center) - radius;
 }
+
+//--------------------------------------------------------------------
+// Raymarch Helpers
+//--------------------------------------------------------------------
+
+//Series Distance
+//recorded distances per step
+void AddToSeriesRecord(inout vec3 d, float newDist){
+  d.x = d.y; 
+  d.y = d.z;
+  d.z = newDist;
+}
+
+float GetSeriesDistance(inout vec3 d){
+  float delta = 0.001;
+  float deltaPrime = 0.002;
+  //Check out issue 68 for further explanation
+  if((d.z < delta) && (d.x > d.y && d.y > d.z) && (abs(d.y*d.y - d.x*d.z) < d.y*d.y*deltaPrime)){
+    d.z = (d.y*d.z)/(d.y-d.z);
+  }
+  return d.z;
+}

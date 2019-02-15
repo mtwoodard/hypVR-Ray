@@ -168,7 +168,7 @@ var initLights = function(g){
   PointLightObject(g, new THREE.Vector3(0,0,1), new THREE.Vector4(0,0,1,2));
   PointLightObject(g, new THREE.Vector3(1.2,0,0), new THREE.Vector4(1,0,0,2));
   PointLightObject(g, new THREE.Vector3(0,1.1,0), new THREE.Vector4(0,1,0,2));
-  PointLightObject(g, new THREE.Vector3(0,-1.1,0), new THREE.Vector4(1,1,1,1));
+  PointLightObject(g, new THREE.Vector3(-1.2,0,0), new THREE.Vector4(1,1,1,2));
   //Add light info for controllers
   lightIntensities.push(new THREE.Vector4(0.49, 0.28, 1.0, 2));
 }

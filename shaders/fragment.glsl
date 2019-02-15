@@ -106,28 +106,19 @@ bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   }
 
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  if(kleinSamplePoint.x > halfCubeWidthKlein){
-    fixMatrix = invGenerators[0];
+  if(abs(kleinSamplePoint.x) > halfCubeWidthKlein){
+    int index = int((1.0-sign(kleinSamplePoint.x))/2.0);
+    fixMatrix = invGenerators[0+index];
     return true;
   }
-  if(kleinSamplePoint.x < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[1];
+  if(abs(kleinSamplePoint.y) > halfCubeWidthKlein){
+    int index = int((1.0-sign(kleinSamplePoint.y))/2.0);
+    fixMatrix = invGenerators[2+index];
     return true;
   }
-  if(kleinSamplePoint.y > halfCubeWidthKlein){
-    fixMatrix = invGenerators[2];
-    return true;
-  }
-  if(kleinSamplePoint.y < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[3];
-    return true;
-  }
-  if(kleinSamplePoint.z > halfCubeWidthKlein){
-    fixMatrix = invGenerators[4];
-    return true;
-  }
-  if(kleinSamplePoint.z < -halfCubeWidthKlein){
-    fixMatrix = invGenerators[5];
+  if(abs(kleinSamplePoint.z) > halfCubeWidthKlein){
+    int index = int((1.0-sign(kleinSamplePoint.z))/2.0);
+    fixMatrix = invGenerators[4+index];
     return true;
   }
   return false;

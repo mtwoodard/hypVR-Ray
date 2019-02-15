@@ -136,7 +136,7 @@ void AddToSeriesRecord(inout vec3 d, float newDist){
 }
 
 float GetSeriesDistance(inout vec3 d){
-  float delta = 0.01;
+  float delta = 0.04;
   float deltaPrime = 0.02;
   //Check out issue 68 for further explanation
   if((d.z < delta) && (d.x > d.y && d.y > d.z) && (abs(d.y*d.y - d.x*d.z) < d.y*d.y*deltaPrime)){

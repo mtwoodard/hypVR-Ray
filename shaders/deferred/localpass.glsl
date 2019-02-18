@@ -86,6 +86,7 @@ float geometryNorm(vec4 v){
 }
 
 vec4 pointOnGeodesic(vec4 u, vec4 vPrime, float dist);
+bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix);
 
 //--------------------------------------------------------------------
 // Generalized SDFs
@@ -98,14 +99,67 @@ float sphereSDF(vec4 samplePoint, vec4 center, float radius){
   return geometryDistance(samplePoint, center) - radius;
 }
 
-//--------------------------------------------------------------------
-// Lighting Functions
-//--------------------------------------------------------------------
+//********************************************************************************************************
+//LIGHTING
+//********************************************************************************************************
 
 //Essentially we are starting at our sample point then marching to the light
 //If we make it to/past the light without hitting anything we return 1
 //otherwise the spot does not receive light from that light source
 //Based off of Inigo Quilez's soft shadows https://iquilezles.org/www/articles/rmshadows/rmshadows.htm
+float shadowMarch(vec4 origin, vec4 dirToLight, float distToLight, mat4 globalTransMatrix){
+    float localDepth = EPSILON * 100.0;
+    float globalDepth = localDepth;
+    vec4 localrO = origin;
+    vec4 localrD = dirToLight;
+    mat4 fixMatrix = mat4(1.0);
+    float k = shadSoft;
+    float result = 1.0;
+    
+    //Local Trace for shadows
+    if(renderShadows[0]){
+      for(int i = 0; i < MAX_MARCHING_STEPS; i++){
+        vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
+
+        if(isOutsideCell(localEndPoint, fixMatrix)){
+          localrO = geometryNormalize(localEndPoint*fixMatrix, false);
+          localrD = geometryFixDirection(localrO, localrD, fixMatrix);
+          localDepth = MIN_DIST; 
+        }
+        else{
+          float localDist = min(0.5,localSceneSDF(localEndPoint));
+          if(localDist < EPSILON){
+            return 0.0;
+          }
+          localDepth += localDist;
+          globalDepth += localDist;
+          result = min(result, k*localDist/globalDepth);
+          if(globalDepth > distToLight){
+            break;
+          }
+        }
+      }  
+    }
+
+    //Global Trace for shadows
+    if(renderShadows[1]){
+      globalDepth = EPSILON * 100.0;
+      for(int i = 0; i< MAX_MARCHING_STEPS; i++){
+        vec4 globalEndPoint = pointOnGeodesic(origin, dirToLight, globalDepth);
+        float globalDist = globalSceneSDF(globalEndPoint, globalTransMatrix, false);
+        if(globalDist < EPSILON){
+          return 0.0;
+        }
+        globalDepth += globalDist;
+        result = min(result, k*globalDist/globalDepth);
+        if(globalDepth > distToLight){
+          return result;
+        }
+      }
+      return result;
+    }
+    return result;
+}
 
 vec4 texcube(vec4 samplePoint, mat4 toOrigin){
     float k = 4.0;
@@ -198,6 +252,10 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal, mat4 globalTransMatrix){
   return color;
 }
 
+//********************************************************************************************************
+//MATH
+//********************************************************************************************************
+
 //-------------------------------------------------------
 // Generalized Functions
 //-------------------------------------------------------
@@ -281,56 +339,40 @@ float geodesicCubeHSDF(vec4 samplePoint, vec4 dualPoint0, vec4 dualPoint1, vec4 
   return sqrt(plane0*plane0+plane1*plane1+plane2*plane2) - 0.01; 
 } 
 
-//GLOBAL OBJECTS SCENE ++++++++++++++++++++++++++++++++++++++++++++++++
-float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithLights){
-  float distance = maxDist;
-  if(collideWithLights){
-    //Light Objects
-    for(int i=0; i<NUM_LIGHTS; i++){
-      float objDist;
-      if(lightIntensities[i].w == 0.0) { objDist = maxDist; }
-      else{
-        objDist = sphereSDF(samplePoint, lightPositions[i]*globalTransMatrix, 1.0/(10.0*lightIntensities[i].w));
-        distance = min(distance, objDist);
-        if(distance < EPSILON){
-          hitWhich = 1;
-          globalLightColor = lightIntensities[i];
-          return distance;
-        }
-      }
-    }
-    if(controllerCount != 0){
-      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[0]*currentBoost, 1.0/(10.0 * lightIntensities[1+NUM_LIGHTS].w));
-      distance = min(distance, objDist);
-      if(distance < EPSILON){
-        hitWhich = 1;
-        globalLightColor = lightIntensities[1+NUM_LIGHTS];
-        return distance;
-      }
-      if(controllerCount == 1) break;
-    }
-  }
-  if(controllerCount == 2){
-    float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[1]*currentBoost, 1.0/(10.0 * lightIntensities[1+NUM_LIGHTS].w));
-    distance = min(distance, objDist);
-    if(distance < EPSILON){
-      hitWhich = 2;
-      return distance;
-    }
-  }
+//********************************************************************************************************
+//LOCAL SCENE
+//********************************************************************************************************
 
-  //Global Objects
-  float objDist;
-  if(length(globalObjectRadius) == 0.0){ objDist = maxDist;}
-  else{
-    objDist = sphereSDF(samplePoint, globalObjectBoost[3] * globalTransMatrix, globalObjectRadius);
-    distance = min(distance, objDist);
-    if(distance < EPSILON){
-      hitWhich = 2;
-     }
-  }
-  return distance;
+float localSceneSDF(vec4 samplePoint) {
+    float sphere = 0.0;
+    if(cut1 == 1) {
+        sphere = sphereSDF(samplePoint, cellPosition, cellSurfaceOffset);
+    }
+    else if(cut1 == 2) {
+        sphere = horosphereHSDF(samplePoint, cellPosition, cellSurfaceOffset);
+    }
+    else if(cut1 == 3) {
+        sphere = geodesicPlaneHSDF(samplePoint, cellPosition, cellSurfaceOffset);
+    }
+
+    float vertexSphere = 0.0;
+    if(cut4 == 1) {
+        vertexSphere = sphereSDF(abs(samplePoint), vertexPosition, vertexSurfaceOffset);
+    }
+    else if(cut4 == 2) {
+        vertexSphere = horosphereHSDF(abs(samplePoint), vertexPosition, vertexSurfaceOffset);
+    }
+    else if(cut4 == 3) {
+        vertexSphere = geodesicPlaneHSDF(abs(samplePoint), vertexPosition, vertexSurfaceOffset);
+    }
+
+    float final = -unionSDF(vertexSphere,sphere);
+    return final;
 }
+
+//********************************************************************************************************
+//FRAGMENT
+//********************************************************************************************************
 
 //NORMAL FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++
 vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyperboloid at p
@@ -341,11 +383,10 @@ vec4 estimateNormal(vec4 p) { // normal vector is in tangent hyperplane to hyper
     vec4 basis_z = vec4(0.0,0.0,p.w,p.z);  // dw/dz = z/denom  /// note that these are not orthonormal!
     basis_y = geometryNormalize(basis_y - geometryDot(basis_y, basis_x)*basis_x, true); // need to Gram Schmidt
     basis_z = geometryNormalize(basis_z - geometryDot(basis_z, basis_x)*basis_x - geometryDot(basis_z, basis_y)*basis_y, true);
-    //p+EPSILON*basis_x should be lorentz normalized however it is close enough to be good enough
-    return geometryNormalize( 
-        basis_x * (globalSceneSDF(p + newEp*basis_x, invCellBoost, true) - globalSceneSDF(p - newEp*basis_x, invCellBoost, true)) +
-        basis_y * (globalSceneSDF(p + newEp*basis_y, invCellBoost, true) - globalSceneSDF(p - newEp*basis_y, invCellBoost, true)) +
-        basis_z * (globalSceneSDF(p + newEp*basis_z, invCellBoost, true) - globalSceneSDF(p - newEp*basis_z, invCellBoost, true)),
+    return geometryNormalize(
+        basis_x * (localSceneSDF(p + newEp*basis_x) - localSceneSDF(p - newEp*basis_x)) +
+        basis_y * (localSceneSDF(p + newEp*basis_y) - localSceneSDF(p - newEp*basis_y)) +
+        basis_z * (localSceneSDF(p + newEp*basis_z) - localSceneSDF(p - newEp*basis_z)),
         true
     );
 }
@@ -361,24 +402,103 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a poi
     return p;
 }
 
+bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  for(int i=0; i<4; i++){
+    vec3 normal = simplexMirrorsKlein[i].xyz;
+    vec3 offsetSample = kleinSamplePoint.xyz - normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+    if( dot(offsetSample, normal) > 1e-7 ) {
+      fixMatrix = invGenerators[i];
+      return true;
+    }
+  }
+  return false;
+}
+
+// This function is intended to be geometry-agnostic.
+bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+  if( useSimplex ) {
+    return isOutsideSimplex( samplePoint, fixMatrix );
+  }
+
+  vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  if(kleinSamplePoint.x > halfCubeWidthKlein){
+    fixMatrix = invGenerators[0];
+    return true;
+  }
+  if(kleinSamplePoint.x < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[1];
+    return true;
+  }
+  if(kleinSamplePoint.y > halfCubeWidthKlein){
+    fixMatrix = invGenerators[2];
+    return true;
+  }
+  if(kleinSamplePoint.y < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[3];
+    return true;
+  }
+  if(kleinSamplePoint.z > halfCubeWidthKlein){
+    fixMatrix = invGenerators[4];
+    return true;
+  }
+  if(kleinSamplePoint.z < -halfCubeWidthKlein){
+    fixMatrix = invGenerators[5];
+    return true;
+  }
+  return false;
+}
+
 void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
-  float globalDepth = MIN_DIST;
+  float globalDepth = MIN_DIST; float localDepth = globalDepth;
+  vec4 localrO = rO; vec4 localrD = rD;
+  totalFixMatrix = mat4(1.0);
+  mat4 fixMatrix = mat4(1.0);
+  
+  // Trace the local scene, then the global scene:
+  for(int i = 0; i< maxSteps; i++){
+    if(globalDepth >= maxDist){
+      //when we break it's as if we reached our max marching steps
+      break;
+    }
+    vec4 localEndPoint = pointOnGeodesic(localrO, localrD, localDepth);
+    if(isOutsideCell(localEndPoint, fixMatrix)){
+      totalFixMatrix *= fixMatrix;
+      localrO = geometryNormalize(localEndPoint*fixMatrix, false);
+      localrD = geometryFixDirection(localrO, localrD, fixMatrix); 
+      localDepth = MIN_DIST;
+    }
+    else{
+      float localDist = min(0.5,localSceneSDF(localEndPoint));
+      if(localDist < EPSILON){
+        hitWhich = 3;
+        sampleEndPoint = localEndPoint;
+        sampleTangentVector = tangentVectorOnGeodesic(localrO, localrD, localDepth);
+        break;
+      }
+      localDepth += localDist;
+      globalDepth += localDist;
+    }
+  }
   
   // Set localDepth to our new max tracing distance:
+  localDepth = min(globalDepth, maxDist);
   globalDepth = MIN_DIST;
   for(int i = 0; i< maxSteps; i++){
     vec4 globalEndPoint = pointOnGeodesic(rO, rD, globalDepth);
     float globalDist = globalSceneSDF(globalEndPoint, invCellBoost, true);
     if(globalDist < EPSILON){
       // hitWhich has been set by globalSceneSDF
+      totalFixMatrix = mat4(1.0);
       sampleEndPoint = globalEndPoint;
       sampleTangentVector = tangentVectorOnGeodesic(rO, rD, globalDepth);
       return;
     }
     globalDepth += globalDist;
+    if(globalDepth >= localDepth){
+      break;
+    }
   }
-
-  return;
 }
 
 void main(){
@@ -421,7 +541,11 @@ void main(){
     N = estimateNormal(sampleEndPoint);
     vec3 color;
     mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
-    color = phongModel(inverse(globalObjectBoost), true, globalTransMatrix);
+    if(hitWhich == 2){ // global objects
+      color = phongModel(inverse(globalObjectBoost), true, globalTransMatrix);
+    }else{ // local objects
+      color = phongModel(mat4(1.0), false, globalTransMatrix);
+    }
     out_FragColor = vec4(color, 1.0);
   }
 }

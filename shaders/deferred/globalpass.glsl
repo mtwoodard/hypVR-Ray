@@ -1,4 +1,5 @@
 #version 300 es
+#extension GL_EXT_draw_buffers : require
 
 //--------------------------------------------
 //Global Constants

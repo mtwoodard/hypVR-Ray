@@ -267,6 +267,17 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
 }
 
 var finishInit = function(fShader){
+  var deferTexParams = {
+    format: THREE.RGBFormat,
+    type: THREE.FloatType,
+    generateMipmaps: false,
+    stencilBuffer: false,
+    depthBuffer: false
+  }
+  var deferLocalTarget = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+  var deferGlobalTarget = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+
+
 //  console.log(fShader);
   g_material = new THREE.ShaderMaterial({
     uniforms:{

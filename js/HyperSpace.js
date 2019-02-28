@@ -21,8 +21,8 @@ var g_controllerDualPoints = [];
 //-------------------------------------------------------
 var local_scene;
 var global_scene;
+var comp_scene;
 var renderer;
-var composer;
 var camera;
 var maxSteps = 50;
 var maxDist = 10.0;
@@ -199,12 +199,13 @@ var init = function(){
     //Setup our THREE scene--------------------------------
 	  time = Date.now();
 	  textFPS = document.getElementById('fps');
-    scene = new THREE.Scene();
+    local_scene = new THREE.Scene();
+    global_scene = new THREE.Scene();
+    comp_scene = new THREE.Scene();
     var canvas  = document.createElement('canvas');
     var context = canvas.getContext('webgl2');
     renderer = new THREE.WebGLRenderer({canvas: canvas, context: context});
     document.body.appendChild(renderer.domElement);
-    composer = new THREE.EffectComposer(renderer);
     g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_effect = new THREE.VREffect(renderer);
@@ -235,12 +236,17 @@ var loadShaders = function(){ //Since our shader is made up of strings we can co
   loader.setResponseType('text');
   loader.load('shaders/deferred/globalpass.glsl', function(global){
     loader.load('shaders/deferred/localpass.glsl', function(local){
-      gPass = global;
-      lPass = local;
-      finishInit();
+      loader.load('shaders/deferred/comppass.glsl', function(comp){
+        gPass = global;
+        lPass = local;
+        cPass = comp;
+        finishInit();
+      });
     });
   });
 }
+
+var local_renderTarget, global_renderTarget;
 
 var finishInit = function(){
   var deferTexParams = {
@@ -253,8 +259,8 @@ var finishInit = function(){
   }
   deferTexParams.depthTexture.type = THREE.UnsignedShortType;
 
-  var deferLocalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
-  var deferGlobalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+  local_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+  global_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
 
   g_mat_global = new THREE.ShaderMaterial({
     uniforms:{
@@ -311,6 +317,18 @@ var finishInit = function(){
     transparent:true
   });
   
+  g_mat_comp = new THREE.ShaderMaterial({
+    uniforms:{
+      localDiffuse:{type:"t", value: local_renderTarget.texture},
+      globalDiffuse:{type:"t", value: global_renderTarget.texture},
+      localDepth:{type:"t", value:local_renderTarget.depthTexture},
+      globalDepth:{type:"t", value:global_renderTarget.depthTexture}
+    },
+    vertexShader: document.getElementById('vertexShader').textContent,
+    fragmentShader: cPass,
+    transparent:true
+  });
+
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
@@ -327,14 +345,14 @@ var finishInit = function(){
     -1.0,  1.0, 0.0
   ]);
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
+
   var mesh_global = new THREE.Mesh(geom, g_mat_global);
   var mesh_local = new THREE.Mesh(geom, g_mat_local);
+  var mesh_comp = new THREE.Mesh(geom, g_mat_comp);
 
   global_scene.add(mesh_global);
   local_scene.add(mesh_local);
-
-  var localPass = new THREE.RenderPass(local_scene, camera);
-  var globalPass= new THREE.RenderPass(global_scene, camera);
+  comp_scene.add(mesh_comp);
   animate();
 }
 
@@ -343,13 +361,17 @@ var finishInit = function(){
 //-------------------------------------------------------
 var animate = function(){
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
-  g_material.uniforms.maxSteps.value = maxSteps;
-  
+  g_mat_global.uniforms.maxSteps.value = maxSteps;
+  g_mat_local.uniforms.maxSteps.value = maxSteps;
+
   g_controls.update();
   THREE.VRController.update();
   
-  g_effect.render(scene, camera, animate);
-  composer.render();
+  //renderer.render(local_scene, camera,  local_renderTarget);
+  renderer.render(global_scene, camera, global_renderTarget);
+  //renderer.clear();
+  g_effect.render(comp_scene, camera, animate);
+
 }
 
 //-------------------------------------------------------

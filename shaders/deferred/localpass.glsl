@@ -1,5 +1,4 @@
 #version 300 es
-#extension GL_EXT_draw_buffers : require
 
 //--------------------------------------------
 //Global Constants
@@ -57,6 +56,8 @@ uniform vec4 simplexMirrorsKlein[4];
 // We'll need more of these later when we support more symmetry groups.
 uniform int cut1;
 uniform int cut4;
+
+out vec4 out_FragColor;
 
 //Raymarch Functions
 float unionSDF(float d1, float d2){
@@ -381,7 +382,7 @@ void main(){
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    gl_FragData[0] = vec4(0.0);
+    out_FragColor = vec4(0.0);
     return;
   }
   else{ // objects
@@ -389,6 +390,6 @@ void main(){
     vec3 color;
     mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
     color = phongModel(mat4(1.0), false, globalTransMatrix);
-    gl_FragData[0] = vec4(color, 1.0);
+    out_FragColor = vec4(color, 1.0);
   }
 }

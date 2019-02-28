@@ -1,12 +1,14 @@
 #version 300 es
-#extension GL_EXT_draw_buffers : require
+
+
+//#extension GL_EXT_draw_buffers : require
 
 //--------------------------------------------
 //Global Constants
 //--------------------------------------------
 const int MAX_MARCHING_STEPS = 127;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 100.0
+const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const vec4 ORIGIN = vec4(0,0,0,1);
 //--------------------------------------------
@@ -15,6 +17,7 @@ const vec4 ORIGIN = vec4(0,0,0,1);
 vec4 sampleEndPoint = vec4(1, 1, 1, 1);
 vec4 sampleTangentVector = vec4(1, 1, 1, 1);
 vec4 globalLightColor = ORIGIN;
+vec4 N = vec4(0,0,0,1);
 int hitWhich = 0;
 //-------------------------------------------
 //Translation & Utility Variables
@@ -38,6 +41,8 @@ uniform int controllerCount; //Max is two
 uniform mat4 controllerBoosts[2];
 uniform mat4 globalObjectBoost;
 uniform float globalObjectRadius;
+
+out vec4 out_FragColor;
 
 //--------------------------------------------------------------------
 // Generalized Functions
@@ -152,16 +157,16 @@ float globalSceneSDF(vec4 samplePoint, mat4 globalTransMatrix, bool collideWithL
   //Controllers
   if(controllerCount != 0){
     //Controller 1 is a light
-    float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[0]*currentBoost, 1.0/(10.0 * lightIntensities[1+NUM_LIGHTS].w));
+    float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[0]*currentBoost, 1.0/(10.0 * lightIntensities[NUM_LIGHTS].w));
     distance = min(distance, objDist);
     if(distance < EPSILON){
       hitWhich = 1;
-      globalLightColor = lightIntensities[1+NUM_LIGHTS];
+      globalLightColor = lightIntensities[NUM_LIGHTS];
       return distance;
     }
     //Controller 2 is an object
     if(controllerCount == 2){
-      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[1]*currentBoost, 1.0/(10.0 * lightIntensities[1+NUM_LIGHTS].w));
+      float objDist = sphereSDF(samplePoint, ORIGIN*controllerBoosts[1]*currentBoost, 1.0/(10.0 * lightIntensities[NUM_LIGHTS].w));
       distance = min(distance, objDist);
       if(distance < EPSILON){
         hitWhich = 2;
@@ -209,7 +214,7 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a poi
     return p;
 }
 
-void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){
+void raymarch(vec4 rO, vec4 rD){
   float globalDepth = MIN_DIST;
   
   // Set localDepth to our new max tracing distance:
@@ -253,22 +258,21 @@ void main(){
   //generate direction then transform to hyperboloid ------------------------
   vec4 rayDirVPrime = geometryDirection(rayOrigin, rayDirV);
   //get our raymarched distance back ------------------------
-  raymarch(rayOrigin, rayDirVPrime, totalFixMatrix);
+  raymarch(rayOrigin, rayDirVPrime);
 
   //Based on hitWhich decide whether we hit a global object, local object, or nothing
   if(hitWhich == 0){ //Didn't hit anything ------------------------
-    gl_FragData[0] = vec4(0.0);
+    out_FragColor = vec4(0.0);
     return;
   }
   else if(hitWhich == 1){ // global lights
-    gl_FragData[0] = vec4(globalLightColor.rgb, 1.0);
+    out_FragColor = vec4(globalLightColor.rgb, 1.0);
     return;
   }
   else{ // objects
     N = estimateNormal(sampleEndPoint);
     vec3 color;
-    mat4 globalTransMatrix = invCellBoost * totalFixMatrix;
-    color = phongModel(inverse(globalObjectBoost), true, globalTransMatrix);
-    gl_FragData[0] = vec4(color, 1.0);
+    color = phongModel(inverse(globalObjectBoost));
+    out_FragColor = vec4(color, 1.0);
   }
 }

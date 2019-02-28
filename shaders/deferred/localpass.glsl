@@ -29,6 +29,7 @@ uniform mat4 stereoBoosts[2];
 uniform mat4 cellBoost; 
 uniform mat4 invCellBoost;
 uniform int maxSteps;
+
 //--------------------------------------------
 //Lighting Variables & Global Object Variables
 //--------------------------------------------

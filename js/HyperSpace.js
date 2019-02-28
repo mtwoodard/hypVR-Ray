@@ -2,7 +2,8 @@
 // Global Variables
 //-------------------------------------------------------
 var g_effect;
-var g_material;
+var g_mat_global;
+var g_mat_local;
 var g_controls;
 var g_geometry;
 var g_rotation;
@@ -18,8 +19,10 @@ var g_controllerDualPoints = [];
 //-------------------------------------------------------
 // Scene Variables
 //-------------------------------------------------------
-var scene;
+var local_scene;
+var global_scene;
 var renderer;
+var composer;
 var camera;
 var maxSteps = 50;
 var maxDist = 10.0;
@@ -201,6 +204,7 @@ var init = function(){
     var context = canvas.getContext('webgl2');
     renderer = new THREE.WebGLRenderer({canvas: canvas, context: context});
     document.body.appendChild(renderer.domElement);
+    composer = new THREE.EffectComposer(renderer);
     g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_effect = new THREE.VREffect(renderer);
@@ -222,67 +226,39 @@ var init = function(){
   }
 }
 
-var globalsFrag;
-var lightingFrag;
-var geometryFrag = [];
-var mainFrag;
-var scenesFrag = [];
+var gPass;
+var lPass;
+var cPass;
 
 var loadShaders = function(){ //Since our shader is made up of strings we can construct it from parts
   var loader = new THREE.FileLoader();
   loader.setResponseType('text');
-  loader.load('shaders/fragment.glsl',function(main){
-    loader.load('shaders/simplexCuts.glsl', function(scene){
-      loader.load('shaders/hyperbolic.glsl', function(hyperbolic){
-        loader.load('shaders/lighting.glsl', function(lighting){
-          loader.load('shaders/globalsInclude.glsl', function(globals){
-          //pass full shader string to finish our init
-          globalsFrag = globals;
-          lightingFrag = lighting;
-          geometryFrag.push(hyperbolic);
-          scenesFrag.push(scene);
-          mainFrag = main;
-          finishInit(globals.concat(lighting).concat(hyperbolic).concat(scene).concat(main));
-        loader.load('shaders/edgeTubes.glsl', function(tubes){
-            loader.load('shaders/medialSurfaces.glsl', function(medial){
-              loader.load('shaders/cubeSides.glsl', function(cubes){
-                scenesFrag.push(tubes);
-                scenesFrag.push(medial);
-                scenesFrag.push(cubes);
-              });
-            });
-          });
-          loader.load('shaders/euclidean.glsl', function(euclidean){
-            loader.load('shaders/spherical.glsl', function(spherical){
-              geometryFrag.push(euclidean);
-              geometryFrag.push(spherical);
-            });
-          });
-        });
-      });
-      });
+  loader.load('shaders/deferred/globalpass.glsl', function(global){
+    loader.load('shaders/deferred/localpass.glsl', function(local){
+      gPass = global;
+      lPass = local;
+      finishInit();
     });
   });
-  
 }
 
-var finishInit = function(fShader){
+var finishInit = function(){
   var deferTexParams = {
     format: THREE.RGBFormat,
     type: THREE.FloatType,
     generateMipmaps: false,
     stencilBuffer: false,
-    depthBuffer: false
+    depthBuffer: true,
+    depthTexture: new THREE.DepthTexture()
   }
-  var deferLocalTarget = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
-  var deferGlobalTarget = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+  deferTexParams.depthTexture.type = THREE.UnsignedShortType;
 
+  var deferLocalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
+  var deferGlobalTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
 
-//  console.log(fShader);
-  g_material = new THREE.ShaderMaterial({
+  g_mat_global = new THREE.ShaderMaterial({
     uniforms:{
       isStereo:{type: "i", value: 0},
-      geometry:{type: "i", value: 3},
       screenResolution:{type:"v2", value:g_screenResolution},
       fov:{type:"f", value:90},
       invGenerators:{type:"m4v", value:invGens},
@@ -291,22 +267,35 @@ var finishInit = function(fShader){
       cellBoost:{type:"m4", value:g_cellBoost},
       invCellBoost:{type:"m4", value:g_invCellBoost},
       maxSteps:{type:"i", value:maxSteps},
-      maxDist:{type:"f", value:maxDist},
-			lightPositions:{type:"v4v", value:lightPositions},
+      lightPositions:{type:"v4v", value:lightPositions},
       lightIntensities:{type:"v3v", value:lightIntensities},
-      attnModel:{type:"i", value:attnModel},
-      renderShadows:{type:"bv", value:[false, false]},
-      shadSoft:{type:"f", value:128.0},
       tex:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
-      //tex:{type:"t", value: new THREE.TextureLoader().load("images/white.png")},   
       controllerCount:{type:"i", value: 0},
       controllerBoosts:{type:"m4", value:g_controllerBoosts},
       globalObjectBoost:{type:"m4v", value:globalObjectBoost},
-      globalObjectRadius:{type:"v3v", value:globalObjectRadius},
-			halfCubeDualPoints:{type:"v4v", value:hCDP},
+      globalObjectRadius:{type:"v3v", value:globalObjectRadius}
+    },
+    defines:{
+      NUM_LIGHTS: lightPositions.length
+    },
+    vertexShader: document.getElementById('vertexShader').textContent,
+    fragmentShader: gPass,
+    transparent:true
+  });
+
+  g_mat_local = new THREE.ShaderMaterial({
+    uniforms:{
+      isStereo:{type: "i", value: 0},
+      screenResolution:{type:"v2", value:g_screenResolution},
+      fov:{type:"f", value:90},
+      invGenerators:{type:"m4v", value:invGens},
+      currentBoost:{type:"m4", value:g_currentBoost},
+      stereoBoosts:{type:"m4v", value:g_stereoBoosts},
+      cellBoost:{type:"m4", value:g_cellBoost},
+      invCellBoost:{type:"m4", value:g_invCellBoost},
+      maxSteps:{type:"i", value:maxSteps},
+      tex:{type:"t", value: new THREE.TextureLoader().load("images/concrete2.png")},
       halfCubeWidthKlein:{type:"f", value: hCWK},
-      cut1:{type:"i", value:g_cut1},
-	  	cut4:{type:"i", value:g_cut4},
       tubeRad:{type:"f", value:g_tubeRad},
       cellPosition:{type:"v4", value:g_cellPosition},
       cellSurfaceOffset:{type:"f", value:g_cellSurfaceOffset},
@@ -314,16 +303,14 @@ var finishInit = function(fShader){
       vertexSurfaceOffset:{type:"f", value:g_vertexSurfaceOffset},
       useSimplex:{type:"b", value:false},
       simplexMirrorsKlein:{type:"v4v", value:simplexMirrors},
-      simplexDualPoints:{type:"v4v", value:simplexDualPoints}
-    },
-    defines: {
-      NUM_LIGHTS: lightPositions.length,
+      cut1:{type:"i", value:g_cut1},
+	  	cut4:{type:"i", value:g_cut4}
     },
     vertexShader: document.getElementById('vertexShader').textContent,
-    fragmentShader: fShader,
+    fragmentShader: lPass,
     transparent:true
   });
-
+  
   g_effect.setSize(g_screenResolution.x, g_screenResolution.y);
   //Setup dat GUI --- SceneManipulator.js
   initGui();
@@ -340,9 +327,14 @@ var finishInit = function(fShader){
     -1.0,  1.0, 0.0
   ]);
   geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
-  var mesh = new THREE.Mesh(geom, g_material);
-  scene.add(mesh);
+  var mesh_global = new THREE.Mesh(geom, g_mat_global);
+  var mesh_local = new THREE.Mesh(geom, g_mat_local);
 
+  global_scene.add(mesh_global);
+  local_scene.add(mesh_local);
+
+  var localPass = new THREE.RenderPass(local_scene, camera);
+  var globalPass= new THREE.RenderPass(global_scene, camera);
   animate();
 }
 
@@ -357,6 +349,7 @@ var animate = function(){
   THREE.VRController.update();
   
   g_effect.render(scene, camera, animate);
+  composer.render();
 }
 
 //-------------------------------------------------------

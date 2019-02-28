@@ -25,6 +25,7 @@ var maxSteps = 50;
 var maxDist = 10.0;
 var textFPS;
 var time;
+var stats;
 
 //-------------------------------------------------------
 // FPS Manager
@@ -220,6 +221,9 @@ var init = function(){
     //since web is async we need to wait on this to finish
     loadShaders();
   }
+
+  stats = new Stats(); stats.showPanel(1); stats.showPanel(2); stats.showPanel(0); document.body.appendChild(stats.dom);
+
 }
 
 var globalsFrag;
@@ -339,6 +343,7 @@ var finishInit = function(fShader){
 // Where our scene actually renders out to screen
 //-------------------------------------------------------
 var animate = function(){
+  stats.begin();
   maxSteps = calcMaxSteps(fps.getFPS(), maxSteps);
   g_material.uniforms.maxSteps.value = maxSteps;
   
@@ -346,6 +351,7 @@ var animate = function(){
   THREE.VRController.update();
   
   g_effect.render(scene, camera, animate);
+  stats.end();
 }
 
 //-------------------------------------------------------

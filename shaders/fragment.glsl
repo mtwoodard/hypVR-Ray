@@ -86,17 +86,32 @@ vec4 getRayPoint(vec2 resolution, vec2 fragCoord, bool isRight){ //creates a poi
     return p;
 }
 
+// bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
+//   vec4 kleinSamplePoint = projectToKlein(samplePoint);
+//   for(int i=0; i<4; i++){
+//     vec3 normal = simplexMirrorsKlein[i].xyz;
+//     vec3 offsetSample = kleinSamplePoint.xyz - normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
+//     if( dot(offsetSample, normal) > 1e-7 ) {
+//       fixMatrix = invGenerators[i];
+//       return true;
+//     }
+//   }
+//   return false;
+// }
+
 bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
+  float foo = 1.0;
   for(int i=0; i<4; i++){
     vec3 normal = simplexMirrorsKlein[i].xyz;
     vec3 offsetSample = kleinSamplePoint.xyz - normal * simplexMirrorsKlein[i].w;  // Deal with any offset.
-    if( dot(offsetSample, normal) > 1e-7 ) {
-      fixMatrix = invGenerators[i];
-      return true;
-    }
+    foo += (sign( dot(offsetSample, normal) - 1e-7 ) + 1.0) * exp2(float(i));
   }
-  return false;
+  if (foo < 1.5){
+    return false;
+  }
+  fixMatrix = invGenerators[ int( floor(log2(foo))) - 1 ];
+  return true;
 }
 
 // This function is intended to be geometry-agnostic.

@@ -115,28 +115,43 @@ bool isOutsideSimplex(vec4 samplePoint, out mat4 fixMatrix){
 }
 
 // This function is intended to be geometry-agnostic.
+// bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
+//   if( useSimplex ) {
+//     return isOutsideSimplex( samplePoint, fixMatrix );
+//   }
+
+//   vec4 kleinSamplePoint = projectToKlein(samplePoint);
+//   if(abs(kleinSamplePoint.x) > halfCubeWidthKlein){
+//     int index = int((1.0-sign(kleinSamplePoint.x))/2.0);
+//     fixMatrix = invGenerators[0+index];
+//     return true;
+//   }
+//   if(abs(kleinSamplePoint.y) > halfCubeWidthKlein){
+//     int index = int((1.0-sign(kleinSamplePoint.y))/2.0);
+//     fixMatrix = invGenerators[2+index];
+//     return true;
+//   }
+//   if(abs(kleinSamplePoint.z) > halfCubeWidthKlein){
+//     int index = int((1.0-sign(kleinSamplePoint.z))/2.0);
+//     fixMatrix = invGenerators[4+index];
+//     return true;
+//   }
+//   return false;
+// }
+
 bool isOutsideCell(vec4 samplePoint, out mat4 fixMatrix){
   if( useSimplex ) {
     return isOutsideSimplex( samplePoint, fixMatrix );
   }
-
   vec4 kleinSamplePoint = projectToKlein(samplePoint);
-  if(abs(kleinSamplePoint.x) > halfCubeWidthKlein){
-    int index = int((1.0-sign(kleinSamplePoint.x))/2.0);
-    fixMatrix = invGenerators[0+index];
-    return true;
+  float foo = 1.0 + (sign( abs(kleinSamplePoint.x) - halfCubeWidthKlein ) + 1.0) *  exp2(      0.5*(1.0 - sign(kleinSamplePoint.x)))
+                  + (sign( abs(kleinSamplePoint.y) - halfCubeWidthKlein ) + 1.0) *  exp2(2.0 + 0.5*(1.0 - sign(kleinSamplePoint.y))) 
+                  + (sign( abs(kleinSamplePoint.z) - halfCubeWidthKlein ) + 1.0) *  exp2(4.0 + 0.5*(1.0 - sign(kleinSamplePoint.z))); 
+  if (foo < 1.5){
+    return false;
   }
-  if(abs(kleinSamplePoint.y) > halfCubeWidthKlein){
-    int index = int((1.0-sign(kleinSamplePoint.y))/2.0);
-    fixMatrix = invGenerators[2+index];
-    return true;
-  }
-  if(abs(kleinSamplePoint.z) > halfCubeWidthKlein){
-    int index = int((1.0-sign(kleinSamplePoint.z))/2.0);
-    fixMatrix = invGenerators[4+index];
-    return true;
-  }
-  return false;
+  fixMatrix = invGenerators[ int( floor(log2(foo))) - 1 ];
+  return true;
 }
 
 void raymarch(vec4 rO, vec4 rD, out mat4 totalFixMatrix){

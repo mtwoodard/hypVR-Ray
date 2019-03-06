@@ -88,7 +88,7 @@ vec3 phongModel(mat4 invObjectBoost){
   //--------------------------------------------
   //Setup Variables
   //--------------------------------------------
-  float ambient = 0.1;
+  float ambient = 1.0;
   vec3 baseColor = vec3(0.0,1.0,1.0);
   vec4 SP = sampleEndPoint;
 

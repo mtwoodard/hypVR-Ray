@@ -111,8 +111,8 @@ vec3 phongModel(mat4 invObjectBoost, bool isGlobal, mat4 globalTransMatrix){
   //--------------------------------------------
   //Setup Variables
   //--------------------------------------------
-  float ambient = 0.1;
-  vec3 baseColor = vec3(0.0,1.0,1.0);
+  float ambient = 1.0;
+  vec3 baseColor = vec3(1.0,1.0,1.0);
   vec4 SP = sampleEndPoint;
   vec4 TLP;
   vec4 V = -sampleTangentVector;

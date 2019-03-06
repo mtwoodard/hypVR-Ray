@@ -205,6 +205,7 @@ var init = function(){
     var canvas  = document.createElement('canvas');
     var context = canvas.getContext('webgl2');
     renderer = new THREE.WebGLRenderer({canvas: canvas, context: context});
+    renderer.autoClear =false;
     document.body.appendChild(renderer.domElement);
     g_screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
@@ -250,14 +251,11 @@ var local_renderTarget, global_renderTarget;
 
 var finishInit = function(){
   var deferTexParams = {
-    format: THREE.RGBFormat,
-    type: THREE.FloatType,
-    generateMipmaps: false,
-    stencilBuffer: false,
-    depthBuffer: true,
-    depthTexture: new THREE.DepthTexture()
-  }
-  deferTexParams.depthTexture.type = THREE.UnsignedShortType;
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.NearestFilter,
+    format: THREE.RGBFormat
+  };
+  //deferTexParams.depthTexture.type = THREE.UnsignedShortType;
 
   local_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
   global_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
@@ -333,18 +331,7 @@ var finishInit = function(){
   //Setup dat GUI --- SceneManipulator.js
   initGui();
 
-  //Setup a "quad" to render on-------------------------
-  var geom = new THREE.BufferGeometry();
-  var vertices = new Float32Array([
-    -1.0, -1.0, 0.0,
-     1.0, -1.0, 0.0,
-     1.0,  1.0, 0.0,
-
-    -1.0, -1.0, 0.0,
-     1.0,  1.0, 0.0,
-    -1.0,  1.0, 0.0
-  ]);
-  geom.addAttribute('position',new THREE.BufferAttribute(vertices,3));
+  var geom = new THREE.PlaneGeometry(2,2);
 
   var mesh_global = new THREE.Mesh(geom, g_mat_global);
   var mesh_local = new THREE.Mesh(geom, g_mat_local);
@@ -367,10 +354,17 @@ var animate = function(){
   g_controls.update();
   THREE.VRController.update();
   
-  //renderer.render(local_scene, camera,  local_renderTarget);
-  renderer.render(global_scene, camera, global_renderTarget);
-  //renderer.clear();
-  g_effect.render(comp_scene, camera, animate);
+  renderer.setRenderTarget(local_renderTarget);
+  renderer.clear();
+  renderer.render(local_scene, camera);
+
+  renderer.setRenderTarget(null);
+  renderer.clear();
+  renderer.render(comp_scene, camera);
+  
+  //g_effect.render(global_scene, camera, animate);
+
+  requestAnimationFrame(animate);
 
 }
 

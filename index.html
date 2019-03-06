@@ -55,9 +55,12 @@
 <script type="x-shader/x-vertex" id="vertexShader">
   #version 300 es
 
+  out vec2 vUV;
+
   void main()
   {
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vUV = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 </script>
 

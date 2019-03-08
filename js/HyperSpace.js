@@ -24,6 +24,7 @@ var global_scene;
 var comp_scene;
 var renderer;
 var camera;
+var cameraRT;
 var maxSteps = 50;
 var maxDist = 10.0;
 var textFPS;
@@ -211,6 +212,7 @@ var init = function(){
     g_screenShotResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
     g_effect = new THREE.VREffect(renderer);
     camera = new THREE.OrthographicCamera(-1,1,1,-1,1/Math.pow(2,53),1);
+    cameraRT = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
     g_controls = new THREE.Controls();
     g_rotation = new THREE.Quaternion();
     g_controllerBoosts.push(new THREE.Matrix4());
@@ -255,7 +257,6 @@ var finishInit = function(){
     magFilter: THREE.NearestFilter,
     format: THREE.RGBFormat
   };
-  //deferTexParams.depthTexture.type = THREE.UnsignedShortType;
 
   local_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
   global_renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, deferTexParams);
@@ -355,11 +356,9 @@ var animate = function(){
   THREE.VRController.update();
   
   renderer.setRenderTarget(local_renderTarget);
-  renderer.clear();
   renderer.render(local_scene, camera);
 
   renderer.setRenderTarget(null);
-  renderer.clear();
   renderer.render(comp_scene, camera);
   
   //g_effect.render(global_scene, camera, animate);
